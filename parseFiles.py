@@ -5,11 +5,11 @@ import sqlite3
 from numpy import *
 
 #  Omega_c    cJ/GMs^2    M/Ms       Eps_c      Mo/Ms      T/W        R_c        v/c     omg_c/Omg_c     rp       Z_p        Z_b        Z_f      h-direct   h-retro     e/m  Shed RedMax
-columnsString=''' (eos text, tprofile text, a real, temp real, 
+columnsString=''' (eos text, tprofile text, a real, temp real,
               omega_c real,  J real, gravMass real, edMax real, baryMass real,
               ToverW real, arealR real, VoverC real, omg_c_over_Omg_c real,
               rpoe real,  Z_p real,  h_direct real,
-              h_retro real, e_over_m real, shed real, 
+              h_retro real, e_over_m real, shed real,
               RedMax real, propRe real) '''
 
 def parseCstDataDirectory(dataDirName, sqliteCursor,tableName="models"):
@@ -20,7 +20,7 @@ def parseCstDataDirectory(dataDirName, sqliteCursor,tableName="models"):
     print "Processing " + str(len(files)) + " files "
 
     for file in files:
-    
+
     #first extract parameter information contained in filename
         noSuffix=file.split('.log')[0]
         #print noSuffix
@@ -30,7 +30,7 @@ def parseCstDataDirectory(dataDirName, sqliteCursor,tableName="models"):
         filenameData[2]=float(filenameData[2][1:])
         filenameData[3]=float(filenameData[3][1:])
 
-        fileHandle=open(dataDirName+file,'r')  
+        fileHandle=open(dataDirName+file,'r')
         #dump first 3 lines of comments
         fileHandle.readline(); fileHandle.readline(); fileHandle.readline();
 
@@ -51,7 +51,7 @@ def parseCstDataDirectory(dataDirName, sqliteCursor,tableName="models"):
             for i in range(len(entry)):
                 entry[i]=float(entry[i])
 
-        #tack on data from the filename   
+        #tack on data from the filename
             entry = filenameData+ entry
 
             nanFlag=0
@@ -65,7 +65,7 @@ def parseCstDataDirectory(dataDirName, sqliteCursor,tableName="models"):
                 print entry
                 print "SKIPPING ADDITION OF THIS ENTRY!"
             else:
-                sqliteCursor.execute("INSERT INTO "+tableName+" VALUES" 
+                sqliteCursor.execute("INSERT INTO "+tableName+" VALUES"
                                      + str(tuple(entry)) )
 
 

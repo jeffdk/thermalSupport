@@ -2,18 +2,15 @@
 
 
 from numpy import *
-import math
 
 
 def stepDown(func,point, delta):
 
 
-    
     newPoint=point
 
 
 
-    
 
 
     return newPoint
@@ -21,7 +18,7 @@ def stepDown(func,point, delta):
 
 class deriv:
     stencil =None
-    dim   =0 
+    dim   =0
     order =0
     step  =0
     coeffs=[]
@@ -32,7 +29,7 @@ class deriv:
     def __str__(self):
         return self.name
     def __init__(self, dim, order, step, stencil, coeffs, name="NULL"):
-        
+
         self.stencil = stencil
         self.coeffs  = coeffs
         self.order   = order
@@ -74,24 +71,24 @@ class fdStencil:
         if len(offsetIn) != dimIn:
             print "Error in class stencil: "
             print "  length of stencil offsets must equal stencil dimension!"
-            exit(-1)    
+            exit(-1)
         for i in sizeIn:
             if i < 2:
                   print "Error in class stencil: "
                   print "  can't have a one point stencil in any dimension!"
-                  exit(-1)    
-        
+                  exit(-1)
+
         self.dim    = dimIn
         self.size   = sizeIn
         self.offset = offsetIn
-        
+
         singleDimIndexList=[]
         for d in range(self.dim):
-            thisDimList = arange(self.size[d]) - ones(self.size[d])*self.size[d]/2. + ones(self.size[d])/2. 
+            thisDimList = arange(self.size[d]) - ones(self.size[d])*self.size[d]/2. + ones(self.size[d])/2.
             print self.offset[d]
             thisDimList +=  ones(self.size[d])*self.offset[d]
             singleDimIndexList.append( thisDimList )
-       
+
         print singleDimIndexList
         self.indices = multigrid(singleDimIndexList)
         print self.indices
@@ -108,10 +105,10 @@ def multigrid( pointsAlongAxes ):
 
     result=[]
     ## indexArray is the same size as our multigrid, but contains indicies
-    indexArray = indices( sizes) 
+    indexArray = indices( sizes)
     for d in range(dim):
         ##intialize a FLOAT version of the index array for this dimension
-        resultArray=indexArray[d]*1.0  
+        resultArray=indexArray[d]*1.0
         #print resultArray
         ##loop over grid points we want to populate along this axis
         for i in range(len(pointsAlongAxes[d])):
