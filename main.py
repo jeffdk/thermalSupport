@@ -68,4 +68,4 @@ ax.plot_wireframe(X, Y, Z, rstride=5, cstride=5, cmap=cm.YlGnBu_r)
 ax.scatter(xs, ys, zs, s=100, color='r', marker='^')
 
 
-#plt.show()
+plt.show()
