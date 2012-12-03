@@ -9,7 +9,7 @@ from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 from numpy import *
 from minimizeAlgorithm import *
-
+import writeParametersFile
 
 
 stenci = fdStencil(1, [5])
@@ -33,6 +33,11 @@ dog=0.5
 
 #print  mgrid[-dog:0.6,-1:1.1,-1:1.1]
 
+params=['EOS','Ns','Nu','Nl','InitE','FinalE','Nsteps','RunName','RotInvA','RPOEGoal']
+paramDict={}
+for i in params:
+    paramDict[i]='dog'
+writeParametersFile.writeFile(paramDict,'outFile.input')
 
 
 def func(a,T):
