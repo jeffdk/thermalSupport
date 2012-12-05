@@ -4,7 +4,7 @@ import re
 __author__ = 'jeff'
 
 
-paramsFileString = '''Run type (1 for M_b-1) : 30
+paramsFileString = '''Run type (1 for M_b-1) : __RunType__
                    EOS : __EOS__
        Radial Res. N_s : __Ns__
       Angular Res. N_u : __Nu__
@@ -20,9 +20,10 @@ Initial Cent E Density : __InitE__
 
 def writeFile(paramsDict,fileName):
     outputString=paramsFileString
-    listOfReplacments=['EOS','Ns','Nu','Nl','InitE','FinalE','Nsteps','RunName','RotInvA','RPOEGoal']
-    for replace in listOfReplacments:
-        outputString = re.sub('__'+replace+'__',paramsDict[replace],outputString)
+    listOfReplacements=['RunType','EOS','Ns','Nu','Nl','InitE','FinalE',
+                       'Nsteps','RunName','RotInvA','RPOEGoal']
+    for replace in listOfReplacements:
+        outputString = re.sub('__'+replace+'__',str(paramsDict[replace]),outputString)
 
     outFile=open(fileName,'w')
     outFile.write(outputString)

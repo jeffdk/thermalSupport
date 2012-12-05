@@ -18,8 +18,8 @@ location_RotNS       = "/home/jeff/work/RotNS/RotNS"
 specEosOptions       = "Tabulated(filename= /home/jeff/work/HS_Tabulated.dat )"
 
 hsModels = modelGenerator(location_RotNS,location_MakeEosFile,specEosOptions)
-
-
+runParams = {'CED':0.3325,'a':1.0,'rpoe':0.6}
+hsModels.runOneModel(runParams,"blah")
 
 ###############################
 # TEST STENCIL & FIRST DERIV
@@ -45,7 +45,7 @@ print firstDeriv.getPoints()
 
 ###############################
 # TEST writeParametersFile
-params=['EOS','Ns','Nu','Nl','InitE','FinalE','Nsteps','RunName','RotInvA','RPOEGoal']
+params=['RunType','EOS','Ns','Nu','Nl','InitE','FinalE','Nsteps','RunName','RotInvA','RPOEGoal']
 paramDict={}
 for i in params:
     paramDict[i]='dog'
