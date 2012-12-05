@@ -9,9 +9,20 @@ from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 from numpy import *
 from minimizeAlgorithm import *
+from modelGeneration import modelGenerator
 import writeParametersFile
 
 
+location_MakeEosFile = "/home/jeff/spec/Hydro/EquationOfState/Executables/MakeRotNSeosfile"
+location_RotNS       = "/home/jeff/work/RotNS/RotNS"
+specEosOptions       = "Tabulated(filename= /home/jeff/work/HS_Tabulated.dat )"
+
+hsModels = modelGenerator(location_RotNS,location_MakeEosFile,specEosOptions)
+
+
+
+###############################
+# TEST STENCIL & FIRST DERIV
 stenci = fdStencil(1, [5])
 
 
@@ -28,18 +39,23 @@ firstDeriv.setupPoints(0.3)
 print firstDeriv.getPoints()
 firstDeriv.setStep(0.2)
 print firstDeriv.getPoints()
+#
+###############################
 
-dog=0.5
 
-#print  mgrid[-dog:0.6,-1:1.1,-1:1.1]
-
+###############################
+# TEST writeParametersFile
 params=['EOS','Ns','Nu','Nl','InitE','FinalE','Nsteps','RunName','RotInvA','RPOEGoal']
 paramDict={}
 for i in params:
     paramDict[i]='dog'
 writeParametersFile.writeFile(paramDict,'outFile.input')
+#
+###############################
 
 
+###############################
+# TEST plotting and stepDown function
 def func(a,T):
     return -3*(a*a + T*T/2. -a*T/2.) + (a*a*a*a*.7 + T*T*T*T*.34)
 
@@ -72,5 +88,6 @@ Z = func(X,Y)
 ax.plot_wireframe(X, Y, Z, rstride=5, cstride=5, cmap=cm.YlGnBu_r)
 ax.scatter(xs, ys, zs, s=100, color='r', marker='^')
 
-
 plt.show()
+#
+###############################
