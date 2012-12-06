@@ -9,7 +9,7 @@ from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 from numpy import *
 from minimizeAlgorithm import *
-from modelGeneration import modelGenerator, tester
+from modelGeneration import modelGenerator
 import writeParametersFile
 
 
@@ -34,8 +34,8 @@ paramsList=[runParams for i in range(16)]
 argList= [ (x,y) for x in range(4) for y in range(4)]
 #hsModels.runOneModel(runParams,"blah")
 #hsModels.hardDelete("blah")
-#from pickleHack import *
-func = tester
+from pickleHack import *
+func = hsModels.tester
 hsModels.generateModels(func,argList)
 
 ###############################
