@@ -26,27 +26,25 @@ runParams = {'CED':0.3325,
              'T' : 10.0 }
 #hsModels.runOneModel(runParams,"blah")
 #hsModels.hardDelete("blah")
-
-hsModels.generateModels([])
+from pickleHack import *
+func = hsModels.tester
+hsModels.generateModels(func,[])
 
 ###############################
 # TEST STENCIL & FIRST DERIV
 stenci = fdStencil(1, [5])
 
-
-
 firstDeriv=deriv(dim=1, order=1, step=0.1,stencil=stenci,
                  coeffs=array([1,-8,0,8,-1])/12.,
                  name="5ptFirstDeriv")
 
-
-print firstDeriv
-
-firstDeriv.setupPoints(0.3)
-
-print firstDeriv.getPoints()
-firstDeriv.setStep(0.2)
-print firstDeriv.getPoints()
+#print firstDeriv
+#
+#firstDeriv.setupPoints(0.3)
+#
+#print firstDeriv.getPoints()
+#firstDeriv.setStep(0.2)
+#print firstDeriv.getPoints()
 #
 ###############################
 

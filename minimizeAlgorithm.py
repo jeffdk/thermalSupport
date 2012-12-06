@@ -85,13 +85,13 @@ class fdStencil:
         singleDimIndexList=[]
         for d in range(self.dim):
             thisDimList = arange(self.size[d]) - ones(self.size[d])*self.size[d]/2. + ones(self.size[d])/2.
-            print self.offset[d]
+            #print self.offset[d]
             thisDimList +=  ones(self.size[d])*self.offset[d]
             singleDimIndexList.append( thisDimList )
 
-        print singleDimIndexList
+        #print singleDimIndexList
         self.indices = multigrid(singleDimIndexList)
-        print self.indices
+        #print self.indices
 
 
 #no data validation here

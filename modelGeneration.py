@@ -11,7 +11,7 @@ __author__ = 'jeff'
 
 
 
-class modelGenerator():
+class modelGenerator(object):
     rotNS_location = ""
     makeEosFile_location = ""
     specEosOptions = ""
@@ -88,19 +88,25 @@ class modelGenerator():
         if '/' in runID:
             exit("You GONE DUN TRYIN TO ERASE A NON LOCAL DIRECTORY!!")
         subprocess.call(["rm", "-rf", runID])
-    def generateModels(self,listOfInputParams):
+
+    def tester(self, dog,cat):
+        print dog, cat
+        secs = random.random()
+        time.sleep(secs)
+        return secs
+    def generateModels(self, f, listOfInputParams):
         def calculate(func, args):
             result = func(*args)
             return '%s says that %s%s = %s' % \
                    (multiprocessing.current_process().name, func.__name__, args, result)
-        def tester(dog,cat):
-            print dog, cat
-            secs = random.random(10.0)
-            time.sleep(secs)
-            return secs
+
         PROCESSES = self.num_cpus
         print 'Creating pool with %d processes\n' % PROCESSES
         pool = multiprocessing.Pool(PROCESSES)
         print 'pool = %s' % pool
         print
+        argList= [ (x,y) for x in range(4) for y in range(4)]
+        print argList
 
+        results = [pool.apply(f, args) for args in argList]
+        print results
