@@ -1,6 +1,10 @@
 #!/usr/bin/python
+import multiprocessing
 import os
+import random
 import subprocess
+import numpy.random
+import time
 import writeParametersFile
 
 __author__ = 'jeff'
@@ -16,6 +20,7 @@ class modelGenerator():
     requestQueue=[]
     rotNS_numSteps = 20       # number of steps to get to target RPOEGoal
     default_Tmin   = 0.5      # default tmin for MakeRotNSeosfile
+    num_cpus = multiprocessing.cpu_count()
     def __init__(self,rotNS_location,makeEosFile_location,
                  specEosOptions, rotNS_resolutionParams=(800,800,30)):
         """
@@ -83,3 +88,19 @@ class modelGenerator():
         if '/' in runID:
             exit("You GONE DUN TRYIN TO ERASE A NON LOCAL DIRECTORY!!")
         subprocess.call(["rm", "-rf", runID])
+    def generateModels(self,listOfInputParams):
+        def calculate(func, args):
+            result = func(*args)
+            return '%s says that %s%s = %s' % \
+                   (multiprocessing.current_process().name, func.__name__, args, result)
+        def tester(dog,cat):
+            print dog, cat
+            secs = random.random(10.0)
+            time.sleep(secs)
+            return secs
+        PROCESSES = self.num_cpus
+        print 'Creating pool with %d processes\n' % PROCESSES
+        pool = multiprocessing.Pool(PROCESSES)
+        print 'pool = %s' % pool
+        print
+

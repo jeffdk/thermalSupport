@@ -24,8 +24,11 @@ runParams = {'CED':0.3325,
              'roll-midpoint':14.0,
              'roll-scale' :  0.5,
              'T' : 10.0 }
-hsModels.runOneModel(runParams,"blah")
-hsModels.hardDelete("blah")
+#hsModels.runOneModel(runParams,"blah")
+#hsModels.hardDelete("blah")
+
+hsModels.generateModels([])
+
 ###############################
 # TEST STENCIL & FIRST DERIV
 stenci = fdStencil(1, [5])
@@ -93,6 +96,6 @@ Z = func(X,Y)
 ax.plot_wireframe(X, Y, Z, rstride=5, cstride=5, cmap=cm.YlGnBu_r)
 ax.scatter(xs, ys, zs, s=100, color='r', marker='^')
 
-plt.show()
+#plt.show()
 #
 ###############################
