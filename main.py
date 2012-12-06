@@ -9,7 +9,7 @@ from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 from numpy import *
 from minimizeAlgorithm import *
-from modelGeneration import modelGenerator
+from modelGeneration import modelGenerator, tester
 import writeParametersFile
 
 
@@ -24,11 +24,19 @@ runParams = {'CED':0.3325,
              'roll-midpoint':14.0,
              'roll-scale' :  0.5,
              'T' : 10.0 }
+runParams2 = {'CED':0.462,
+             'a':1.0,
+             'rpoe':0.7,
+             'roll-midpoint':14.0,
+             'roll-scale' :  0.5,
+             'T' : 10.0 }
+paramsList=[runParams for i in range(16)]
+argList= [ (x,y) for x in range(4) for y in range(4)]
 #hsModels.runOneModel(runParams,"blah")
 #hsModels.hardDelete("blah")
-from pickleHack import *
-func = hsModels.tester
-hsModels.generateModels(func,[])
+#from pickleHack import *
+func = tester
+hsModels.generateModels(func,argList)
 
 ###############################
 # TEST STENCIL & FIRST DERIV
