@@ -18,9 +18,14 @@ location_RotNS       = "/home/jeff/work/RotNS/RotNS"
 specEosOptions       = "Tabulated(filename= /home/jeff/work/HS_Tabulated.dat )"
 
 hsModels = modelGenerator(location_RotNS,location_MakeEosFile,specEosOptions)
-runParams = {'CED':0.3325,'a':1.0,'rpoe':0.6}
+runParams = {'CED':0.3325,
+             'a':1.0,
+             'rpoe':0.6,
+             'roll-midpoint':14.0,
+             'roll-scale' :  0.5,
+             'T' : 10.0 }
 hsModels.runOneModel(runParams,"blah")
-
+hsModels.hardDelete("blah")
 ###############################
 # TEST STENCIL & FIRST DERIV
 stenci = fdStencil(1, [5])

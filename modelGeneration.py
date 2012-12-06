@@ -15,6 +15,7 @@ class modelGenerator():
     rotNS_EosType = "PP"      #eos PP causes RotNS to look for EOS/EOS.PP
     requestQueue=[]
     rotNS_numSteps = 20       # number of steps to get to target RPOEGoal
+    default_Tmin   = 0.5      # default tmin for MakeRotNSeosfile
     def __init__(self,rotNS_location,makeEosFile_location,
                  specEosOptions, rotNS_resolutionParams=(800,800,30)):
         """
@@ -48,16 +49,19 @@ class modelGenerator():
 
         ####
         # Do EOS generation here
-        makeEosFileArgs=""
-        print "cp " + self.makeEosFile_location + " ./"
-        ourDir=subprocess.check_output('pwd')
-        print ourDir[:-1]+ "/MakeRotNSeosfile"
-        subprocess.call(["/bin/cp " + self.makeEosFile_location + " ./"],shell=True)
-        subprocess.call("ls")
-        subprocess.call("./MakeRotNSeosfile")
+        subprocess.call(["cp", self.makeEosFile_location, "./"])
+
+        makeEosFileArgs={'-eos-opts'     : self.specEosOptions,
+                         '-roll-midpoint': inputParams['roll-midpoint'],
+                         '-roll-scale'   : inputParams['roll-scale'],
+                         '-roll-tmin'    : self.default_Tmin,
+                         '-roll-tmax'    : inputParams['T'] }
+        argList=[str(arg) for item in makeEosFileArgs.items() for arg in item ]
+
+        subprocess.call(["./MakeRotNSeosfile"] + argList )
 
         subprocess.call(["mkdir", "EOS"])
-        subprocess.call("/bin/cp output.EOS EOS/EOS.PP",shell=True)
+        subprocess.call(["cp", "output.EOS", "EOS/EOS.PP"])
 
 
 
@@ -70,6 +74,12 @@ class modelGenerator():
 
         writeParametersFile.writeFile(rotNS_params,'Parameters.input')
 
-        subprocess.call(["/bin/cp " + self.rotNS_location + " ./"],shell=True)
+        subprocess.call(["cp", self.rotNS_location, "./"])
         subprocess.call("./RotNS < Parameters.input",shell=True)
         os.chdir("../")
+    def hardDelete(self,runID):
+
+        assert isinstance(runID, str)
+        if '/' in runID:
+            exit("You GONE DUN TRYIN TO ERASE A NON LOCAL DIRECTORY!!")
+        subprocess.call(["rm", "-rf", runID])
