@@ -1,15 +1,14 @@
 #!/usr/bin/python
 
 
-import os
 import sqlite3
-import re
 from matplotlib import pyplot as plt
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 from numpy import *
 from minimizeAlgorithm import *
 from modelGeneration import modelGenerator
+import parseFiles
 import writeParametersFile
 
 
@@ -18,28 +17,45 @@ location_RotNS       = "/home/jeff/work/RotNS/RotNS"
 specEosOptions       = "Tabulated(filename= /home/jeff/work/HS_Tabulated.dat )"
 locationForRuns      = "/home/jeff/work/rotNSruns"
 
-hsModels = modelGenerator(location_RotNS,location_MakeEosFile,specEosOptions,locationForRuns)
+connection=sqlite3.connect('/home/jeff/work/rotNSruns/models.db')
+
+c=connection.cursor()
+c.execute("CREATE TABLE models" + parseFiles.columnsString)
+
+
+hsModels = modelGenerator(location_RotNS,location_MakeEosFile,specEosOptions,locationForRuns,c)
 runParams = {'CED':0.3325,
              'a':1.0,
-             'rpoe':0.6,
+             'rpoe':1.0,
              'roll-midpoint':14.0,
              'roll-scale' :  0.5,
              'T' : 10.0 }
 runParams2 = {'CED':0.462,
              'a':1.0,
-             'rpoe':0.7,
+             'rpoe':1.0,
              'roll-midpoint':14.0,
              'roll-scale' :  0.5,
              'T' : 10.0 }
-paramsList=[runParams for i in range(3)]
-argList= [ (x,y) for x in range(4) for y in range(4)]
+def update(runParamz,x):
+    newDict={}
+    runParamz.update( {'CED':x})
+    newDict.update( runParamz)
+    return newDict
+print hsModels.determineRunName(runParams)
+paramsList=[  update(runParams2,x) for x in arange(0.1,0.51, 0.1) ]
+print paramsList
+
+argList= [] #[ (x,y) for x in range(4) for y in range(4)]
 #hsModels.runOneModel(runParams,"blah")
 #hsModels.hardDelete("blah")
 from pickleHack import *
-func = hsModels.tester
-hsModels.generateModels(func,argList)
+#func = hsModels.tester
+#hsModels.generateModels(func,argList)
 func = hsModels.runOneModel
 hsModels.generateModels(func,paramsList)
+
+connection.commit()
+connection.close()
 
 ###############################
 # TEST STENCIL & FIRST DERIV
