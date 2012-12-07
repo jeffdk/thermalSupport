@@ -2,18 +2,22 @@
 import multiprocessing
 import os
 import random
+import sqlite3
 import subprocess
 import datetime
 import numpy.random
 import time
+from parseFiles import parseCstFileList
 import writeParametersFile
 
 __author__ = 'jeff'
 def calculate(func, args):
     result = func(*args)
+    #print "calculate, args: ", args
     return '%s says that %s%s = %s' %\
            (multiprocessing.current_process().name, func.__name__, args, result)
 def calculateStar(args):
+    #print "calculateStar, args: ", args
     return calculate(*args)
 
 
@@ -26,9 +30,10 @@ class modelGenerator(object):
     requestQueue=[]
     rotNS_numSteps = 20       # number of steps to get to target RPOEGoal
     default_Tmin   = 0.5      # default tmin for MakeRotNSeosfile
-    num_cpus = multiprocessing.cpu_count()
+    num_cpus = 2 #multiprocessing.cpu_count()
+    locationForRuns=""
     def __init__(self,rotNS_location,makeEosFile_location,
-                 specEosOptions, rotNS_resolutionParams=(800,800,30)):
+                 specEosOptions,locationForRuns, sqliteCursor, rotNS_resolutionParams=(800,800,30)):
         """
         rotNS_location:         string
         makeEosFile_location:   string
@@ -41,11 +46,16 @@ class modelGenerator(object):
         self.makeEosFile_location=makeEosFile_location
         assert isinstance(specEosOptions, str)
         self.specEosOptions=specEosOptions
+        assert isinstance(locationForRuns, str)
+        self.locationForRuns=locationForRuns
 
         assert isinstance(rotNS_resolutionParams, tuple)
         self.rotNS_resolutionParams['Ns']=rotNS_resolutionParams[0]
         self.rotNS_resolutionParams['Nu']=rotNS_resolutionParams[1]
         self.rotNS_resolutionParams['Nl']=rotNS_resolutionParams[2]
+
+        assert isinstance(sqliteCursor, sqlite3.Cursor)
+        self.sqliteCursor=sqliteCursor
         
     def runOneModel(self, inputParams, runID):
         assert isinstance(inputParams, dict)
@@ -55,7 +65,7 @@ class modelGenerator(object):
                         'Nsteps':self.rotNS_numSteps}
         #Add resolution information
         rotNS_params.update(self.rotNS_resolutionParams)
-        runName = "oneModel"
+        runName = self.determineRunName(inputParams)
         
         os.mkdir(runID)
         os.chdir(runID)
@@ -86,9 +96,12 @@ class modelGenerator(object):
         writeParametersFile.writeFile(rotNS_params,'Parameters.input')
 
         subprocess.call(["cp", self.rotNS_location, "./"])
-        subprocess.call("./RotNS < Parameters.input > " + runID + ".log",shell=True)
+        print "MakeRotNSeosfile done!  Now running  RotNs, runID: ", runID
+        subprocess.call("./RotNS < Parameters.input > run.log ", shell=True)
+        val = parseCstFileList([runName],self.sqliteConnection)
         os.chdir("../")
-        
+        return val
+
     def tester(self, dog,cat):
         print dog, cat
         secs = 1#2* random.random()
@@ -103,29 +116,47 @@ class modelGenerator(object):
         subprocess.call(["rm", "-rf", runID])
 
     def generateModels(self, f, listOfInputParams):
-
+        currentDirectory=os.getcwd()
+        os.chdir(self.locationForRuns)
         PROCESSES = self.num_cpus
         print 'Creating pool with %d processes\n' % PROCESSES
         pool = multiprocessing.Pool(PROCESSES)
         print 'pool = %s' % pool
         print
 
-        TASKS = []
+        TASKS, TASKS2 = [],[]
         for inputParams in listOfInputParams:
             #runID is seconds elapsed since my 28th birthday
             runID = str( (datetime.datetime.now() - datetime.datetime(2012,11,11)).total_seconds())
-            print (runID,  inputParams,runID )
+            #print (runID,  inputParams,runID )
             TASKS.append( (f,  ( inputParams,runID) )  )
-
+            TASKS2.append(   ( inputParams,runID) )
         start = datetime.datetime.now()
-        print TASKS
+        #        print TASKS2
         result = pool.imap_unordered(calculateStar, TASKS)
-
+        #result = pool.imap_unordered(f, TASKS2)
         for i in result:
             print i
-
+        pool.close()
+        pool.join()
         print "DIFFERENCE: ", datetime.datetime.now()- start
 
-        #results = [pool.apply(f, args) for args in argList]
-        #print results
+        os.chdir(currentDirectory)
+
+
+
+    def determineRunName(self, inputParams):
+        result = ""
+        #following line gets the EOS table name
+        result += self.specEosOptions.split('/')[-1].split('_')[0]
+        result += '_mid'
+        result += str(inputParams['roll-midpoint'])
+        result += '_scale'
+        result += str(inputParams['roll-scale'])
+        result += '_a'
+        result += str(inputParams['a'])
+        result += '_T'
+        result += str(inputParams['T'])
+        return result
+
 

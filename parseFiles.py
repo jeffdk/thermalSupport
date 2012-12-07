@@ -5,18 +5,24 @@ import sqlite3
 from numpy import *
 
 #  Omega_c    cJ/GMs^2    M/Ms       Eps_c      Mo/Ms      T/W        R_c        v/c     omg_c/Omg_c     rp       Z_p        Z_b        Z_f      h-direct   h-retro     e/m  Shed RedMax
-columnsString=''' (eos text, tprofile text, a real, temp real,
+columnsString=''' (eos text, rollMid real, rollScale real, a real, temp real,
               omega_c real,  J real, gravMass real, edMax real, baryMass real,
               ToverW real, arealR real, VoverC real, omg_c_over_Omg_c real,
               rpoe real,  Z_p real,  h_direct real,
               h_retro real, e_over_m real, shed real,
               RedMax real, propRe real) '''
 
+
 def parseCstDataDirectory(dataDirName, sqliteCursor,tableName="models"):
 
 
     files=os.listdir(dataDirName)
+    cwd = os.getcwd()
+    os.chdir(dataDirName)
+    parseCstFileList(files, sqliteCursor,tableName)
+    os.chdir(cwd)
 
+def parseCstFileList(files, sqliteCursor,tableName="models"):
     print "Processing " + str(len(files)) + " files "
 
     for file in files:
@@ -26,13 +32,16 @@ def parseCstDataDirectory(dataDirName, sqliteCursor,tableName="models"):
         #print noSuffix
 
         filenameData=noSuffix.split('_')
+        print filenameData
         #remove a and T identifiers and make floats
-        filenameData[2]=float(filenameData[2][1:])
+        filenameData[1]=float(filenameData[1][3:])
+        filenameData[2]=float(filenameData[2][5:])
         filenameData[3]=float(filenameData[3][1:])
-
-        fileHandle=open(dataDirName+file,'r')
+        filenameData[4]=float(filenameData[4][1:])
+        print filenameData
+        fileHandle=open(file,'r')
         #dump first 3 lines of comments
-        fileHandle.readline(); fileHandle.readline(); fileHandle.readline();
+        fileHandle.readline(); fileHandle.readline(); fileHandle.readline()
 
         for line in fileHandle:
             entry = line.split()
@@ -40,7 +49,7 @@ def parseCstDataDirectory(dataDirName, sqliteCursor,tableName="models"):
             #HACK OUT BROKEN Z_b & Z_f entry
             # only occurs sometimes, so if it is not present, we take otu BOTH
             # entries
-            if(len(entry)>18):
+            if len(entry)>18:
                 takeOutVal=13
             else:
                 takeOutVal=12
@@ -57,7 +66,7 @@ def parseCstDataDirectory(dataDirName, sqliteCursor,tableName="models"):
             nanFlag=0
             #remove entries with nans
             for i in range(len(entry)):
-                if(isinstance(entry[i],float)):
+                if isinstance(entry[i],float):
                        if math.isnan(float(entry[i])):
                            nanFlag=1
             if nanFlag:
@@ -65,8 +74,10 @@ def parseCstDataDirectory(dataDirName, sqliteCursor,tableName="models"):
                 print entry
                 print "SKIPPING ADDITION OF THIS ENTRY!"
             else:
+                print entry
                 sqliteCursor.execute("INSERT INTO "+tableName+" VALUES"
                                      + str(tuple(entry)) )
 
-
+                
         fileHandle.close()
+    return 0
