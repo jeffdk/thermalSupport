@@ -7,7 +7,7 @@ import subprocess
 import datetime
 import numpy.random
 import time
-from parseFiles import parseCstFileList
+from parseFiles import parseCstFileList, parseEntriesIntoDB
 import writeParametersFile
 
 __author__ = 'jeff'
@@ -98,10 +98,10 @@ class modelGenerator(object):
         subprocess.call(["cp", self.rotNS_location, "./"])
         print "MakeRotNSeosfile done!  Now running  RotNs, runID: ", runID
         subprocess.call("./RotNS < Parameters.input > run.log ", shell=True)
-        entry = parseCstFileList([runName],self.sqliteCursor)
+        entries = parseCstFileList([runName])
        
         os.chdir("../")
-        return entry
+        return entries
 
     def tester(self, dog,cat):
         print dog, cat
@@ -148,8 +148,7 @@ class modelGenerator(object):
             #print i
             tableName="models"
             if i:
-                self.sqliteCursor.execute("INSERT INTO "+tableName+" VALUES"
-                                          + str(tuple(i)) )
+                parseEntriesIntoDB(i, self.sqliteCursor,tableName)
             else: 
                 print "ERROR FOR LAST MODEL" 
         pool.close()
@@ -158,10 +157,6 @@ class modelGenerator(object):
 
         os.chdir(currentDirectory)
 
-    def generateRunID():
-        #runID is seconds elapsed since my 28th birthday
-        runID = str( (datetime.datetime.now() - datetime.datetime(2012,11,11)).total_seconds())
-        return runID
     def determineRunName(self, inputParams):
         result = ""
         #following line gets the EOS table name

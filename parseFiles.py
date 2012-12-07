@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import os
-import sqlite3
 from numpy import *
 
 #  Omega_c    cJ/GMs^2    M/Ms       Eps_c      Mo/Ms      T/W        R_c        v/c     omg_c/Omg_c     rp       Z_p        Z_b        Z_f      h-direct   h-retro     e/m  Shed RedMax
@@ -13,18 +12,19 @@ columnsString=''' (eos text, rollMid real, rollScale real, a real, temp real,
               RedMax real, propRe real) '''
 
 
-def parseCstDataDirectory(dataDirName, sqliteCursor,tableName="models"):
+def parseCstDataDirectoryIntoDB(dataDirName, sqliteCursor,tableName="models"):
 
 
     files=os.listdir(dataDirName)
     cwd = os.getcwd()
     os.chdir(dataDirName)
-    parseCstFileList(files, sqliteCursor,tableName)
+    entries=parseCstFileList(files)
     os.chdir(cwd)
+    parseEntriesIntoDB(entries,sqliteCursor,tableName)
 
-def parseCstFileList(files, sqliteCursor,tableName="models"):
+def parseCstFileList(files):
     print "Processing " + str(len(files)) + " files "
-
+    entries=[]
     for file in files:
 
     #first extract parameter information contained in filename
@@ -42,7 +42,6 @@ def parseCstFileList(files, sqliteCursor,tableName="models"):
         fileHandle=open(file,'r')
         #dump first 3 lines of comments
         fileHandle.readline(); fileHandle.readline(); fileHandle.readline()
-
         for line in fileHandle:
             entry = line.split()
             #print entry
@@ -74,9 +73,14 @@ def parseCstFileList(files, sqliteCursor,tableName="models"):
                 print entry
                 print "SKIPPING ADDITION OF THIS ENTRY!"
             else:
-                return entry
+                entries.append(entry)
                 
 
                 
         fileHandle.close()
-    
+    return entries
+
+def parseEntriesIntoDB(entries,sqliteCursor,tableName="models"):
+    for entry in entries:
+        sqliteCursor.execute("INSERT INTO "+tableName+" VALUES"
+                                          + str(tuple(entry)) )

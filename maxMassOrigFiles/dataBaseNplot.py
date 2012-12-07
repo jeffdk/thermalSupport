@@ -44,7 +44,7 @@ for line in tovFile:
 #  PARSE ALL THE DATA FILES!
 #-----------------------------------------------------------------------------
 #
-parseCstDataDirectory(dataDirName,c,tableName="models")
+parseCstDataDirectoryIntoDB(dataDirName,c,tableName="models")
 #
 ###############################################################################
 
