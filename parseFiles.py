@@ -74,10 +74,9 @@ def parseCstFileList(files, sqliteCursor,tableName="models"):
                 print entry
                 print "SKIPPING ADDITION OF THIS ENTRY!"
             else:
-                print entry
-                sqliteCursor.execute("INSERT INTO "+tableName+" VALUES"
-                                     + str(tuple(entry)) )
+                return entry
+                
 
                 
         fileHandle.close()
-    return 0
+    

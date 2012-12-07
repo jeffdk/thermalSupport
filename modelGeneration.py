@@ -13,9 +13,9 @@ import writeParametersFile
 __author__ = 'jeff'
 def calculate(func, args):
     result = func(*args)
-    #print "calculate, args: ", args
-    return '%s says that %s%s = %s' %\
+    print '%s says that %s%s = %s' %\
            (multiprocessing.current_process().name, func.__name__, args, result)
+    return result
 def calculateStar(args):
     #print "calculateStar, args: ", args
     return calculate(*args)
@@ -30,7 +30,7 @@ class modelGenerator(object):
     requestQueue=[]
     rotNS_numSteps = 20       # number of steps to get to target RPOEGoal
     default_Tmin   = 0.5      # default tmin for MakeRotNSeosfile
-    num_cpus = 2 #multiprocessing.cpu_count()
+    num_cpus = multiprocessing.cpu_count()
     locationForRuns=""
     def __init__(self,rotNS_location,makeEosFile_location,
                  specEosOptions,locationForRuns, sqliteCursor, rotNS_resolutionParams=(800,800,30)):
@@ -98,9 +98,10 @@ class modelGenerator(object):
         subprocess.call(["cp", self.rotNS_location, "./"])
         print "MakeRotNSeosfile done!  Now running  RotNs, runID: ", runID
         subprocess.call("./RotNS < Parameters.input > run.log ", shell=True)
-        val = parseCstFileList([runName],self.sqliteConnection)
+        entry = parseCstFileList([runName],self.sqliteCursor)
+       
         os.chdir("../")
-        return val
+        return entry
 
     def tester(self, dog,cat):
         print dog, cat
@@ -125,10 +126,18 @@ class modelGenerator(object):
         print
 
         TASKS, TASKS2 = [],[]
+        ids = []
         for inputParams in listOfInputParams:
-            #runID is seconds elapsed since my 28th birthday
-            runID = str( (datetime.datetime.now() - datetime.datetime(2012,11,11)).total_seconds())
-            #print (runID,  inputParams,runID )
+            
+            runID = generateRunID() 
+        
+            if runID in ids:
+                print "runID collision!"
+                time.sleep(0.01)
+                runID = generateRunID()
+            ids.append(runID)
+
+            print runID
             TASKS.append( (f,  ( inputParams,runID) )  )
             TASKS2.append(   ( inputParams,runID) )
         start = datetime.datetime.now()
@@ -136,15 +145,23 @@ class modelGenerator(object):
         result = pool.imap_unordered(calculateStar, TASKS)
         #result = pool.imap_unordered(f, TASKS2)
         for i in result:
-            print i
+            #print i
+            tableName="models"
+            if i:
+                self.sqliteCursor.execute("INSERT INTO "+tableName+" VALUES"
+                                          + str(tuple(i)) )
+            else: 
+                print "ERROR FOR LAST MODEL" 
         pool.close()
         pool.join()
         print "DIFFERENCE: ", datetime.datetime.now()- start
 
         os.chdir(currentDirectory)
 
-
-
+    def generateRunID():
+        #runID is seconds elapsed since my 28th birthday
+        runID = str( (datetime.datetime.now() - datetime.datetime(2012,11,11)).total_seconds())
+        return runID
     def determineRunName(self, inputParams):
         result = ""
         #following line gets the EOS table name
@@ -158,5 +175,9 @@ class modelGenerator(object):
         result += '_T'
         result += str(inputParams['T'])
         return result
-
+def generateRunID():
+   #runID is seconds elapsed since my 28th birthday=
+    runID = str( (datetime.datetime.now() 
+                  - datetime.datetime(2012,11,11)).total_seconds())
+    return runID
 
