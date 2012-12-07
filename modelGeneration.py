@@ -96,8 +96,9 @@ class modelGenerator(object):
         writeParametersFile.writeFile(rotNS_params,'Parameters.input')
 
         subprocess.call(["cp", self.rotNS_location, "./"])
+        print "MakeRotNSeosfile done!  Now running  RotNs, runID: ", runID
         subprocess.call("./RotNS < Parameters.input > run.log ", shell=True)
-        val = parseCstFileList([runName + ".log"],self.sqliteCursor)
+        val = parseCstFileList([runName],self.sqliteConnection)
         os.chdir("../")
         return val
 
@@ -131,7 +132,7 @@ class modelGenerator(object):
             TASKS.append( (f,  ( inputParams,runID) )  )
             TASKS2.append(   ( inputParams,runID) )
         start = datetime.datetime.now()
-        print TASKS2
+        #        print TASKS2
         result = pool.imap_unordered(calculateStar, TASKS)
         #result = pool.imap_unordered(f, TASKS2)
         for i in result:

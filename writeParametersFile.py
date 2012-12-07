@@ -12,7 +12,7 @@ paramsFileString = '''Run type (1 for M_b-1) : __RunType__
 Initial Cent E Density : __InitE__
   Final Cent E Density : __FinalE__
        Number of steps : __Nsteps__
-        Data File Name : __RunName__.log
+        Data File Name : __RunName__
         Rotfunc        : __RotInvA__
         dumpdata       : vestigial_dump
         rpoe_goal      : __RPOEGoal__

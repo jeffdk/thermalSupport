@@ -39,7 +39,6 @@ def parseCstFileList(files, sqliteCursor,tableName="models"):
         filenameData[3]=float(filenameData[3][1:])
         filenameData[4]=float(filenameData[4][1:])
         print filenameData
-        exit()
         fileHandle=open(file,'r')
         #dump first 3 lines of comments
         fileHandle.readline(); fileHandle.readline(); fileHandle.readline()
@@ -75,9 +74,10 @@ def parseCstFileList(files, sqliteCursor,tableName="models"):
                 print entry
                 print "SKIPPING ADDITION OF THIS ENTRY!"
             else:
+                print entry
                 sqliteCursor.execute("INSERT INTO "+tableName+" VALUES"
                                      + str(tuple(entry)) )
 
-
+                
         fileHandle.close()
     return 0

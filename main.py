@@ -21,6 +21,7 @@ connection=sqlite3.connect('/home/jeff/work/rotNSruns/models.db')
 
 c=connection.cursor()
 c.execute("CREATE TABLE models" + parseFiles.columnsString)
+connection.commit()
 
 
 hsModels = modelGenerator(location_RotNS,location_MakeEosFile,specEosOptions,locationForRuns,c)
