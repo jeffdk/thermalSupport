@@ -11,9 +11,11 @@ import writeParametersFile
 __author__ = 'jeff'
 def calculate(func, args):
     result = func(*args)
+    #print "calculate, args: ", args
     return '%s says that %s%s = %s' %\
            (multiprocessing.current_process().name, func.__name__, args, result)
 def calculateStar(args):
+    #print "calculateStar, args: ", args
     return calculate(*args)
 
 
@@ -27,8 +29,9 @@ class modelGenerator(object):
     rotNS_numSteps = 20       # number of steps to get to target RPOEGoal
     default_Tmin   = 0.5      # default tmin for MakeRotNSeosfile
     num_cpus = multiprocessing.cpu_count()
+    locationForRuns=""
     def __init__(self,rotNS_location,makeEosFile_location,
-                 specEosOptions, rotNS_resolutionParams=(800,800,30)):
+                 specEosOptions,locationForRuns, rotNS_resolutionParams=(800,800,30)):
         """
         rotNS_location:         string
         makeEosFile_location:   string
@@ -41,6 +44,8 @@ class modelGenerator(object):
         self.makeEosFile_location=makeEosFile_location
         assert isinstance(specEosOptions, str)
         self.specEosOptions=specEosOptions
+        assert isinstance(locationForRuns, str)
+        self.locationForRuns=locationForRuns
 
         assert isinstance(rotNS_resolutionParams, tuple)
         self.rotNS_resolutionParams['Ns']=rotNS_resolutionParams[0]
@@ -86,7 +91,7 @@ class modelGenerator(object):
         writeParametersFile.writeFile(rotNS_params,'Parameters.input')
 
         subprocess.call(["cp", self.rotNS_location, "./"])
-        subprocess.call("./RotNS < Parameters.input > " + runID + ".log",shell=True)
+        #subprocess.call("./RotNS < Parameters.input > " + runID + ".log",shell=True)
         os.chdir("../")
         
     def tester(self, dog,cat):
@@ -103,29 +108,30 @@ class modelGenerator(object):
         subprocess.call(["rm", "-rf", runID])
 
     def generateModels(self, f, listOfInputParams):
-
+        currentDirectory=os.getcwd()
+        os.chdir(self.locationForRuns)
         PROCESSES = self.num_cpus
         print 'Creating pool with %d processes\n' % PROCESSES
         pool = multiprocessing.Pool(PROCESSES)
         print 'pool = %s' % pool
         print
 
-        TASKS = []
+        TASKS, TASKS2 = [],[]
         for inputParams in listOfInputParams:
             #runID is seconds elapsed since my 28th birthday
             runID = str( (datetime.datetime.now() - datetime.datetime(2012,11,11)).total_seconds())
             print (runID,  inputParams,runID )
             TASKS.append( (f,  ( inputParams,runID) )  )
-
+            TASKS2.append(   ( self, inputParams,runID) )
         start = datetime.datetime.now()
         print TASKS
         result = pool.imap_unordered(calculateStar, TASKS)
-
+        #result = pool.imap_unordered(f, TASKS2)
         for i in result:
             print i
-
+        pool.close()
+        pool.join()
         print "DIFFERENCE: ", datetime.datetime.now()- start
 
-        #results = [pool.apply(f, args) for args in argList]
-        #print results
+        os.chdir(currentDirectory)
 

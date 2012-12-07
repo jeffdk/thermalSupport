@@ -16,8 +16,9 @@ import writeParametersFile
 location_MakeEosFile = "/home/jeff/spec/Hydro/EquationOfState/Executables/MakeRotNSeosfile"
 location_RotNS       = "/home/jeff/work/RotNS/RotNS"
 specEosOptions       = "Tabulated(filename= /home/jeff/work/HS_Tabulated.dat )"
+locationForRuns      = "/home/jeff/work/rotNSruns"
 
-hsModels = modelGenerator(location_RotNS,location_MakeEosFile,specEosOptions)
+hsModels = modelGenerator(location_RotNS,location_MakeEosFile,specEosOptions,locationForRuns)
 runParams = {'CED':0.3325,
              'a':1.0,
              'rpoe':0.6,
@@ -30,13 +31,15 @@ runParams2 = {'CED':0.462,
              'roll-midpoint':14.0,
              'roll-scale' :  0.5,
              'T' : 10.0 }
-paramsList=[runParams for i in range(16)]
+paramsList=[runParams for i in range(3)]
 argList= [ (x,y) for x in range(4) for y in range(4)]
 #hsModels.runOneModel(runParams,"blah")
 #hsModels.hardDelete("blah")
 from pickleHack import *
 func = hsModels.tester
 hsModels.generateModels(func,argList)
+func = hsModels.runOneModel
+hsModels.generateModels(func,paramsList)
 
 ###############################
 # TEST STENCIL & FIRST DERIV
