@@ -38,6 +38,8 @@ class modelGenerator(object):
         rotNS_location:         string
         makeEosFile_location:   string
         specEosOptions:         string
+        locationForRuns:        string   work directory to do RotNS runs in
+        sqliteCursor:           sqlite3.connection.cursor object for database
         rotNS_resolutionParams: tuple in (Ns,Nu,Nl) format
         """
         assert isinstance(rotNS_location, str)

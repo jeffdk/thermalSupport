@@ -1,8 +1,5 @@
-#!/usr/bin/python
 
-import os
 import sqlite3
-import re
 from numpy import *
 from matplotlib import pyplot as mpl
 from mpl_toolkits.mplot3d import Axes3D 
@@ -10,7 +7,7 @@ import math
 
 
 # if data(partitionField) > partition value, plot with dashed
-
+#TODO: Fix hard coding of this
 plotFields="edMax,gravMass"
 #sequence = ('HS','roll12.5',1.0,0.5)
 
@@ -102,4 +99,13 @@ def partitionPlot(partitionField, partitionValue,c,sequence,color):
     mpl.title("sequence: " + str(sequence))
     mpl.show()
     
-    quit
+    return
+
+def sequencePlot(plotFields, sqliteCursor,filters,tableName="models"):
+    """
+    plotFields:        2-tuple, fields to plot
+    sqliteCursor:      sqlite3.connection.cursor object for database
+    filters:           list of strings for sqlite WHERE filters
+    tableName          name of database table accessible from sqliteCursor
+    """
+    query = ""

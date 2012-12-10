@@ -43,7 +43,7 @@ def update(runParamz,x):
     newDict.update( runParamz)
     return newDict
 print hsModels.determineRunName(runParams)
-paramsList=[  update(runParams2,x) for x in arange(0.05,0.61, 0.01) ]
+paramsList=[  update(runParams2,x) for x in [0.123] ]
 print paramsList
 
 argList= [] #[ (x,y) for x in range(4) for y in range(4)]

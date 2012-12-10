@@ -1,4 +1,13 @@
-#!/usr/bin/python
+"""
+Importing this file addresses the following issue:
+'The problem is that multiprocessing must pickle things to sling them among processes,
+ and bound methods are not picklable.
+ The workaround (whether you consider it "easy" or not;-)
+ is to add the infrastructure to your program to allow such methods to be pickled,
+ registering it with the copy_reg standard library method.'
+ See:
+ http://stackoverflow.com/questions/1816958/cant-pickle-type-instancemethod-when-using-pythons-multiprocessing-pool-ma
+"""
 __author__ = 'jeff'
 
 def _pickle_method(method):
