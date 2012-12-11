@@ -7,6 +7,7 @@ from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 from numpy import *
 from minimizeAlgorithm import *
+from sqlPlotRoutines import sequencePlot
 from modelGeneration import modelGenerator
 import parseFiles
 import writeParametersFile
@@ -52,12 +53,15 @@ argList= [] #[ (x,y) for x in range(4) for y in range(4)]
 from pickleHack import *
 #func = hsModels.tester
 #hsModels.generateModels(func,argList)
-func = hsModels.runOneModel
-hsModels.generateModels(func,paramsList)
+#func = hsModels.runOneModel
+#hsModels.generateModels(func,paramsList)
+
+sequencePlot(["edMax","baryMass"],c,["ToverW < .5","a > 0."])
 
 connection.commit()
 connection.close()
 
+exit()
 ###############################
 # TEST STENCIL & FIRST DERIV
 stenci = fdStencil(1, [5])

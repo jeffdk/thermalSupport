@@ -1,5 +1,6 @@
 
 import sqlite3
+import matplotlib
 from numpy import *
 from matplotlib import pyplot as mpl
 from mpl_toolkits.mplot3d import Axes3D 
@@ -76,20 +77,7 @@ def partitionPlot(partitionField, partitionValue,c,sequence,color):
         lastp=p
         allXs.append(lastx)
         allYs.append(lasty)
-        
- #       lineXs.append(row[0])
- #       lineYs.append(row[1])
 
-#    query = "SELECT " + plotFields + " FROM models "
-#    query += " WHERE " + partitionField + " < " + str(partitionValue)
-#    query += " AND eos=?  AND tprofile=? AND a=? AND temp=? ORDER BY edMax"
-    
-#    for row in c.execute(query,sequence):
-#        dashXs.append(row[0])
-#        dashYs.append(row[1])
-    
-    #print lineXs
-    #print lineYs
 
     for i in range(numLineSegments):
         mpl.plot(lineXs[i],lineYs[i],linestyle='-',color=color)
@@ -101,11 +89,21 @@ def partitionPlot(partitionField, partitionValue,c,sequence,color):
     
     return
 
-def sequencePlot(plotFields, sqliteCursor,filters,tableName="models"):
+def sequencePlot(plotFields, sqliteCursor,filters=(),tableName="models"):
     """
     plotFields:        2-tuple, fields to plot
     sqliteCursor:      sqlite3.connection.cursor object for database
     filters:           list of strings for sqlite WHERE filters
     tableName          name of database table accessible from sqliteCursor
     """
-    query = ""
+    query = "SELECT " + ", ".join(plotFields) + " FROM " + tableName
+    if filters:
+        query += " WHERE " + " AND ".join(filters)
+
+    query += " ORDER BY " + plotFields[0]
+
+    sqliteCursor.execute(query)
+    points = sqliteCursor.fetchall()
+    mpl.plot(*zip(*points), marker='+', ls='')
+    mpl.show()
+    print query
