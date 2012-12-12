@@ -1,11 +1,13 @@
-#!/usr/bin/python
+"""
+ Defines class and helper functions for generating RotNS runs
+"""
+import glob
 import multiprocessing
 import os
 import random
 import sqlite3
 import subprocess
 import datetime
-import numpy.random
 import time
 from parseFiles import parseCstFileList, parseEntriesIntoDB
 import writeParametersFile
@@ -32,6 +34,8 @@ class modelGenerator(object):
     default_Tmin   = 0.5      # default tmin for MakeRotNSeosfile
     num_cpus = multiprocessing.cpu_count()
     locationForRuns=""
+    tableName = "models"
+    cleanUpRuns = True
     def __init__(self,rotNS_location,makeEosFile_location,
                  specEosOptions,locationForRuns, sqliteCursor, rotNS_resolutionParams=(800,800,30)):
         """
@@ -77,8 +81,8 @@ class modelGenerator(object):
         subprocess.call(["cp", self.makeEosFile_location, "./"])
         
         makeEosFileArgs={'-eos-opts'     : self.specEosOptions,
-                         '-roll-midpoint': inputParams['roll-midpoint'],
-                         '-roll-scale'   : inputParams['roll-scale'],
+                         '-roll-midpoint': inputParams['rollMid'],
+                         '-roll-scale'   : inputParams['rollScale'],
                          '-roll-tmin'    : self.default_Tmin,
                          '-roll-tmax'    : inputParams['T'] }
         argList=[str(arg) for item in makeEosFileArgs.items() for arg in item ]
@@ -101,18 +105,22 @@ class modelGenerator(object):
         print "MakeRotNSeosfile done!  Now running  RotNs, runID: ", runID
         subprocess.call("./RotNS < Parameters.input > run.log ", shell=True)
         entries = parseCstFileList([runName])
-       
+
+        if self.cleanUpRuns:
+            cleanUpAfterRun()
+
         os.chdir("../")
-        return entries
+        return entries,runID
 
     def tester(self, dog,cat):
+        """tester is for working out how to use multithreading via multiprocess"""
         print dog, cat
-        secs = 1#2* random.random()
+        secs = 1 + 1.* random.random()
         time.sleep(secs)
         return secs
 
     def hardDelete(self,runID):
-
+        """USE WITH CAUTION: runs rm -rf in current directory on its argument!"""
         assert isinstance(runID, str)
         if '/' in runID:
             exit("You GONE DUN TRYIN TO ERASE A NON LOCAL DIRECTORY!!")
@@ -147,34 +155,49 @@ class modelGenerator(object):
         result = pool.imap_unordered(calculateStar, TASKS)
         #result = pool.imap_unordered(f, TASKS2)
         for i in result:
-            #print i
-            tableName="models"
-            if i:
-                parseEntriesIntoDB(i, self.sqliteCursor,tableName)
+            entries, runID = i
+            if entries:
+                parseEntriesIntoDB(entries, self.sqliteCursor,tableName=self.tableName,runID=runID)
             else: 
-                print "ERROR FOR LAST MODEL" 
+                print "ERROR FOR LAST MODEL, RUNID: ",  runID
         pool.close()
         pool.join()
         print "DIFFERENCE: ", datetime.datetime.now()- start
 
         os.chdir(currentDirectory)
 
+    def checkIfRunExistsInDB(self,inputParams):
+        inputParams['eos'] = self.getEosName()
+
+
     def determineRunName(self, inputParams):
         result = ""
-        #following line gets the EOS table name
-        result += self.specEosOptions.split('/')[-1].split('_')[0]
+        result += self.getEosName()
         result += '_mid'
-        result += str(inputParams['roll-midpoint'])
+        result += str(inputParams['rollMid'])
         result += '_scale'
-        result += str(inputParams['roll-scale'])
+        result += str(inputParams['rollScale'])
         result += '_a'
         result += str(inputParams['a'])
         result += '_T'
         result += str(inputParams['T'])
         return result
+    def getEosName(self):
+        #following line gets the EOS table name by getting the string
+        # AFTER the last / and before the first _
+        return self.specEosOptions.split('/')[-1].split('_')[0]
+#END class modelGenerator
+
 def generateRunID():
    #runID is seconds elapsed since my 28th birthday=
     runID = str( (datetime.datetime.now() 
                   - datetime.datetime(2012,11,11)).total_seconds())
     return runID
 
+def cleanUpAfterRun():
+    outdataToDelete=glob.glob("outdata*")
+    subprocess.call(["rm"] + outdataToDelete)
+    subprocess.call(["rm",  "output.EOS"])
+    subprocess.call(["rm",  "RotNS.state"])
+    subprocess.call(["rm",  "RotNS"])
+    subprocess.call(["rm",  "MakeRotNSeosfile"])

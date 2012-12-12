@@ -9,7 +9,7 @@ columnsString=''' (eos text, rollMid real, rollScale real, a real, T real,
               ToverW real, arealR real, VoverC real, omg_c_over_Omg_c real,
               rpoe real,  Z_p real,  h_direct real,
               h_retro real, e_over_m real, shed real,
-              RedMax real, propRe real) '''
+              RedMax real, propRe real, runID text) '''
 
 
 def parseCstDataDirectoryIntoDB(dataDirName, sqliteCursor,tableName="models"):
@@ -80,7 +80,8 @@ def parseCstFileList(files):
         fileHandle.close()
     return entries
 
-def parseEntriesIntoDB(entries,sqliteCursor,tableName="models"):
+def parseEntriesIntoDB(entries,sqliteCursor,tableName="models",runID="noneOrOld"):
     for entry in entries:
+        entry.append(runID)
         sqliteCursor.execute("INSERT INTO "+tableName+" VALUES"
                                           + str(tuple(entry)) )

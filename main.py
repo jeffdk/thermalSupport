@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import os
 import sys
 sys.path.append('./maxMassOrigFiles/')
 #noinspection PyUnresolvedReferences
@@ -10,6 +11,7 @@ from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 from numpy import *
 from minimizeAlgorithm import *
+import parseFiles
 from modelGeneration import modelGenerator
 import writeParametersFile
 
@@ -18,11 +20,17 @@ location_MakeEosFile = "/home/jeff/spec/Hydro/EquationOfState/Executables/MakeRo
 location_RotNS       = "/home/jeff/work/RotNS/RotNS"
 specEosOptions       = "Tabulated(filename= /home/jeff/work/HS_Tabulated.dat )"
 locationForRuns      = "/home/jeff/work/rotNSruns"
+databaseFile         = '/home/jeff/work/rotNSruns/models.db'
 
-connection=sqlite3.connect('/home/jeff/work/rotNSruns/models.db')
+databaseExists =os.path.isfile(databaseFile)
+connection=sqlite3.connect(databaseFile)
 
 c=connection.cursor()
-#c.execute("CREATE TABLE models" + parseFiles.columnsString)
+if not databaseExists:
+    print "WARNING, DB FILE NOT PREVIOUSLY FOUND AT: "
+    print databaseFile
+    print "CREATING NEW ONE..."
+    c.execute("CREATE TABLE models" + parseFiles.columnsString)
 connection.commit()
 
 
@@ -30,23 +38,25 @@ hsModels = modelGenerator(location_RotNS,location_MakeEosFile,specEosOptions,loc
 runParams = {'edMax':0.3325,
              'a':1.0,
              'rpoe':1.0,
-             'roll-midpoint':14.0,
-             'roll-scale' :  0.5,
+             'rollMid':14.0,
+             'rollScale' :  0.5,
              'T' : 10.0 }
 runParams2 = {'edMax':0.462,
              'a':1.0,
-             'rpoe':1.0,
-             'roll-midpoint':14.0,
-             'roll-scale' :  0.5,
+             'rpoe':.60,
+             'rollMid':14.0,
+             'rollScale' :  0.5,
              'T' : 10.0 }
 def update(runParamz,x):
     newDict={}
     runParamz.update( {'edMax':x})
     newDict.update( runParamz)
     return newDict
-print hsModels.determineRunName(runParams)
-paramsList=[  update(runParams2,x) for x in [0.123] ]
-print paramsList
+print hsModels.determineRunName(runParams2)
+edMaxVals = concatenate( (linspace(0.1,1.5, 51), linspace( 1.5, 5, 15)) )
+print edMaxVals
+paramsList=[  update(runParams2,x) for x in [1.6] ]
+#print paramsList
 
 argList= [] #[ (x,y) for x in range(4) for y in range(4)]
 #hsModels.runOneModel(runParams,"blah")
@@ -54,8 +64,8 @@ argList= [] #[ (x,y) for x in range(4) for y in range(4)]
 from pickleHack import *
 #func = hsModels.tester
 #hsModels.generateModels(func,argList)
-#func = hsModels.runOneModel
-#hsModels.generateModels(func,paramsList)
+func = hsModels.runOneModel
+hsModels.generateModels(func,paramsList)
 
 sequencePlot(["edMax","baryMass"],c,["ToverW < .5","a > 0."])
 
