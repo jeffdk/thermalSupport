@@ -1,15 +1,16 @@
 #!/usr/bin/python
 
-
+import sys
+sys.path.append('./maxMassOrigFiles/')
+#noinspection PyUnresolvedReferences
+from sqlPlotRoutines import sequencePlot
 import sqlite3
 from matplotlib import pyplot as plt
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
 from numpy import *
 from minimizeAlgorithm import *
-from sqlPlotRoutines import sequencePlot
 from modelGeneration import modelGenerator
-import parseFiles
 import writeParametersFile
 
 
@@ -26,13 +27,13 @@ connection.commit()
 
 
 hsModels = modelGenerator(location_RotNS,location_MakeEosFile,specEosOptions,locationForRuns,c)
-runParams = {'CED':0.3325,
+runParams = {'edMax':0.3325,
              'a':1.0,
              'rpoe':1.0,
              'roll-midpoint':14.0,
              'roll-scale' :  0.5,
              'T' : 10.0 }
-runParams2 = {'CED':0.462,
+runParams2 = {'edMax':0.462,
              'a':1.0,
              'rpoe':1.0,
              'roll-midpoint':14.0,
@@ -40,7 +41,7 @@ runParams2 = {'CED':0.462,
              'T' : 10.0 }
 def update(runParamz,x):
     newDict={}
-    runParamz.update( {'CED':x})
+    runParamz.update( {'edMax':x})
     newDict.update( runParamz)
     return newDict
 print hsModels.determineRunName(runParams)

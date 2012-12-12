@@ -23,7 +23,7 @@ def partitionPlot(partitionField, partitionValue,c,sequence,color):
     allYs=[]
     query = "SELECT " + plotFields + "," + partitionField + " FROM models "
     #query += " WHERE " + partitionField + " > " + str(partitionValue)
-    query += " WHERE eos=?  AND tprofile=? AND a=? AND temp=? ORDER BY edMax"
+    query += " WHERE eos=?  AND tprofile=? AND a=? AND T=? ORDER BY edMax"
     
     numLineSegments=0
     numDashSegments=0

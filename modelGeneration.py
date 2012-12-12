@@ -88,9 +88,9 @@ class modelGenerator(object):
         subprocess.call(["mkdir", "EOS"])
         subprocess.call(["cp", "output.EOS", "EOS/EOS.PP"])
 
-        centralEnergyDensity = inputParams['CED']
-        rotNS_params.update({'InitE':centralEnergyDensity*1.1,
-                             'FinalE':centralEnergyDensity })
+        maxEnergyDensity = inputParams['edMax']
+        rotNS_params.update({'InitE':maxEnergyDensity*1.1,
+                             'FinalE':maxEnergyDensity })
         rotNS_params.update({'RunName':runName,
                              'RotInvA':inputParams['a'],
                              'RPOEGoal':inputParams['rpoe'] })

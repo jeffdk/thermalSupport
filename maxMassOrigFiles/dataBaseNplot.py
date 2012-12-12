@@ -5,7 +5,6 @@ import sys
 sys.path.append('../')
 sys.path.append('/home/jeff/work/thermalSupport/evolveDownToverW')
 import sqlite3
-import re
 from numpy import *
 from matplotlib import pyplot as mpl
 from mpl_toolkits.mplot3d import Axes3D 
@@ -18,7 +17,8 @@ from sqlUtils import *
 
 dataDirName="newData/"
 
-
+#TODO: replace older 'tprofile' string entry of database with newer rollMid  rollScale entries
+#TODO: may require renaming of original data files to new format
 
 
 connection=sqlite3.connect(':memory:')
@@ -31,11 +31,11 @@ c.execute("CREATE TABLE models" + columnsString)
 
 connection.commit()
 
-tovData={'temp':[],'mmax':[]}
+tovData={'T':[],'mmax':[]}
 tovFilename="HShen_0.1.dat"
 tovFile=open(tovFilename,'r')
 for line in tovFile:
-    tovData['temp'].append(float(line.split()[0]))
+    tovData['T'].append(float(line.split()[0]))
     tovData['mmax'].append(float(line.split()[1]))
 
 
@@ -49,7 +49,7 @@ parseCstDataDirectoryIntoDB(dataDirName,c,tableName="models")
 ###############################################################################
 
 
-c.execute('''SELECT DISTINCT eos,tprofile,a,temp
+c.execute('''SELECT DISTINCT eos,tprofile,a,T
                              FROM models''')
 
 sequenceList= c.fetchall()
@@ -67,14 +67,14 @@ cuts=" arealR < 30 AND ToverW < 0.27 "
 
 for sequence in sequenceList:
     #find maximum mass for each sequence
-    c.execute("SELECT MAX(gravMass) FROM models WHERE "+cuts+" AND eos=?  AND tprofile=? AND a=? AND temp=? ORDER BY edMax", sequence)
+    c.execute("SELECT MAX(gravMass) FROM models WHERE "+cuts+" AND eos=?  AND tprofile=? AND a=? AND T=? ORDER BY edMax", sequence)
     mMax = c.fetchone()[0]
     
     newSeq = sequence + tuple([mMax])
     #print newSeq
 
     #select maximum mass model from each sequence
-    c.execute("SELECT * FROM models WHERE "+cuts+"AND eos=?  AND tprofile=? AND a=? AND temp=? AND gravMass=?", newSeq)
+    c.execute("SELECT * FROM models WHERE "+cuts+"AND eos=?  AND tprofile=? AND a=? AND T=? AND gravMass=?", newSeq)
     vals = c.fetchone()
 
     if vals:
@@ -86,16 +86,16 @@ for sequence in sequenceList:
     #----------------------------------------------------------------------
 
     #find maximum mass model from spheroidal configurations
-    c.execute("SELECT MAX(gravMass) FROM models WHERE "+cuts+"AND eos=?  AND tprofile=? AND a=? AND temp=? AND RedMax=0 ORDER BY edMax", sequence)
+    c.execute("SELECT MAX(gravMass) FROM models WHERE "+cuts+"AND eos=?  AND tprofile=? AND a=? AND T=? AND RedMax=0 ORDER BY edMax", sequence)
     mMax = c.fetchone()[0]
     
     newSeq = sequence + tuple([mMax])
     #print mMax
     #select maximum mass model from sphreoidal configurations
-    c.execute("SELECT * FROM models WHERE "+cuts+"AND eos=?  AND tprofile=? AND a=? AND temp=? AND gravMass=?  AND RedMax=0", newSeq)
+    c.execute("SELECT * FROM models WHERE "+cuts+"AND eos=?  AND tprofile=? AND a=? AND T=? AND gravMass=?  AND RedMax=0", newSeq)
     vals = c.fetchone()
 #    if (vals==None):
-    # c.execute("SELECT * FROM models WHERE  eos=?  AND tprofile=? AND a=? AND temp=? ", sequence)
+    # c.execute("SELECT * FROM models WHERE  eos=?  AND tprofile=? AND a=? AND T=? ", sequence)
     # print "-------------------------------------------------------_"
     # for i in c.fetchall():
     #     print i
@@ -111,12 +111,12 @@ for sequence in sequenceList:
     #----------------------------------------------------------------------
 
     #find maximum mass model from toroidal configurations
-    c.execute("SELECT MAX(gravMass) FROM models WHERE "+cuts+"AND eos=?  AND tprofile=? AND a=? AND temp=? AND RedMax>0 ORDER BY edMax", sequence)
+    c.execute("SELECT MAX(gravMass) FROM models WHERE "+cuts+"AND eos=?  AND tprofile=? AND a=? AND T=? AND RedMax>0 ORDER BY edMax", sequence)
     mMax = c.fetchone()[0]
     
     newSeq = sequence + tuple([mMax])
     #select maximum mass model from toroidal configurations
-    c.execute("SELECT * FROM models WHERE "+cuts+"AND eos=?  AND tprofile=? AND a=? AND temp=? AND gravMass=?  AND RedMax>0", newSeq)
+    c.execute("SELECT * FROM models WHERE "+cuts+"AND eos=?  AND tprofile=? AND a=? AND T=? AND gravMass=?  AND RedMax>0", newSeq)
     vals = c.fetchone()
     
     if vals:
@@ -154,9 +154,9 @@ for profile in profileList:
     ys=[]
     zs=[]   
     count=0
-    for row in c.execute("SELECT edMax,gravMass,temp,a FROM " + SEQ +
-                         " WHERE tprofile='"+profile+"' AND temp>0 " +
-                         " ORDER BY temp,a"):   
+    for row in c.execute("SELECT edMax,gravMass,T,a FROM " + SEQ +
+                         " WHERE tprofile='"+profile+"' AND T>0 " +
+                         " ORDER BY T,a"):
         #print row[2], row[3], row[1]
         xs.append(row[3])
         ys.append(row[2])
@@ -170,8 +170,8 @@ for profile in profileList:
     X,Y=meshgrid(avals,tvals)
     tovM =[]
     for t in tvals:
-        for i in range(len(tovData['temp'])):
-            if tovData['temp'][i] == t:
+        for i in range(len(tovData['T'])):
+            if tovData['T'][i] == t:
                 tovM.append(tovData['mmax'][i])
 
     print tovM
@@ -245,10 +245,10 @@ for i in range(len(avals)/2):
     plotList=[]
 
 
-    for row in c.execute("SELECT edMax,gravMass,temp FROM " + SEQ +
+    for row in c.execute("SELECT edMax,gravMass,T FROM " + SEQ +
                        '''  WHERE '''+cuts+''' 
                             AND tprofile='roll13.5' AND a='''+str(a)+
-                            " ORDER BY temp"):
+                            " ORDER BY T"):
         color=(row[2]/Tmax,.2,1.-row[2]/Tmax)
         count = count +1
         xs.append(row[2])
@@ -271,10 +271,10 @@ for i in range(len(avals)/2):
     xs=[]
     ys=[]
 
-    for row in c.execute("SELECT edMax,gravMass,temp FROM  " + SEQ +
+    for row in c.execute("SELECT edMax,gravMass,T FROM  " + SEQ +
                         ''' WHERE '''+cuts+''' 
                             AND tprofile='roll14' AND a='''+str(a)+
-                            ''' ORDER BY temp'''):
+                            ''' ORDER BY T'''):
         color=(row[2]/Tmax,.2,1.-row[2]/Tmax)
         count = count +1
         xs.append(row[2])
@@ -293,10 +293,10 @@ for i in range(len(avals)/2):
     xs=[]
     ys=[]
 
-    for row in c.execute("SELECT edMax,gravMass,temp FROM  " + SEQ +
+    for row in c.execute("SELECT edMax,gravMass,T FROM  " + SEQ +
                         ''' WHERE '''+cuts+''' 
                             AND tprofile='roll12.5' AND a='''+str(a)+
-                            ''' ORDER BY temp'''):
+                            ''' ORDER BY T'''):
         color=(row[2]/Tmax,.2,1.-row[2]/Tmax)
         count = count +1
         xs.append(row[2])

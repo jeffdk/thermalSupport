@@ -4,7 +4,7 @@ import os
 from numpy import *
 
 #  Omega_c    cJ/GMs^2    M/Ms       Eps_c      Mo/Ms      T/W        R_c        v/c     omg_c/Omg_c     rp       Z_p        Z_b        Z_f      h-direct   h-retro     e/m  Shed RedMax
-columnsString=''' (eos text, rollMid real, rollScale real, a real, temp real,
+columnsString=''' (eos text, rollMid real, rollScale real, a real, T real,
               omega_c real,  J real, gravMass real, edMax real, baryMass real,
               ToverW real, arealR real, VoverC real, omg_c_over_Omg_c real,
               rpoe real,  Z_p real,  h_direct real,
