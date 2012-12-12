@@ -43,7 +43,7 @@ runParams = {'edMax':0.3325,
              'T' : 10.0 }
 runParams2 = {'edMax':0.462,
              'a':1.0,
-             'rpoe':.60,
+             'rpoe':1.0,
              'rollMid':14.0,
              'rollScale' :  0.5,
              'T' : 10.0 }

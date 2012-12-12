@@ -135,10 +135,14 @@ class modelGenerator(object):
         print 'pool = %s' % pool
         print
 
-        TASKS, TASKS2 = [],[]
+        TASKS = []
         ids = []
         for inputParams in listOfInputParams:
-            
+
+            existingRunID = self.checkIfRunExistsInDB(inputParams)
+            if existingRunID:
+                continue
+
             runID = generateRunID() 
         
             if runID in ids:
@@ -149,11 +153,10 @@ class modelGenerator(object):
 
             print runID
             TASKS.append( (f,  ( inputParams,runID) )  )
-            TASKS2.append(   ( inputParams,runID) )
+
         start = datetime.datetime.now()
-        #        print TASKS2
         result = pool.imap_unordered(calculateStar, TASKS)
-        #result = pool.imap_unordered(f, TASKS2)
+
         for i in result:
             entries, runID = i
             if entries:
@@ -168,7 +171,28 @@ class modelGenerator(object):
 
     def checkIfRunExistsInDB(self,inputParams):
         inputParams['eos'] = self.getEosName()
+        #Must convert units  from input units (CGS/1e15) to output units (CGS)
+        inputParams['edMax'] = inputParams['edMax'] * 1e15
 
+        query = "SELECT runID FROM " + self.tableName + " WHERE "
+        query += " AND ".join( ["%s='%s'" % (key,value) for (key,value) in inputParams.items()] )
+        self.sqliteCursor.execute(query)
+        listResult = self.sqliteCursor.fetchall()
+
+        if listResult:
+            if len(listResult) > 1 or len(listResult[0]) > 1:
+                print "Wow, this entry: "
+                print inputParams
+                print "exists more than once in the database! Should not be possible..."
+                raise
+            result = listResult[0][0]
+            print "----WARNING!----"
+            print "  Parameters: "
+            print inputParams
+            print " Have already been run, run ID: ", result
+            print
+
+        return listResult
 
     def determineRunName(self, inputParams):
         result = ""
@@ -193,6 +217,9 @@ def generateRunID():
     runID = str( (datetime.datetime.now() 
                   - datetime.datetime(2012,11,11)).total_seconds())
     return runID
+
+def runIDToDate(runID):
+    return "TODO: Implement this" #TODO IMPLEMENT THIS
 
 def cleanUpAfterRun():
     outdataToDelete=glob.glob("outdata*")
