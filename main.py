@@ -14,7 +14,7 @@ from minimizeAlgorithm import *
 import parseFiles
 from modelGeneration import modelGenerator
 import writeParametersFile
-
+from pickleHack import *
 
 location_MakeEosFile = "/home/jeff/spec/Hydro/EquationOfState/Executables/MakeRotNSeosfile"
 location_RotNS       = "/home/jeff/work/RotNS/RotNS"
@@ -43,27 +43,28 @@ runParams = {'edMax':0.3325,
              'T' : 10.0 }
 runParams2 = {'edMax':0.462,
              'a':1.0,
-             'rpoe':1.0,
+             'rpoe':0.5,
              'rollMid':14.0,
              'rollScale' :  0.5,
              'T' : 10.0 }
-def update(runParamz,x):
+def update(runParamz, ed, a, T):
     newDict={}
-    runParamz.update( {'edMax':x})
+    runParamz.update( {'a':a})
+    runParamz.update( {'T':T})
+    runParamz.update( {'edMax':ed})
     newDict.update( runParamz)
     return newDict
 print hsModels.determineRunName(runParams2)
-edMaxVals = concatenate( (linspace(0.1,1.5, 51), linspace( 1.5, 5, 15)) )
+edMaxVals =  linspace(0.1,4.0, 21)
+aVals =      linspace(0.0,1.0, 6)
+tempVals =   concatenate( (array([0.5]), linspace(10.,50.,5) ) )
 print edMaxVals
-paramsList=[  update(runParams2,x) for x in [1.6] ]
-#print paramsList
+print aVals
+print tempVals
 
-argList= [] #[ (x,y) for x in range(4) for y in range(4)]
-#hsModels.runOneModel(runParams,"blah")
-#hsModels.hardDelete("blah")
-from pickleHack import *
-#func = hsModels.tester
-#hsModels.generateModels(func,argList)
+paramsList=[  update(runParams2,x,a,T) for x in edMaxVals for a in aVals for T in tempVals  ]
+print len(paramsList),paramsList
+exit()
 func = hsModels.runOneModel
 hsModels.generateModels(func,paramsList)
 
@@ -88,17 +89,6 @@ firstDeriv=deriv(dim=1, order=1, step=0.1,stencil=stenci,
 #print firstDeriv.getPoints()
 #firstDeriv.setStep(0.2)
 #print firstDeriv.getPoints()
-#
-###############################
-
-
-###############################
-# TEST writeParametersFile
-params=['RunType','EOS','Ns','Nu','Nl','InitE','FinalE','Nsteps','RunName','RotInvA','RPOEGoal']
-paramDict={}
-for i in params:
-    paramDict[i]='dog'
-writeParametersFile.writeFile(paramDict,'outFile.input')
 #
 ###############################
 
