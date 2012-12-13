@@ -89,21 +89,41 @@ def partitionPlot(partitionField, partitionValue,c,sequence,color):
     
     return
 
-def sequencePlot(plotFields, sqliteCursor,filters=(),tableName="models"):
+def sequencePlot(plotFields, sqliteCursor,filters=(),colorBy=None,tableName="models", **mplKwargs ):
     """
     plotFields:        2-tuple, fields to plot
     sqliteCursor:      sqlite3.connection.cursor object for database
     filters:           list of strings for sqlite WHERE filters
-    tableName          name of database table accessible from sqliteCursor
+    colorBy:           table field to color the points by
+    tableName:         name of database table accessible from sqliteCursor
+    mplKwargs:         keyword arguments passed on to matplotlib plotting function
+
+    Note:  If colorBy is set, plots a scatter plot instead of regular plot; adjust mplKwargs accordingly
     """
-    query = "SELECT " + ", ".join(plotFields) + " FROM " + tableName
+    getFields = plotFields[:]
+    if colorBy:
+        getFields.append(colorBy)
+
+    query = "SELECT " + ", ".join(getFields) + " FROM " + tableName
     if filters:
         query += " WHERE " + " AND ".join(filters)
-
     query += " ORDER BY " + plotFields[0]
 
     sqliteCursor.execute(query)
     points = sqliteCursor.fetchall()
-    mpl.plot(*zip(*points), marker='+', ls='')
+
+    fig = mpl.figure()
+    axis = fig.add_subplot(111)
+
+    if colorBy:
+        mpl.scatter(*zip(*points)[:2], c=zip(*points)[-1], **mplKwargs)
+    else:
+        mpl.plot(*zip(*points)[:2],  **mplKwargs)
+
+    axis.set_xlabel(getFields[0])
+    axis.set_ylabel(getFields[1])
+    if colorBy:
+        colorLegend = mpl.colorbar()
+        colorLegend.set_label(colorBy)
+
     mpl.show()
-    print query

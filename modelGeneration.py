@@ -220,7 +220,8 @@ def generateRunID():
     return runID
 
 def runIDToDate(runID):
-    return "TODO: Implement this" #TODO IMPLEMENT THIS
+    return datetime.datetime(2012,11,11) + datetime.timedelta( seconds=float(runID) )
+
 
 def cleanUpAfterRun():
     outdataToDelete=glob.glob("outdata*")
