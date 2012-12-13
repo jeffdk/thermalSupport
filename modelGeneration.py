@@ -170,12 +170,13 @@ class modelGenerator(object):
         os.chdir(currentDirectory)
 
     def checkIfRunExistsInDB(self,inputParams):
-        inputParams['eos'] = self.getEosName()
+        myParams = inputParams.copy()
+        myParams['eos'] = self.getEosName()
         #Must convert units  from input units (CGS/1e15) to output units (CGS)
-        inputParams['edMax'] = inputParams['edMax'] * 1e15
+        myParams['edMax'] = myParams['edMax'] * 1e15
 
         query = "SELECT runID FROM " + self.tableName + " WHERE "
-        query += " AND ".join( ["%s='%s'" % (key,value) for (key,value) in inputParams.items()] )
+        query += " AND ".join( ["%s='%s'" % (key,value) for (key,value) in myParams.items()] )
         self.sqliteCursor.execute(query)
         listResult = self.sqliteCursor.fetchall()
 
