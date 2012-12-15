@@ -125,5 +125,5 @@ def sequencePlot(plotFields, sqliteCursor,filters=(),colorBy=None,tableName="mod
     if colorBy:
         colorLegend = mpl.colorbar()
         colorLegend.set_label(colorBy)
-
+    print "Plotting %i entries" % len(points)
     mpl.show()

@@ -31,7 +31,21 @@ connection.commit()
 
 
 ##Test sequence plot
-sequencePlot(["edMax","baryMass"],c,["ToverW < .5","RedMax > 0."],"ToverW")#,"models",marker='+')
+#sequencePlot(["edMax","baryMass"],c,["ToverW < .5","RedMax >= 0."],"ToverW")#,"models",marker='+')
+
+
+###############################
+# TEST BASIS & FIRST DERIV
+vectors=[[1,0,0,0],
+         [0,1,0.,0],
+         [0,0,1,0],
+         [0,0,0,1]]
+b=basis( array(vectors) )
+v2=[(1,1.),
+    (1,.1)]
+b2=basis( array(v2)  )
+#
+###############################
 
 
 ###############################

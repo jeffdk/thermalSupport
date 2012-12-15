@@ -3,6 +3,41 @@
 
 from numpy import *
 
+class basis(object):
+    dim=0
+    basis=empty((0))
+    def __init__(self,vectors):
+        assert vectors.dtype == array([0.0]).dtype, "Input must be of type floats!!"
+
+        assert vectors.any(), "Array of input vectors to basis must not be empty!"
+        assert vectors.ndim==2, "Array of input vectors to basis must have 2 axes (indexes)"
+        assert all([vector.size==vectors[0].size for vector in vectors]), \
+               "Array of input vectors must each have the same size"
+        assert linalg.det(vectors),  "Your basis vectors are linearly dependent"
+
+        self.dim = vectors[0].size
+        print "dim",self.dim
+
+        self.basis = vectors
+        print "ORTHOGONA?: ",self.isOrthogonal()
+
+        self.stableGramSchmidt()
+        print "ORTHOGONA? NOW BITCH?: ",self.isOrthogonal()
+        print dot(self.basis[0],self.basis[1])
+    def isOrthogonal(self):
+        return not any([dot(self.basis[i],self.basis[j]) for i in range(self.dim) for j in range(i+1,self.dim) ])
+    def stableGramSchmidt(self):
+
+        for i in range(self.dim):
+            print norm(self.basis[i])
+            self.basis[i]=self.basis[i]/norm(self.basis[i])
+            print norm(self.basis[i])
+            for j in range(i+1,self.dim):
+                self.basis[j]=self.basis[j] - dot(self.basis[i],self.basis[j])/norm(self.basis[i])*self.basis[i]
+        print self.basis
+
+def norm(vect):
+    return sqrt(reduce(lambda x, y: x+y,vect*vect))
 
 def stepDown(func,point, delta):
 
