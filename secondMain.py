@@ -31,7 +31,7 @@ connection.commit()
 
 
 ##Test sequence plot
-#sequencePlot(["edMax","baryMass"],c,["ToverW < .5","RedMax >= 0."],"ToverW")#,"models",marker='+')
+sequencePlot(["edMax","baryMass"],c,["ToverW < .5","RedMax >= 0."],"ToverW")#,"models",marker='+')
 
 
 ###############################

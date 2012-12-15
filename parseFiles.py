@@ -12,7 +12,7 @@ columnsString=''' (eos text, rollMid real, rollScale real, a real, T real,
               RedMax real, propRe real, runID text) '''
 
 
-def parseCstDataDirectoryIntoDB(dataDirName, sqliteCursor,tableName="models"):
+def parseCstDataDirectoryIntoDB(dataDirName, sqliteCursor,tableName):
 
 
     files=os.listdir(dataDirName)
@@ -80,7 +80,7 @@ def parseCstFileList(files):
         fileHandle.close()
     return entries
 
-def parseEntriesIntoDB(entries,sqliteCursor,tableName="models",runID="noneOrOld"):
+def parseEntriesIntoDB(entries,sqliteCursor,tableName,runID="noneOrOld"):
     for entry in entries:
         entry.append(runID)
         sqliteCursor.execute("INSERT INTO "+tableName+" VALUES"

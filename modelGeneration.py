@@ -36,8 +36,10 @@ class modelGenerator(object):
     locationForRuns=""
     tableName = "models"
     cleanUpRuns = True
+    runType = 30
     def __init__(self,rotNS_location,makeEosFile_location,
-                 specEosOptions,locationForRuns, sqliteCursor, rotNS_resolutionParams=(800,800,30)):
+                 specEosOptions,locationForRuns, sqliteCursor, runType=30, tableName="models",
+                 rotNS_resolutionParams=(800,800,30)):
         """
         rotNS_location:         string
         makeEosFile_location:   string
@@ -62,11 +64,17 @@ class modelGenerator(object):
 
         assert isinstance(sqliteCursor, sqlite3.Cursor)
         self.sqliteCursor=sqliteCursor
+
+        assert isinstance(runType, int)
+        self.runType=runType
+
+        assert isinstance(tableName, str)
+        self.tableName=tableName
         
-    def runOneModel(self, inputParams, runID):
+    def runRotNS(self, inputParams, runID):
         assert isinstance(inputParams, dict)
-        #30 is run-type for running one model
-        rotNS_params = {'RunType':30,
+
+        rotNS_params = {'RunType':self.runType,
                         'EOS':self.rotNS_EosType,
                         'Nsteps':self.rotNS_numSteps}
         #Add resolution information
@@ -93,12 +101,12 @@ class modelGenerator(object):
         subprocess.call(["cp", "output.EOS", "EOS/EOS.PP"])
 
         maxEnergyDensity = inputParams['edMax']
-        rotNS_params.update({'InitE':maxEnergyDensity*1.1,
-                             'FinalE':maxEnergyDensity })
+
         rotNS_params.update({'RunName':runName,
                              'RotInvA':inputParams['a'],
                              'RPOEGoal':inputParams['rpoe'] })
-
+        #Sets the density parameters differently depending on run type
+        rotNS_params = self.setDensityRange(inputParams,rotNS_params)
         writeParametersFile.writeFile(rotNS_params,'Parameters.input')
 
         subprocess.call(["cp", self.rotNS_location, "./"])
@@ -111,6 +119,26 @@ class modelGenerator(object):
 
         os.chdir("../")
         return entries,runID
+
+    def setDensityRange(self,inputParams, rotNS_params):
+        """
+        :rtype : dict rotNS_params
+        """
+        maxEnergyDensity = inputParams['edMax']
+        # 30 is runType 'one model' and only uses the final energy density!
+        if self.runType == 30:
+            rotNS_params.update({'InitE':maxEnergyDensity*1.1,
+                                 'FinalE':maxEnergyDensity })
+        # 3 is runType 'mass-shed' and calculates mass shedding sequences at a variety of densities
+        if self.runType == 3 :
+            minEnergyDensity = inputParams['edMin']
+            #we may also want to set the number of steps
+            if 'Nsteps' in inputParams:
+                self.rotNS_numSteps = inputParams['Nsteps']
+            rotNS_params.update({'InitE':minEnergyDensity,
+                                 'FinalE':maxEnergyDensity,
+                                 'Nsteps':self.rotNS_numSteps})
+        return rotNS_params
 
     def tester(self, dog,cat):
         """tester is for working out how to use multithreading via multiprocess"""
@@ -172,7 +200,17 @@ class modelGenerator(object):
     def checkIfRunExistsInDB(self,inputParams):
         myParams = inputParams.copy()
         myParams['eos'] = self.getEosName()
-        #Must convert units  from input units (CGS/1e15) to output units (CGS)
+
+        #edMin not relevant for run type one model
+        #TODO: modify checkIfRunExistsInDB to work properly with mass shed sequences!
+        if self.runType == 30 and 'edMin' in myParams:
+            del myParams['edMin']
+        elif self.runType ==3 and  'edMin' in myParams:
+            del myParams['edMin']
+        elif self.runType ==3 and  'Nsteps' in myParams:
+            del myParams['Nsteps']
+
+    #Must convert units  from input units (CGS/1e15) to output units (CGS)
         myParams['edMax'] = myParams['edMax'] * 1e15
 
         query = "SELECT runID FROM " + self.tableName + " WHERE "
