@@ -2,6 +2,7 @@
 
 
 from numpy import *
+from numpy import testing as npt
 
 class basis(object):
     dim=0
@@ -21,20 +22,32 @@ class basis(object):
         self.basis = vectors
         print "ORTHOGONA?: ",self.isOrthogonal()
 
-        self.stableGramSchmidt()
+        print "Xx_gsmitt in da house_xX"
+        print self.stableGramSchmidt()
         print "ORTHOGONA? NOW BITCH?: ",self.isOrthogonal()
         print dot(self.basis[0],self.basis[1])
     def isOrthogonal(self):
-        return not any([dot(self.basis[i],self.basis[j]) for i in range(self.dim) for j in range(i+1,self.dim) ])
+
+        dotSum=0.
+        for i in range(self.dim):
+            for j in range(i+1,self.dim):
+                dotSum+=dot(self.basis[i],self.basis[j])
+
+        try:
+            npt.assert_almost_equal(dotSum,0.0,14)
+        except AssertionError as error:
+            print error
+            return False
+        else:
+            return True
+
     def stableGramSchmidt(self):
 
         for i in range(self.dim):
-            print norm(self.basis[i])
             self.basis[i]=self.basis[i]/norm(self.basis[i])
-            print norm(self.basis[i])
             for j in range(i+1,self.dim):
                 self.basis[j]=self.basis[j] - dot(self.basis[i],self.basis[j])/norm(self.basis[i])*self.basis[i]
-        print self.basis
+        return self.basis
 
 def norm(vect):
     return sqrt(reduce(lambda x, y: x+y,vect*vect))
