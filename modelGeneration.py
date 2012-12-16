@@ -39,14 +39,13 @@ class modelGenerator(object):
     cleanUpRuns = True
     runType = 30
     def __init__(self,rotNS_location,makeEosFile_location,
-                 specEosOptions,locationForRuns, sqliteCursor, runType=30, tableName="models",
+                 specEosOptions,locationForRuns, runType=30, tableName="models",
                  rotNS_resolutionParams=(800,800,30)):
         """
         rotNS_location:         string
         makeEosFile_location:   string
         specEosOptions:         string
         locationForRuns:        string   work directory to do RotNS runs in
-        sqliteCursor:           sqlite3.connection.cursor object for database
         rotNS_resolutionParams: tuple in (Ns,Nu,Nl) format
         """
         assert isinstance(rotNS_location, str)
@@ -62,9 +61,6 @@ class modelGenerator(object):
         self.rotNS_resolutionParams['Ns']=rotNS_resolutionParams[0]
         self.rotNS_resolutionParams['Nu']=rotNS_resolutionParams[1]
         self.rotNS_resolutionParams['Nl']=rotNS_resolutionParams[2]
-
-        assert isinstance(sqliteCursor, sqlite3.Cursor)
-        self.sqliteCursor=sqliteCursor
 
         assert isinstance(runType, int)
         self.runType=runType
@@ -153,7 +149,7 @@ class modelGenerator(object):
             exit("You GONE DUN TRYIN TO ERASE A NON LOCAL DIRECTORY!!")
         subprocess.call(["rm", "-rf", runID])
 
-    def generateModels(self, f, listOfInputParams):
+    def generateModels(self, f, listOfInputParams,sqliteConnection):
         currentDirectory=os.getcwd()
         os.chdir(self.locationForRuns)
         PROCESSES = self.num_cpus
@@ -161,12 +157,12 @@ class modelGenerator(object):
         pool = multiprocessing.Pool(PROCESSES)
         print 'pool = %s' % pool
         print
-
+        cursor = sqliteConnection.cursor()
         TASKS = []
         ids = []
         for inputParams in listOfInputParams:
 
-            existingRunID = self.checkIfRunExistsInDB(inputParams)
+            existingRunID = self.checkIfRunExistsInDB(inputParams,cursor)
             if existingRunID:
                 continue
 
@@ -188,16 +184,17 @@ class modelGenerator(object):
             entries, runID = i
             print entries, runID
             if entries:
-                parseEntriesIntoDB(entries, self.sqliteCursor,tableName=self.tableName,runID=runID)
+                parseEntriesIntoDB(entries, cursor,tableName=self.tableName,runID=runID)
             else: 
                 print "ERROR FOR LAST MODEL, RUNID: ",  runID
         pool.close()
         pool.join()
+        sqliteConnection.commit()
         print "DIFFERENCE: ", datetime.datetime.now()- start
 
         os.chdir(currentDirectory)
 
-    def checkIfRunExistsInDB(self,inputParams):
+    def checkIfRunExistsInDB(self,inputParams,cursor):
         myParams = inputParams.copy()
         myParams['eos'] = self.getEosName()
 
@@ -210,7 +207,7 @@ class modelGenerator(object):
         elif self.runType ==3 and  'Nsteps' in myParams:
             del myParams['Nsteps']
 
-        listResult =queryDBGivenParams('runID',myParams,self.sqliteCursor,self.tableName)
+        listResult =queryDBGivenParams('runID',myParams,cursor,self.tableName)
 
         if listResult:
             if len(listResult) > 1 or len(listResult[0]) > 1:

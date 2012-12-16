@@ -32,13 +32,11 @@ def parseCstFileList(files):
         #print noSuffix
 
         filenameData=noSuffix.split('_')
-        print filenameData
         #remove a and T identifiers and make floats
         filenameData[1]=float(filenameData[1][3:])
         filenameData[2]=float(filenameData[2][5:])
         filenameData[3]=float(filenameData[3][1:])
         filenameData[4]=float(filenameData[4][1:])
-        print filenameData
         fileHandle=open(file,'r')
         #dump first 3 lines of comments
         fileHandle.readline(); fileHandle.readline(); fileHandle.readline()
@@ -86,7 +84,7 @@ def parseCstFileList(files):
 def parseEntriesIntoDB(entries,sqliteCursor,tableName,runID="noneOrOld"):
     for entry in entries:
         entry.append(runID)
-        print "this entry: ", entry
-        print "query: ", "INSERT INTO "+tableName+" VALUES "  + str(tuple(entry))
+        #print "this entry: ", entry
+        #print "query: ", "INSERT INTO "+tableName+" VALUES "  + str(tuple(entry))
         sqliteCursor.execute("INSERT INTO "+tableName+" VALUES "
                                           + str(tuple(entry)) )

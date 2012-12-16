@@ -31,7 +31,7 @@ if not databaseExists:
 connection.commit()
 
 
-hsModels = modelGenerator(location_RotNS,location_MakeEosFile,specEosOptions,locationForRuns,c,3)
+hsModels = modelGenerator(location_RotNS,location_MakeEosFile,specEosOptions,locationForRuns,3)
 runParams = {'edMin':0.3,
              'edMax':4.0,
              'a':1.0,
@@ -59,7 +59,7 @@ paramsList=[runParams]
 print len(paramsList),paramsList
 
 func = hsModels.runRotNS
-hsModels.generateModels(func,paramsList)
+hsModels.generateModels(func,paramsList,connection)
 
 
 connection.commit()

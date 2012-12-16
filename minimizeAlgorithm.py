@@ -133,7 +133,7 @@ def zeroRoundOffValues(inArray,eps):
     return inArray
 
 
-def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteCursor,modelGen,stationaryParamsDict):
+def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConnection,modelGen,stationaryParamsDict):
     assert isinstance(funcName,str)
     assert isinstance(fixedNames,list)
     assert isinstance(fixedNames[0], str)
@@ -141,7 +141,7 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteCurso
     assert isinstance(firstDeriv, deriv)
     assert isinstance(deltas, tuple)
     assert inBasis.dim == len(deltas), "Dimension of your deltas must be same as input basis!"
-    assert isinstance(sqliteCursor,sqlite3.Cursor)
+    assert isinstance(sqliteConnection,sqlite3.Connection)
     assert isinstance(modelGen,modelGenerator)
     assert isinstance(p0,tuple)
     assert inBasis.dim == len(p0), "Dimension of your starting point must be same as input basis!"
@@ -178,17 +178,18 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteCurso
             else:
                 paramsToRun.append(paramsDict.copy())
         paramsNeededForIthBasisVector.append(ithParamsNeeded)
-    modelGen.generateModels(modelGen.runRotNS, [paramsToRun[0]])
+    modelGen.generateModels(modelGen.runRotNS, [paramsToRun[0]],sqliteConnection)
 
     gradientDict={funcName : [] }
     gradientDict.update({ key:[] for key in fixedNames})
 
     funcsDesired = [funcName] + fixedNames
-
+    sqliteConnection.commit()
+    sqliteCursor=sqliteConnection.cursor()
     for i in range(dim):
         for j in paramsNeededForIthBasisVector[i]:
-            print j
-            print queryDBGivenParams(funcsDesired,j,sqliteCursor,tableName="models")
+            #print j
+            #print queryDBGivenParams(funcsDesired,j,sqliteCursor,tableName="models")
             newEntries = dict([
                                (funcsDesired[key],newVal)
                                  for key,newVal

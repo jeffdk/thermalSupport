@@ -36,7 +36,7 @@ if not databaseExists:
 connection.commit()
 
 
-hsModels = modelGenerator(location_RotNS,location_MakeEosFile,specEosOptions,locationForRuns,c,30)
+hsModels = modelGenerator(location_RotNS,location_MakeEosFile,specEosOptions,locationForRuns,30)
 
 
 ##Test sequence plot
@@ -86,7 +86,8 @@ stationaryParams = {'rollMid':14.0,
                     'rollScale' :  0.5
                     }
 
-steepestDescent("ToverW",["baryMass","J"],b,firstDeriv,p0,delta,c,hsModels,stationaryParams)
+steepestDescent("ToverW",["baryMass","J"],b,firstDeriv,p0,delta,connection,
+                hsModels,stationaryParams)
 
 
 
