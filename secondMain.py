@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 from minimizeAlgorithm import *
 from matplotlib import cm
 from mpl_toolkits.mplot3d import Axes3D
-
+from pickleHack import *
 __author__ = 'jeff'
 
 print runIDToDate('2753073.37704')
@@ -20,7 +20,7 @@ location_MakeEosFile = "/home/jeff/spec/Hydro/EquationOfState/Executables/MakeRo
 location_RotNS       = "/home/jeff/work/RotNS/RotNS"
 specEosOptions       = "Tabulated(filename= /home/jeff/work/HS_Tabulated.dat )"
 locationForRuns      = "/home/jeff/work/rotNSruns"
-databaseFile         = '/home/jeff/work/rotNSruns/models.db'
+databaseFile         = '/home/jeff/work/rotNSruns/stepDown_models.db'
 
 
 

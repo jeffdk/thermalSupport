@@ -23,7 +23,7 @@ def parseCstDataDirectoryIntoDB(dataDirName, sqliteCursor,tableName):
     parseEntriesIntoDB(entries,sqliteCursor,tableName)
 
 def parseCstFileList(files):
-    print "Processing " + str(len(files)) + " files "
+    print "Processing " + str(len(files)) + " files: ", files
     entries=[]
     for file in files:
 
@@ -42,7 +42,9 @@ def parseCstFileList(files):
         fileHandle=open(file,'r')
         #dump first 3 lines of comments
         fileHandle.readline(); fileHandle.readline(); fileHandle.readline()
+        fileIsEmpty = True
         for line in fileHandle:
+            fileIsEmpty = False
             entry = line.split()
             #print entry
             #HACK OUT BROKEN Z_b & Z_f entry
@@ -74,7 +76,8 @@ def parseCstFileList(files):
                 print "SKIPPING ADDITION OF THIS ENTRY!"
             else:
                 entries.append(entry)
-                
+        if fileIsEmpty:
+            print "WARNING, FILE: ", os.getcwd(), file, " CONTAINS NO DATA"
 
                 
         fileHandle.close()
@@ -83,5 +86,7 @@ def parseCstFileList(files):
 def parseEntriesIntoDB(entries,sqliteCursor,tableName,runID="noneOrOld"):
     for entry in entries:
         entry.append(runID)
-        sqliteCursor.execute("INSERT INTO "+tableName+" VALUES"
+        print "this entry: ", entry
+        print "query: ", "INSERT INTO "+tableName+" VALUES "  + str(tuple(entry))
+        sqliteCursor.execute("INSERT INTO "+tableName+" VALUES "
                                           + str(tuple(entry)) )

@@ -6,6 +6,7 @@ import sqlite3
 from numpy import *
 from numpy import testing as npt
 from modelGeneration import modelGenerator
+from sqlUtils import queryDBGivenParams
 
 class basis(object):
     dim=0
@@ -177,14 +178,25 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteCurso
             else:
                 paramsToRun.append(paramsDict.copy())
         paramsNeededForIthBasisVector.append(ithParamsNeeded)
-    #modelGen.generateModels(modelGen.runRotNS, paramsToRun)
+    modelGen.generateModels(modelGen.runRotNS, [paramsToRun[0]])
 
     gradientDict={funcName : [] }
     gradientDict.update({ key:[] for key in fixedNames})
 
+    funcsDesired = [funcName] + fixedNames
+
     for i in range(dim):
-        print paramsNeededForIthBasisVector[i]
-        modelGen.checkIfRunExistsInDB(paramsNeededForIthBasisVector[i][0])
+        for j in paramsNeededForIthBasisVector[i]:
+            print j
+            print queryDBGivenParams(funcsDesired,j,sqliteCursor,tableName="models")
+            newEntries = dict([
+                               (funcsDesired[key],newVal)
+                                 for key,newVal
+                                   in enumerate(
+                                    queryDBGivenParams(funcsDesired,j,sqliteCursor,tableName="models")
+                                   )
+                               ])
+            print newEntries
 
 def stepDown(func,point, delta):
 

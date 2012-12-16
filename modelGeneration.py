@@ -101,8 +101,6 @@ class modelGenerator(object):
         subprocess.call(["mkdir", "EOS"])
         subprocess.call(["cp", "output.EOS", "EOS/EOS.PP"])
 
-        maxEnergyDensity = inputParams['edMax']
-
         rotNS_params.update({'RunName':runName,
                              'RotInvA':inputParams['a'],
                              'RPOEGoal':inputParams['rpoe'] })
@@ -188,6 +186,7 @@ class modelGenerator(object):
 
         for i in result:
             entries, runID = i
+            print entries, runID
             if entries:
                 parseEntriesIntoDB(entries, self.sqliteCursor,tableName=self.tableName,runID=runID)
             else: 
