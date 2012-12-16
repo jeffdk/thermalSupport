@@ -1,5 +1,5 @@
 import sys
-from modelGeneration import runIDToDate
+from modelGeneration import runIDToDate, modelGenerator
 
 sys.path.append('./maxMassOrigFiles/')
 #noinspection PyUnresolvedReferences
@@ -16,7 +16,13 @@ __author__ = 'jeff'
 
 print runIDToDate('2753073.37704')
 
+location_MakeEosFile = "/home/jeff/spec/Hydro/EquationOfState/Executables/MakeRotNSeosfile"
+location_RotNS       = "/home/jeff/work/RotNS/RotNS"
+specEosOptions       = "Tabulated(filename= /home/jeff/work/HS_Tabulated.dat )"
+locationForRuns      = "/home/jeff/work/rotNSruns"
 databaseFile         = '/home/jeff/work/rotNSruns/models.db'
+
+
 
 databaseExists =os.path.isfile(databaseFile)
 connection=sqlite3.connect(databaseFile)
@@ -28,6 +34,9 @@ if not databaseExists:
     print "CREATING NEW ONE..."
     c.execute("CREATE TABLE models" + parseFiles.columnsString)
 connection.commit()
+
+
+hsModels = modelGenerator(location_RotNS,location_MakeEosFile,specEosOptions,locationForRuns,c,30)
 
 
 ##Test sequence plot
@@ -70,6 +79,18 @@ firstDeriv=deriv(dim=1, order=1, step=0.1,stencil=stenci,
 #
 ###############################
 
+p0=(30,1.0,1.0,0.6)
+
+delta=(0.3,0.01,0.005,0.01)
+stationaryParams = {'rollMid':14.0,
+                    'rollScale' :  0.5
+                    }
+
+steepestDescent("ToverW",["baryMass","J"],b,firstDeriv,p0,delta,c,hsModels,stationaryParams)
+
+
+
+
 exit()
 ###############################
 # TEST plotting and stepDown function
@@ -78,9 +99,6 @@ def func(a,T):
 
 
 
-p0=(0.5,0.5)
-
-delta=(.2,.2)
 
 p1=stepDown(func,p0,delta)
 

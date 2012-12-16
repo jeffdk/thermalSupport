@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from copy import deepcopy
 import sqlite3
 
 def getColumnHeaders(tableName,cursor):
@@ -21,3 +22,36 @@ def dictFromRow(row, columnHeaders):
         result[headerList[i]]=row[i]
 
     return result
+
+def queryDBGivenParams(paramsDesired,inGivenParams,sqliteCursor,tableName,
+                       customFilters=(), extraOpts=""):
+    """
+    Runs: SELECT paramsDesired  WHERE givenParams.keys() == givenParams[key] AND customFilters FROM tableName+extraOpts
+    """
+    if isinstance(paramsDesired,str):
+        paramsDesired=[paramsDesired]
+    else:
+        assert isinstance(paramsDesired,list)
+        assert isinstance(paramsDesired[0],str)
+
+    givenParams=deepcopy(inGivenParams)
+    #Must convert units  from input units (CGS/1e15) to output units (CGS)
+    if 'edMax' in givenParams:
+        givenParams['edMax']=givenParams['edMax'] * 1e15
+
+    query = "SELECT " + ", ".join(paramsDesired) + " FROM " + tableName
+    if givenParams or customFilters:
+        query += " WHERE "
+    if givenParams:
+        query += " AND ".join( ["%s='%s'" % (key,value) for (key,value) in givenParams.items()] )
+        if customFilters:
+            query += " AND "
+    if customFilters:
+        query += " AND ".join(customFilters)
+    if extraOpts:
+        query += extraOpts
+
+    print query
+    sqliteCursor.execute(query)
+    listResult  =sqliteCursor.fetchall()
+    return listResult

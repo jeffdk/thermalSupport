@@ -10,6 +10,7 @@ import subprocess
 import datetime
 import time
 from parseFiles import parseCstFileList, parseEntriesIntoDB
+from sqlUtils import queryDBGivenParams
 import writeParametersFile
 
 __author__ = 'jeff'
@@ -210,13 +211,7 @@ class modelGenerator(object):
         elif self.runType ==3 and  'Nsteps' in myParams:
             del myParams['Nsteps']
 
-    #Must convert units  from input units (CGS/1e15) to output units (CGS)
-        myParams['edMax'] = myParams['edMax'] * 1e15
-
-        query = "SELECT runID FROM " + self.tableName + " WHERE "
-        query += " AND ".join( ["%s='%s'" % (key,value) for (key,value) in myParams.items()] )
-        self.sqliteCursor.execute(query)
-        listResult = self.sqliteCursor.fetchall()
+        listResult =queryDBGivenParams('runID',myParams,self.sqliteCursor,self.tableName)
 
         if listResult:
             if len(listResult) > 1 or len(listResult[0]) > 1:

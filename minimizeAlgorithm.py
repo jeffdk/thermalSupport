@@ -1,13 +1,16 @@
 #!/usr/bin/python
 from copy import deepcopy
 import itertools
+import sqlite3
 
 from numpy import *
 from numpy import testing as npt
+from modelGeneration import modelGenerator
 
 class basis(object):
     dim=0
     basis=empty((0))
+    axesNames=['T','a','edMax','rpoe']
     def __init__(self,vectors):
         assert vectors.dtype == array([0.0]).dtype, "Input must be of type floats!!"
 
@@ -128,6 +131,60 @@ def zeroRoundOffValues(inArray,eps):
     inArray= array(temp).reshape(theShape)
     return inArray
 
+
+def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteCursor,modelGen,stationaryParamsDict):
+    assert isinstance(funcName,str)
+    assert isinstance(fixedNames,list)
+    assert isinstance(fixedNames[0], str)
+    assert isinstance(inBasis,basis)
+    assert isinstance(firstDeriv, deriv)
+    assert isinstance(deltas, tuple)
+    assert inBasis.dim == len(deltas), "Dimension of your deltas must be same as input basis!"
+    assert isinstance(sqliteCursor,sqlite3.Cursor)
+    assert isinstance(modelGen,modelGenerator)
+    assert isinstance(p0,tuple)
+    assert inBasis.dim == len(p0), "Dimension of your starting point must be same as input basis!"
+    assert isinstance(stationaryParamsDict,dict)
+
+    dim = inBasis.dim
+
+    stencil = firstDeriv.stencil.indices[0]
+    continueStepping = True
+    maxSteps = 100
+    step = 0
+    currentBasis=deepcopy(inBasis)
+    while continueStepping:
+        step +=1
+        if step > maxSteps:
+            print "Maximum steps reached in steepestDescent"
+            continueStepping = False
+            break
+    paramsDict = stationaryParamsDict.copy()
+
+    paramsToRun=[]
+    paramsNeededForIthBasisVector = []
+    for i in range(dim):
+        ithPointsDesired = array(p0) +[index*currentBasis.basis[i]*deltas for index in stencil]
+
+        ithParamsNeeded = []
+        for j in ithPointsDesired:
+            dictUpdate = {currentBasis.axesNames[k] : j[k]  for k in range(dim)}
+            paramsDict.update(dictUpdate)
+            ithParamsNeeded.append(paramsDict.copy ())
+            if paramsDict in paramsToRun:
+                print "ARRR MATEY, ALREAYD GOT THAT ONE"
+                print paramsDict
+            else:
+                paramsToRun.append(paramsDict.copy())
+        paramsNeededForIthBasisVector.append(ithParamsNeeded)
+    #modelGen.generateModels(modelGen.runRotNS, paramsToRun)
+
+    gradientDict={funcName : [] }
+    gradientDict.update({ key:[] for key in fixedNames})
+
+    for i in range(dim):
+        print paramsNeededForIthBasisVector[i]
+        modelGen.checkIfRunExistsInDB(paramsNeededForIthBasisVector[i][0])
 
 def stepDown(func,point, delta):
 

@@ -9,6 +9,8 @@ import math
 
 # if data(partitionField) > partition value, plot with dashed
 #TODO: Fix hard coding of this
+from sqlUtils import queryDBGivenParams
+
 plotFields="edMax,gravMass"
 #sequence = ('HS','roll12.5',1.0,0.5)
 
@@ -104,13 +106,7 @@ def sequencePlot(plotFields, sqliteCursor,filters=(),colorBy=None,tableName="mod
     if colorBy:
         getFields.append(colorBy)
 
-    query = "SELECT " + ", ".join(getFields) + " FROM " + tableName
-    if filters:
-        query += " WHERE " + " AND ".join(filters)
-    query += " ORDER BY " + plotFields[0]
-
-    sqliteCursor.execute(query)
-    points = sqliteCursor.fetchall()
+    points = queryDBGivenParams(getFields,[],sqliteCursor,tableName,filters, " ORDER BY " + plotFields[0])
 
     fig = mpl.figure()
     axis = fig.add_subplot(111)
