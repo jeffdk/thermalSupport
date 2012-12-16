@@ -31,7 +31,7 @@ connection.commit()
 
 
 ##Test sequence plot
-sequencePlot(["edMax","baryMass"],c,["ToverW < .5","RedMax >= 0."],"ToverW")#,"models",marker='+')
+#sequencePlot(["edMax","baryMass"],c,["ToverW < .5","RedMax >= 0."],"ToverW")#,"models",marker='+')
 
 
 ###############################
@@ -41,9 +41,13 @@ vectors=[[1,0,0,0],
          [0,0,1,0],
          [0,0,0,1]]
 b=basis( array(vectors) )
-v2=[(1,1.),
-    (1,-1.0001)]
-b2=basis( array(v2)  )
+v2=[(1,1.,1.,1),
+
+    (0,0,0.,1.)]
+
+new = removeSubspace(b,array(v2))
+print "b with subspace v2 removed:",new
+#b2=basis( array(v2)  )
 #
 ###############################
 

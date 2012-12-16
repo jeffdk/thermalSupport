@@ -1,5 +1,6 @@
 #!/usr/bin/python
-
+from copy import deepcopy
+import itertools
 
 from numpy import *
 from numpy import testing as npt
@@ -17,15 +18,16 @@ class basis(object):
         assert linalg.det(vectors),  "Your basis vectors are linearly dependent"
 
         self.dim = vectors[0].size
-        print "dim",self.dim
+#        print "dim",self.dim
 
         self.basis = vectors
-        print "ORTHOGONA?: ",self.isOrthogonal()
+ #       print "ORTHOGONA?: ",self.isOrthogonal()
 
-        print "Xx_gsmitt in da house_xX"
-        print self.stableGramSchmidt()
-        print "ORTHOGONA? NOW BITCH?: ",self.isOrthogonal()
-        print dot(self.basis[0],self.basis[1])
+#        print "Xx_gsmitt in da house_xX"
+        self.basis=stableGramSchmidt(self.basis)
+#        print self.basis
+#        print "ORTHOGONA? NOW BITCH?: ",self.isOrthogonal()
+
     def isOrthogonal(self):
 
         dotSum=0.
@@ -41,16 +43,91 @@ class basis(object):
         else:
             return True
 
-    def stableGramSchmidt(self):
+def stableGramSchmidt(inVectors):
+    assert inVectors.dtype == array([0.0]).dtype, "Input must be of type floats!!"
+    assert inVectors.ndim==2, "Array of input vectors to basis must have 2 axes (indexes)"
 
-        for i in range(self.dim):
-            self.basis[i]=self.basis[i]/norm(self.basis[i])
-            for j in range(i+1,self.dim):
-                self.basis[j]=self.basis[j] - dot(self.basis[i],self.basis[j])/norm(self.basis[i])*self.basis[i]
-        return self.basis
+    vectors=inVectors.copy()
+    dim = len(vectors)
+    for i in range(dim):
+        assert norm(vectors[i]), "One of your basis vectors has become zero! Retry with a linearly independent set!"
+        vectors[i]=vectors[i]/norm(vectors[i])
+        for j in range(i+1,dim):
+            vectors[j]=vectors[j] - dot(vectors[i],vectors[j])/norm(vectors[i])*vectors[i]
+    return vectors
 
 def norm(vect):
     return sqrt(reduce(lambda x, y: x+y,vect*vect))
+
+def removeSubspace(inputBasis, inVectorsToRemove):
+    assert inVectorsToRemove.dtype == array([0.0]).dtype, "Input must be of type floats!!"
+    assert len(inVectorsToRemove) < inputBasis.dim, "Can't remove more vectors than there are basis vectors!"
+    vectorsToRemove=stableGramSchmidt(inVectorsToRemove)
+
+    #It's possible that we may select the 'wrong' set of basis vectors such that replacing
+    # them with the vectorsToRemoves results in a linearly dependent set.
+    # in this case Gram-Schmidt will fail.
+    # This can be caused by the vectorsToRemove being linearly dependent, or
+    # by vectorsToRemove being linearly dependent with a basis vector not removed
+
+    #Thus, we try every replacing every combination of basis vectors before giving up
+    allCombosSingular = True
+    replaceTry=()
+    for replaceTry in itertools.combinations(range(inputBasis.dim), len(vectorsToRemove)):
+        testBasis = deepcopy(inputBasis)
+
+        #replace the designated vectors with the vectors to remove
+        for vectorIndex,basisIndex in enumerate(replaceTry):
+            testBasis.basis[basisIndex]=vectorsToRemove[vectorIndex]
+        #check testBasis is not singular
+        if linalg.det(testBasis.basis)==0.0:
+            #print "Your new basis is not linearly independent... trying next combination"
+            pass
+        else:
+            #if it's not singular, we're done!
+            allCombosSingular = False
+            break
+    assert not allCombosSingular, "Wow, all replacement combinations of the orig basis result in linear \"" \
+                                  "dependence.  Perhaps your input vectors are linearly dependent?"
+
+    #now that we know which of the basis vectors we can replace, we want to put those first,
+    #  replace them with our orthogonal vectorsToRemove, call gram schmidt, then remove them.
+    #  this ensures the remaining vectors are orthogonal to the subspace we want to remove
+
+    goodBasisVectors=range(inputBasis.dim)
+    for i in replaceTry:
+        goodBasisVectors.remove(i)
+
+
+    newSet=[]
+    for vec in vectorsToRemove:
+        newSet.append(vec)
+    for i in goodBasisVectors:
+        newSet.append(inputBasis.basis[i])
+
+
+    newBasis=basis( array(newSet) )
+
+    newBasis.basis=stableGramSchmidt(newBasis.basis)
+
+    reducedSpace = []
+    for i in range(len(vectorsToRemove),inputBasis.dim):
+        reducedSpace.append(newBasis.basis[i])
+
+    reducedSpace = zeroRoundOffValues( array(reducedSpace), 1e-15)
+
+    return reducedSpace
+
+def zeroRoundOffValues(inArray,eps):
+    assert inArray.dtype == array([0.0]).dtype, "Input must be of type floats!!"
+    theShape=inArray.shape
+    temp = list(inArray.flat)
+    for i, val in enumerate(temp):
+        if abs(val) < eps:
+            temp[i] = 0.0
+    inArray= array(temp).reshape(theShape)
+    return inArray
+
 
 def stepDown(func,point, delta):
 
