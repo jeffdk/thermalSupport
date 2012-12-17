@@ -182,7 +182,6 @@ class modelGenerator(object):
 
         for i in result:
             entries, runID = i
-            print entries, runID
             if entries:
                 parseEntriesIntoDB(entries, cursor,tableName=self.tableName,runID=runID)
             else: 
@@ -214,7 +213,7 @@ class modelGenerator(object):
                 print "Wow, this entry: "
                 print inputParams
                 print "exists more than once in the database! Should not be possible..."
-                raise
+                raise AssertionError
             result = listResult[0][0]
             print "----WARNING!----"
             print "  Parameters: "

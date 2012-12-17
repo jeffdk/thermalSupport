@@ -57,7 +57,7 @@ def stableGramSchmidt(inVectors):
         assert norm(vectors[i]), "One of your basis vectors has become zero! Retry with a linearly independent set!"
         vectors[i]=vectors[i]/norm(vectors[i])
         for j in range(i+1,dim):
-            vectors[j]=vectors[j] - dot(vectors[i],vectors[j])/norm(vectors[i])*vectors[i]
+            vectors[j]=vectors[j] - project(vectors[j],vectors[i])
     return vectors
 
 def norm(vect):
@@ -154,50 +154,98 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
     maxSteps = 100
     step = 0
     currentBasis=deepcopy(inBasis)
+    currentPoint = p0
+    pointList=[p0]
     while continueStepping:
         step +=1
         if step > maxSteps:
             print "Maximum steps reached in steepestDescent"
             continueStepping = False
             break
-    paramsDict = stationaryParamsDict.copy()
+        paramsDict = stationaryParamsDict.copy()
 
-    paramsToRun=[]
-    paramsNeededForIthBasisVector = []
-    for i in range(dim):
-        ithPointsDesired = array(p0) +[index*currentBasis.basis[i]*deltas for index in stencil]
+        paramsToRun=[]
+        paramsNeededForIthBasisVector = []
+        for i in range(dim):
+            ithPointsDesired = array(currentPoint) +[index*currentBasis.basis[i]*deltas for index in stencil]
 
-        ithParamsNeeded = []
-        for j in ithPointsDesired:
-            dictUpdate = {currentBasis.axesNames[k] : j[k]  for k in range(dim)}
-            paramsDict.update(dictUpdate)
-            ithParamsNeeded.append(paramsDict.copy ())
-            if paramsDict in paramsToRun:
-                print "ARRR MATEY, ALREAYD GOT THAT ONE"
-                print paramsDict
-            else:
-                paramsToRun.append(paramsDict.copy())
-        paramsNeededForIthBasisVector.append(ithParamsNeeded)
-    modelGen.generateModels(modelGen.runRotNS, [paramsToRun[0]],sqliteConnection)
+            ithParamsNeeded = []
+            for j in ithPointsDesired:
+                dictUpdate = {currentBasis.axesNames[k] : j[k]  for k in range(dim)}
+                paramsDict.update(dictUpdate)
+                ithParamsNeeded.append(paramsDict.copy ())
+                if paramsDict in paramsToRun:
+                    print "ARRR MATEY, ALREAYD GOT THAT ONE"
+                    print paramsDict
+                else:
+                    paramsToRun.append(paramsDict.copy())
+            paramsNeededForIthBasisVector.append(ithParamsNeeded)
+        modelGen.generateModels(modelGen.runRotNS, paramsToRun,sqliteConnection)
 
-    gradientDict={funcName : [] }
-    gradientDict.update({ key:[] for key in fixedNames})
+        gradientDict={funcName : [] }
+        gradientDict.update({ key:[] for key in fixedNames})
 
-    funcsDesired = [funcName] + fixedNames
-    sqliteConnection.commit()
-    sqliteCursor=sqliteConnection.cursor()
-    for i in range(dim):
-        for j in paramsNeededForIthBasisVector[i]:
-            #print j
-            #print queryDBGivenParams(funcsDesired,j,sqliteCursor,tableName="models")
-            newEntries = dict([
-                               (funcsDesired[key],newVal)
-                                 for key,newVal
-                                   in enumerate(
-                                    queryDBGivenParams(funcsDesired,j,sqliteCursor,tableName="models")
-                                   )
-                               ])
-            print newEntries
+        funcsDesired = [funcName] + fixedNames
+        sqliteConnection.commit()
+        sqliteCursor=sqliteConnection.cursor()
+        for i in range(dim):
+            for j in paramsNeededForIthBasisVector[i]:
+                funcs = queryDBGivenParams(funcsDesired,j,sqliteCursor,tableName="models")
+                assert len(funcs), "QUERY RETURNED NO ENTRIES, MATCHING PARAMS: %s" % str(j)
+                if len(funcs) > 1:
+                    print "WWWARNING, MORE THAN ONE MODEL WITH PARAMS: ", j
+                    print "results of models with those params in %s form: " %funcsDesired, funcs
+                    last = funcs[0]
+                    for k in range(len(funcs)):
+                        assert last==funcs[k],  "OH WOW AND THEY HAVE DIFFERENT RESULTS... ABORTING"
+                        last = funcs[k]
+
+                newEntries = dict([ (funcsDesired[key],newVal)
+                                     for key,newVal
+                                       in enumerate(
+                                        queryDBGivenParams(funcsDesired,j,sqliteCursor,tableName="models")[0]
+                                       )
+                                   ])
+                j.update(newEntries)
+            print paramsNeededForIthBasisVector[i]
+
+            #following yields the step for the derivative
+            stepInIthDir = dot(currentBasis.basis[i],deltas)
+            for func in funcsDesired:
+                funcVals = [ paramsDict[func] for paramsDict in paramsNeededForIthBasisVector[i]]
+                gradientDict[func].append( dot(firstDeriv.coeffs, funcVals)/stepInIthDir  )
+        print gradientDict
+
+        badSubspace =  array([gradientDict[fixedName] for fixedName in fixedNames])
+        fixedSubspace=removeSubspace(currentBasis, badSubspace )
+        print fixedSubspace
+        projectedGradFunc=zeros(dim)
+        for projection in [project(gradientDict[funcName],vec) for vec in fixedSubspace ]:
+            projectedGradFunc += projection
+        projectedGradFunc = projectedGradFunc/norm(projectedGradFunc)
+        print projectedGradFunc
+
+        newBasisVectors=[]
+        for i in badSubspace:
+            newBasisVectors.append(i)
+        for i in fixedSubspace:
+            newBasisVectors.append(i)
+
+        currentBasis = basis(array(newBasisVectors))
+
+        print currentBasis.basis, currentBasis.isOrthogonal()
+
+        currentPoint += -projectedGradFunc * deltas
+        pointList.append(currentPoint)
+        print currentPoint
+        print "----------DONE THIS STEP-----------"
+        print
+
+
+    return pointList
+
+def project(vector,ontoVector):
+    return dot(vector,ontoVector)/norm(ontoVector)*ontoVector
 
 def stepDown(func,point, delta):
 
