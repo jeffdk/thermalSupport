@@ -63,6 +63,9 @@ def stableGramSchmidt(inVectors):
 def norm(vect):
     return sqrt(reduce(lambda x, y: x+y,vect*vect))
 
+def project(vector,ontoVector):
+    return dot(vector,ontoVector)/norm(ontoVector)*ontoVector
+
 def removeSubspace(inputBasis, inVectorsToRemove):
     assert inVectorsToRemove.dtype == array([0.0]).dtype, "Input must be of type floats!!"
     assert len(inVectorsToRemove) < inputBasis.dim, "Can't remove more vectors than there are basis vectors!"
@@ -151,7 +154,7 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
 
     stencil = firstDeriv.stencil.indices[0]
     continueStepping = True
-    maxSteps = 100
+    maxSteps = 1
     step = 0
     currentBasis=deepcopy(inBasis)
     currentPoint = p0
@@ -197,7 +200,8 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
                     print "results of models with those params in %s form: " %funcsDesired, funcs
                     last = funcs[0]
                     for k in range(len(funcs)):
-                        assert last==funcs[k],  "OH WOW AND THEY HAVE DIFFERENT RESULTS... ABORTING"
+                        if not last==funcs[k]:
+                            print "OH WOW AND THEY HAVE DIFFERENT RESULTS... REALLY SHOULD ABORT"
                         last = funcs[k]
 
                 newEntries = dict([ (funcsDesired[key],newVal)
@@ -237,26 +241,18 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
 
         currentPoint += -projectedGradFunc * deltas
         pointList.append(currentPoint)
+        print "-----------NEW POINT---------------"
         print currentPoint
         print "----------DONE THIS STEP-----------"
         print
 
-
+    print
+    print "-----------------FINAL POINT LIST ---------------"
+    print 
+    print pointList
+    print 
+    print "-------------------------------------------------"
     return pointList
-
-def project(vector,ontoVector):
-    return dot(vector,ontoVector)/norm(ontoVector)*ontoVector
-
-def stepDown(func,point, delta):
-
-
-    newPoint=point
-
-
-
-
-
-    return newPoint
 
 
 class deriv:

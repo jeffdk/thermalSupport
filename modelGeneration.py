@@ -113,6 +113,7 @@ class modelGenerator(object):
             cleanUpAfterRun()
 
         os.chdir("../")
+        #print entries, runID
         return entries,runID
 
     def setDensityRange(self,inputParams, rotNS_params):
@@ -150,6 +151,7 @@ class modelGenerator(object):
         subprocess.call(["rm", "-rf", runID])
 
     def generateModels(self, f, listOfInputParams,sqliteConnection):
+        assert isinstance(sqliteConnection,sqlite3.Connection)
         currentDirectory=os.getcwd()
         os.chdir(self.locationForRuns)
         PROCESSES = self.num_cpus
@@ -174,16 +176,17 @@ class modelGenerator(object):
                 runID = generateRunID()
             ids.append(runID)
 
-            print runID
+            #print runID
             TASKS.append( (f,  ( inputParams,runID) )  )
-
+        print "Now queued %s runs for multithreaded execution..." %str(len(ids))
         start = datetime.datetime.now()
         result = pool.imap_unordered(calculateStar, TASKS)
 
         for i in result:
+            #print i 
             entries, runID = i
             if entries:
-                parseEntriesIntoDB(entries, cursor,tableName=self.tableName,runID=runID)
+                parseEntriesIntoDB(entries, cursor,self.tableName,self.runType,runID=runID)
             else: 
                 print "ERROR FOR LAST MODEL, RUNID: ",  runID
         pool.close()
@@ -227,14 +230,16 @@ class modelGenerator(object):
         result = ""
         result += self.getEosName()
         result += '_mid'
-        result += str(inputParams['rollMid'])
+        result += str(inputParams['rollMid'])[:3]
         result += '_scale'
-        result += str(inputParams['rollScale'])
+        result += str(inputParams['rollScale'])[:3]
         result += '_a'
-        result += str(inputParams['a'])
+        result += str(inputParams['a'])[:3]
         result += '_T'
-        result += str(inputParams['T'])
+        result += str(inputParams['T'])[:3]
+        result = result[:32]   #RotNS wont write an output file with > 30 chars
         return result
+
     def getEosName(self):
         #following line gets the EOS table name by getting the string
         # AFTER the last / and before the first _
@@ -252,6 +257,7 @@ def runIDToDate(runID):
 
 
 def cleanUpAfterRun():
+    print('Cleaning up in dir ' + os.getcwd() +'... ')
     outdataToDelete=glob.glob("outdata*")
     subprocess.call(["rm"] + outdataToDelete)
     subprocess.call(["rm",  "output.EOS"])

@@ -7,12 +7,12 @@ from numpy import *
 columnsString=''' (eos text, rollMid real, rollScale real, a real, T real,
               omega_c real,  J real, gravMass real, edMax real, baryMass real,
               ToverW real, arealR real, VoverC real, omg_c_over_Omg_c real,
-              rpoe real,  Z_p real,  h_direct real,
+              rpoe real,  Z_p real, Z_b real, Z_f real,  h_direct real,
               h_retro real, e_over_m real, shed real,
-              RedMax real, propRe real, runID text) '''
+              RedMax real, propRe real, runType int, runID text, lineNum int) '''
 
 
-def parseCstDataDirectoryIntoDB(dataDirName, sqliteCursor,tableName):
+def parseCstDataDirectoryIntoDB(dataDirName, sqliteCursor,tableName,runType):
 
 
     files=os.listdir(dataDirName)
@@ -20,15 +20,16 @@ def parseCstDataDirectoryIntoDB(dataDirName, sqliteCursor,tableName):
     os.chdir(dataDirName)
     entries=parseCstFileList(files)
     os.chdir(cwd)
-    parseEntriesIntoDB(entries,sqliteCursor,tableName)
+    parseEntriesIntoDB(entries,sqliteCursor,tableName,runType)
 
 def parseCstFileList(files):
     print "Processing " + str(len(files)) + " files: ", files
+    print " in current dir: ", os.getcwd()
     entries=[]
     for file in files:
-
-    #first extract parameter information contained in filename
-        noSuffix=file.split('.log')[0]
+#        print "in files loop"
+        #first extract parameter information contained in filename
+        noSuffix=file #.split('.log')[0]
         #print noSuffix
 
         filenameData=noSuffix.split('_')
@@ -41,6 +42,7 @@ def parseCstFileList(files):
         #dump first 3 lines of comments
         fileHandle.readline(); fileHandle.readline(); fileHandle.readline()
         fileIsEmpty = True
+#        print "before lines loop"
         for line in fileHandle:
             fileIsEmpty = False
             entry = line.split()
@@ -48,13 +50,13 @@ def parseCstFileList(files):
             #HACK OUT BROKEN Z_b & Z_f entry
             # only occurs sometimes, so if it is not present, we take otu BOTH
             # entries
-            if len(entry)>18:
-                takeOutVal=13
-            else:
-                takeOutVal=12
-            tmp   = entry[takeOutVal:]
-            entry = entry[0:11]
-            entry = entry + tmp
+            #if len(entry)>18:
+            #    takeOutVal=13
+            #else:
+            #    takeOutVal=12
+            #tmp   = entry[takeOutVal:]
+            #entry = entry[0:11]
+            #entry = entry + tmp
             #make data floats
             for i in range(len(entry)):
                 entry[i]=float(entry[i])
@@ -79,11 +81,15 @@ def parseCstFileList(files):
 
                 
         fileHandle.close()
+#    print "Entries processed: ", entries
     return entries
 
-def parseEntriesIntoDB(entries,sqliteCursor,tableName,runID="noneOrOld"):
-    for entry in entries:
+def parseEntriesIntoDB(entries,sqliteCursor,tableName,runType,runID="noneOrOld"):
+    for i, entry in enumerate(entries):
+        lineNum = i + 1
+        entry.append(runType)
         entry.append(runID)
+        entry.append(lineNum)
         #print "this entry: ", entry
         #print "query: ", "INSERT INTO "+tableName+" VALUES "  + str(tuple(entry))
         sqliteCursor.execute("INSERT INTO "+tableName+" VALUES "

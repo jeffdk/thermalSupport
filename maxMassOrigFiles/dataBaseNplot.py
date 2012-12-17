@@ -43,8 +43,8 @@ for line in tovFile:
 #
 #  PARSE ALL THE DATA FILES!
 #-----------------------------------------------------------------------------
-#
-parseCstDataDirectoryIntoDB(dataDirName,c,tableName="models")
+# runType of 3 is mass-shed sequence
+parseCstDataDirectoryIntoDB(dataDirName,c,tableName="models",runType=3)
 #
 ###############################################################################
 

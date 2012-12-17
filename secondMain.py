@@ -101,7 +101,7 @@ def func(a,T):
 
 
 
-p1=stepDown(func,p0,delta)
+p1=p0
 
 xs=[]
 ys=[]

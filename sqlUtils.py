@@ -33,7 +33,7 @@ def queryDBGivenParams(paramsDesired,inGivenParams,sqliteCursor,tableName,
     else:
         assert isinstance(paramsDesired,list)
         assert isinstance(paramsDesired[0],str)
-
+    assert isinstance(sqliteCursor,sqlite3.Cursor)
     givenParams=deepcopy(inGivenParams)
     #Must convert units  from input units (CGS/1e15) to output units (CGS)
     if 'edMax' in givenParams:
