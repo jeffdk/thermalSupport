@@ -154,7 +154,7 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
 
     stencil = firstDeriv.stencil.indices[0]
     continueStepping = True
-    maxSteps = 1
+    maxSteps = 2
     step = 0
     currentBasis=deepcopy(inBasis)
     currentPoint = p0
@@ -235,7 +235,7 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
         for i in fixedSubspace:
             newBasisVectors.append(i)
 
-        currentBasis = basis(array(newBasisVectors))
+        #currentBasis = basis(array(newBasisVectors))
 
         print currentBasis.basis, currentBasis.isOrthogonal()
 

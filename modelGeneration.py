@@ -107,7 +107,9 @@ class modelGenerator(object):
         subprocess.call(["cp", self.rotNS_location, "./"])
         print "MakeRotNSeosfile done!  Now running  RotNs, runID: ", runID
         subprocess.call("./RotNS < Parameters.input > run.log ", shell=True)
-        entries = parseCstFileList([runName],[inputParams])
+        nonOutputParams=inputParams.copy()
+        nonOutputParams['eos']=self.getEosName()
+        entries = parseCstFileList([runName],[nonOutputParams])
 
         if self.cleanUpRuns:
             cleanUpAfterRun()
@@ -216,7 +218,7 @@ class modelGenerator(object):
                 print "Wow, this entry: "
                 print inputParams
                 print "exists more than once in the database! Should not be possible..."
-                raise AssertionError
+                #raise AssertionError
             result = listResult[0][0]
             print "----WARNING!----"
             print "  Parameters: "
