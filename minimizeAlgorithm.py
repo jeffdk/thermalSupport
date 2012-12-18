@@ -171,7 +171,7 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
         paramsNeededForIthBasisVector = []
         for i in range(dim):
             ithPointsDesired = array(currentPoint) +[index*currentBasis.basis[i]*deltas for index in stencil]
-            roundArray(ithPointsDesired,11)
+            ithPointsDesired = roundArray(ithPointsDesired,11)
             ithParamsNeeded = []
             for j in ithPointsDesired:
                 dictUpdate = {currentBasis.axesNames[k] : j[k]  for k in range(dim)}
