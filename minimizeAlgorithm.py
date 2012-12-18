@@ -134,7 +134,7 @@ def zeroRoundOffValues(inArray,eps):
             temp[i] = 0.0
     inArray= array(temp).reshape(theShape)
     return inArray
-
+roundArray=frompyfunc(round,2,1)
 
 def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConnection,modelGen,stationaryParamsDict):
     assert isinstance(funcName,str)
@@ -171,7 +171,7 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
         paramsNeededForIthBasisVector = []
         for i in range(dim):
             ithPointsDesired = array(currentPoint) +[index*currentBasis.basis[i]*deltas for index in stencil]
-
+            roundArray(ithPointsDesired,11)
             ithParamsNeeded = []
             for j in ithPointsDesired:
                 dictUpdate = {currentBasis.axesNames[k] : j[k]  for k in range(dim)}
