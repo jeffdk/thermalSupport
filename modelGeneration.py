@@ -107,7 +107,7 @@ class modelGenerator(object):
         subprocess.call(["cp", self.rotNS_location, "./"])
         print "MakeRotNSeosfile done!  Now running  RotNs, runID: ", runID
         subprocess.call("./RotNS < Parameters.input > run.log ", shell=True)
-        entries = parseCstFileList([runName])
+        entries = parseCstFileList([runName],[inputParams])
 
         if self.cleanUpRuns:
             cleanUpAfterRun()
