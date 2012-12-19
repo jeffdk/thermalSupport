@@ -16,8 +16,10 @@ import writeParametersFile
 __author__ = 'jeff'
 def calculate(func, args):
     result = func(*args)
-    print '%s says that %s%s = %s' %\
-           (multiprocessing.current_process().name, func.__name__, args, result)
+#    print '%s says that %s%s = %s' %\
+#           (multiprocessing.current_process().name, func.__name__, args, result)
+    print "Multiprocessing %s has returned a result for %s" %\
+        (multiprocessing.current_process().name, func.__name__)
     return result
 def calculateStar(args):
     #print "calculateStar, args: ", args
@@ -195,6 +197,8 @@ class modelGenerator(object):
         pool.join()
         sqliteConnection.commit()
         print "DIFFERENCE: ", datetime.datetime.now()- start
+        
+        del pool
 
         os.chdir(currentDirectory)
 

@@ -23,8 +23,8 @@ def parseCstDataDirectoryIntoDB(dataDirName, sqliteCursor,tableName,runType):
     parseEntriesIntoDB(entries,sqliteCursor,tableName,runType)
 
 def parseCstFileList(files,nonOutputRunParameters=(),nonOutputParamsFromFilename=False):
-    print "Processing " + str(len(files)) + " files: ", files
-    print " in current dir: ", os.getcwd()
+    #print "Processing " + str(len(files)) + " files: ", files
+    #print " in current dir: ", os.getcwd()
     entries=[]
     for ind,file in enumerate(files):
         nonOutputParams=[]

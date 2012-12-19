@@ -154,11 +154,13 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
 
     stencil = firstDeriv.stencil.indices[0]
     continueStepping = True
-    maxSteps = 2
+    maxSteps = 50
     step = 0
     currentBasis=deepcopy(inBasis)
     currentPoint = p0
     pointList=[p0]
+    funcNamesList={funcName:[]}
+    funcNamesList.update({key:[] for key in fixedNames})
     while continueStepping:
         step +=1
         if step > maxSteps:
@@ -171,7 +173,7 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
         paramsNeededForIthBasisVector = []
         for i in range(dim):
             ithPointsDesired = array(currentPoint) +[index*currentBasis.basis[i]*deltas for index in stencil]
-            ithPointsDesired = roundArray(ithPointsDesired,11)
+            ithPointsDesired = roundArray(ithPointsDesired,10)
             ithParamsNeeded = []
             for j in ithPointsDesired:
                 dictUpdate = {currentBasis.axesNames[k] : j[k]  for k in range(dim)}
@@ -211,23 +213,32 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
                                        )
                                    ])
                 j.update(newEntries)
-            print paramsNeededForIthBasisVector[i]
+            #print paramsNeededForIthBasisVector[i]
 
             #following yields the step for the derivative
             stepInIthDir = dot(currentBasis.basis[i],deltas)
+            #here we save the function values and calculate their derivative
+            #the function value at the point we are evaluating has stencil index0
             for func in funcsDesired:
                 funcVals = [ paramsDict[func] for paramsDict in paramsNeededForIthBasisVector[i]]
+                k = len(firstDeriv.coeffs)/2  #default assume centered list
+                for k,stencilIndex in enumerate(*firstDeriv.stencil.indices):
+                    if stencilIndex == 0:
+                        break
+                if i  == 0:  #only do this once
+                    funcNamesList[func].append(funcVals[k])
+                #print funcVals
                 gradientDict[func].append( dot(firstDeriv.coeffs, funcVals)/stepInIthDir  )
-        print gradientDict
-
+        #print gradientDict
+        
         badSubspace =  array([gradientDict[fixedName] for fixedName in fixedNames])
         fixedSubspace=removeSubspace(currentBasis, badSubspace )
-        print fixedSubspace
+        #print fixedSubspace
         projectedGradFunc=zeros(dim)
         for projection in [project(gradientDict[funcName],vec) for vec in fixedSubspace ]:
             projectedGradFunc += projection
         projectedGradFunc = projectedGradFunc/norm(projectedGradFunc)
-        print projectedGradFunc
+        #print projectedGradFunc
 
         newBasisVectors=[]
         for i in badSubspace:
@@ -240,19 +251,23 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
         print currentBasis.basis, currentBasis.isOrthogonal()
 
         currentPoint += -projectedGradFunc * deltas
-        pointList.append(currentPoint)
+        pointList.append(deepcopy(currentPoint))
         print "-----------NEW POINT---------------"
         print currentPoint
+        print
+        print "   CURRENT POINT LIST         "
+        print array(pointList)
         print "----------DONE THIS STEP-----------"
         print
 
-    print
+    
     print "-----------------FINAL POINT LIST ---------------"
     print 
-    print pointList
+    print array(pointList)
+    print funcNamesList
     print 
     print "-------------------------------------------------"
-    return pointList
+    return array(pointList)
 
 
 class deriv:
