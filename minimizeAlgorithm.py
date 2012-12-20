@@ -259,6 +259,8 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,
         print
         print "   CURRENT POINT LIST         "
         print array(pointList)
+        print "    CURRENT FUNCS LIST        "
+        print {(key,value[step-1]) for key,value in funcNamesList.items()}
         print "----------DONE THIS STEP-----------"
         print
 

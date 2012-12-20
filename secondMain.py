@@ -79,14 +79,15 @@ firstDeriv=deriv(dim=1, order=1, step=0.1,stencil=stenci,
 ###############################
 p0=(30.0,1.0,1.0,0.6)
 p0=(30.50089376,   0.55406129,   1.10895734,   0.65099777)
+p0=(31.02882031,0.18161429,1.17609837,0.62054172)
 
-delta=array((0.3,0.01,0.005,0.01)) * 5.
+delta=array((0.3,0.01,0.005,0.01)) * 1.
 stationaryParams = {'rollMid':14.0,
                     'rollScale' :  0.5
                     }
 
 steepestDescent("ToverW",("baryMass","J"),b,firstDeriv,p0,delta,connection,
-                hsModels,stationaryParams,5)
+                hsModels,stationaryParams,10)
 
 
 

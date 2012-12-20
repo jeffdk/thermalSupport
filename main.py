@@ -20,7 +20,7 @@ location_MakeEosFile = "/home/jeff/spec/Hydro/EquationOfState/Executables/MakeRo
 location_RotNS       = "/home/jeff/work/RotNS/RotNS"
 specEosOptions       = "Tabulated(filename= /home/jeff/work/HS_Tabulated.dat )"
 locationForRuns      = "/home/jeff/work/rotNSruns"
-databaseFile         = '/home/jeff/work/rotNSruns/stepDown_models.db'
+databaseFile         = '/home/jeff/work/rotNSruns/tester.db'
 ROTNS_RUNTYPE        = 30   #30 is 'one model' sequence, designed to generate just one model
 
 def main():
@@ -50,35 +50,59 @@ def main():
                                                    "default: %s" % ROTNS_RUNTYPE,
                                                    type = int,
                                                    default = ROTNS_RUNTYPE)
-    #TODO: FINISH THE HELP TEXT FOR REST OF COMMANDLINE ARGS
-    #TODO: AND JESUS CHRIST CLEAN THIS UP
-    globalOptions.add_argument('-rollMid')
-    globalOptions.add_argument('-rollScale')
 
-    runModels_parser = parser.add_argument_group('Options for Run Models mode')
-    runModels_parser.add_argument('-a1')
-    runModels_parser.add_argument('-a2')
-    runModels_parser.add_argument('-a-steps')
-    runModels_parser.add_argument('-a', help='Value for a if not doing a range')
-    runModels_parser.add_argument('-T1')
-    runModels_parser.add_argument('-T2')
-    runModels_parser.add_argument('-T-steps')
-    runModels_parser.add_argument('-T', help='Value for T if not doing a range')
-    runModels_parser.add_argument('-edMax')
-    runModels_parser.add_argument('-edMin')
-    runModels_parser.add_argument('-ed-steps')
-    runModels_parser.add_argument('-ed', help='Value for ed if not doing a range')
-    runModels_parser.add_argument('-rpoe1')
-    runModels_parser.add_argument('-rpoe2')
-    runModels_parser.add_argument('-rpoe-steps')
-    runModels_parser.add_argument('-rpoe', help='Value for rpoe if not doing a range')
+    #TODO: JESUS CHRIST CLEAN THIS UP
+    globalOptions.add_argument('-rollMid', type=float, help="Temperature roll-off midpoint in log10(density-cgs)"
+                                                            "Default: 14.0",
+                                                            default=14.0)
+    globalOptions.add_argument('-rollScale', type=float, help="Temperature roll-off scale in log10(density-cgs)"
+                                                              "Default: 0.5",
+                                                              default=0.5)
 
-    evolve_parser    = parser.add_argument_group('Options for quasi-equilibrium evolutionary sequence mode')
-    evolve_parser.add_argument('-p0')
-    evolve_parser.add_argument('-p0-string')
-    evolve_parser.add_argument('-deltas')
-    evolve_parser.add_argument('-descendVar', default="ToverW")
-    evolve_parser.add_argument('-fixedVars')
+    runModels_parser = parser.add_argument_group('Options for Run Models mode (all floats)')
+    runModels_parser.add_argument('-a1', type=float,
+        help='Start value for range in differential rotation parameter a')
+    runModels_parser.add_argument('-a2', type=float,
+        help='End value for range in differential rotation parameter a'  )
+    runModels_parser.add_argument('-a-steps', type=int,
+        help='Number of steps for range in differential rotation parameter a' )
+    runModels_parser.add_argument('-a', type=float,
+        help='Value for a if not doing a range')
+    runModels_parser.add_argument('-T1' , type=float,
+        help='Start value for range in Temperature parameter T')
+    runModels_parser.add_argument('-T2' , type=float,
+        help='End value for range in Temperature parameter T')
+    runModels_parser.add_argument('-T-steps', type=int,
+        help='Number of steps for range in Temperature parameter T')
+    runModels_parser.add_argument('-T', type=float,
+        help='Value for T if not doing a range')
+    runModels_parser.add_argument('-edMin', type=float,
+         help='Start value for range in maximum energy density parameter')
+    runModels_parser.add_argument('-edMax' , type=float,
+        help='End value for range in maximum energy density parameter')
+    runModels_parser.add_argument('-ed-steps', type=int,
+        help='Number of steps for range in maximum energy density parameter')
+    runModels_parser.add_argument('-ed', type=float,
+        help='Value for ed if not doing a range')
+    runModels_parser.add_argument('-rpoe1', type=float,
+        help='Start value for range in polar/equatorial radius parameter rpoe')
+    runModels_parser.add_argument('-rpoe2', type=float,
+        help='End value for range in polar/equatorial radius parameter rpoe')
+    runModels_parser.add_argument('-rpoe-steps', type=int,
+        help='Number of steps for range in polar/equatorial parameter rpoe')
+    runModels_parser.add_argument('-rpoe', type=float,
+        help='Value for rpoe if not doing a range')
+
+    evolve_parser    = parser.add_argument_group('Options for quasi-equilibrium evolutionary sequence mode \n'
+                                                 '  Note: p0, -p0-string, -deltas must have same number of entries')
+    evolve_parser.add_argument('-p0', help="Python tuple for starting point, e.g.: \"(30.0,1.0,1.0,0.6)\"")
+    evolve_parser.add_argument('-p0-string', help="Variable names tuple for starting point"
+                                                  ", e.g.: \"('T','a','edMax','rpoe')\" " )
+    evolve_parser.add_argument('-deltas',   help="Initial stepsize tuple for variables, e.g. \"(0.3,.01,.01,.01)\"")
+    evolve_parser.add_argument('-descendVar', help="Variable name to evolve along steepest descent"
+                                                   "e.g.: (and default:  \"ToverW\"", default="ToverW")
+    evolve_parser.add_argument('-fixedVars', help="Tuple of variable names to hold fixed for descent."
+                                                  "e.g.: \"('J','baryMass')\"" )
 
 
     args = parser.parse_args()
@@ -87,11 +111,46 @@ def main():
     #Now we have all information to create our modelGenerator object
     modelGen=modelGenerator(location_RotNS,location_MakeEosFile,specEosOptions,locationForRuns,ROTNS_RUNTYPE)
 
+    #as well as our run parameters dictionary template
+    runParametersTemplate={'rollMid':args.rollMid,
+                           'rollScale':args.rollScale}
+
+
     runMode = args.mode
     print "Run mode: %s" % runMode
     if runMode == 'runmodels':
 
-        print "Not implemented yet"
+        #Get parameter ranges to run
+
+        T_range = rangeFromParams(args.T1,args.T2,args.T_steps,args.T,"T")
+        a_range = rangeFromParams(args.a1,args.a2,args.a_steps,args.a,"a")
+        ed_range = rangeFromParams(args.edMin,args.edMax,args.ed_steps,args.ed,"energy density")
+
+        rpoe_range = [1.0]
+        parametersList=[]
+        if ROTNS_RUNTYPE == 3:
+            print "WARNING, RPOE PARAMETERS NOT PARSED FOR MASS SHED SEQUENCE!!"
+            print "Also note, rotns does it's own logspacing of points in density space."
+            print
+            assert len(ed_range) > 1, "Must specify a density range with at least 2 steps for Mass-Shed run type!"
+            runParametersTemplate.update({'edMax':ed_range[-1],
+                                          'edMin':ed_range[0],
+                                          'Nsteps':len(ed_range),
+                                          'rpoe': rpoe_range[0]} )
+            parametersList =[populateParamsDict(runParametersTemplate,a,T) for a in a_range for T in T_range ]
+        else:
+            rpoe_range = rangeFromParams(args.rpoe1,args.rpoe2,args.rpoe_steps,args.rpoe,"rpoe")
+            parametersList=[ populateParamsDict(runParametersTemplate, a, T, ed, rpoe)
+                            for a in a_range
+                            for T in T_range
+                            for ed in ed_range
+                            for rpoe in rpoe_range
+                            ]
+        parametersList=[]
+        modelGen.generateModels(modelGen.runRotNS,parametersList,connection)
+        #Setup run params dictionary
+
+        print T_range
 
     if runMode == 'evolve':
 
@@ -138,13 +197,35 @@ def main():
 
 
 
-    print location_MakeEosFile, location_RotNS, specEosOptions, locationForRuns, databaseFile, ROTNS_RUNTYPE
-
 
     #Clean up
     connection.commit()
     connection.close()
     return 0
+
+def populateParamsDict(runParamsTemplate, a,T,ed=None,rpoe=None):
+    newDict={}
+    newDict.update( {'a':a})
+    newDict.update( {'T':T})
+    if ed:
+        newDict.update( {'edMax':ed})
+    if rpoe:
+        newDict.update({'rpoe':rpoe})
+    newDict.update( runParamsTemplate)
+    return newDict
+
+def rangeFromParams(start,end,steps,fixedValue,paramName):
+
+    result = None
+    if fixedValue:
+        assert (start==None and end==None and steps ==None),\
+            "Cannot specify range AND a fixed value for parameter: %s" %paramName
+        result = array([fixedValue])
+    else:
+        assert not (start==None or end==None or steps ==None),\
+        "If specifing a range, you must specify ALL of start, end and steps for parameter: %s" %paramName
+        result = linspace(start,end,steps)
+    return result
 
 
 def parseGlobalArgumentsAndReturnDBConnection(args):
