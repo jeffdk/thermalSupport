@@ -11,8 +11,8 @@ from sqlUtils import queryDBGivenParams
 class basis(object):
     dim=0
     basis=empty((0))
-    axesNames=['T','a','edMax','rpoe']
-    def __init__(self,vectors):
+    axesNames=('T','a','edMax','rpoe')
+    def __init__(self,vectors, axesNames = ('T','a','edMax','rpoe') ):
         assert vectors.dtype == array([0.0]).dtype, "Input must be of type floats!!"
 
         assert vectors.any(), "Array of input vectors to basis must not be empty!"
@@ -20,7 +20,9 @@ class basis(object):
         assert all([vector.size==vectors[0].size for vector in vectors]), \
                "Array of input vectors must each have the same size"
         assert linalg.det(vectors),  "Your basis vectors are linearly dependent"
+        assert isinstance(axesNames,tuple),  "axesNames must be a tuple of strings!"
 
+        self.axesNames=axesNames
         self.dim = vectors[0].size
 #        print "dim",self.dim
 
@@ -136,13 +138,14 @@ def zeroRoundOffValues(inArray,eps):
     return inArray
 roundArray=frompyfunc(round,2,1)
 
-def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConnection,modelGen,stationaryParamsDict):
+def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,
+                    sqliteConnection,modelGen,stationaryParamsDict, maxSteps):
     assert isinstance(funcName,str)
-    assert isinstance(fixedNames,list)
+    assert isinstance(fixedNames,tuple)
     assert isinstance(fixedNames[0], str)
     assert isinstance(inBasis,basis)
     assert isinstance(firstDeriv, deriv)
-    assert isinstance(deltas, tuple)
+    assert isinstance(deltas, ndarray)
     assert inBasis.dim == len(deltas), "Dimension of your deltas must be same as input basis!"
     assert isinstance(sqliteConnection,sqlite3.Connection)
     assert isinstance(modelGen,modelGenerator)
@@ -154,7 +157,6 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
 
     stencil = firstDeriv.stencil.indices[0]
     continueStepping = True
-    maxSteps = 50
     step = 0
     currentBasis=deepcopy(inBasis)
     currentPoint = p0
@@ -190,7 +192,7 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
         gradientDict={funcName : [] }
         gradientDict.update({ key:[] for key in fixedNames})
 
-        funcsDesired = [funcName] + fixedNames
+        funcsDesired = [funcName] + list(fixedNames)
         sqliteConnection.commit()
         sqliteCursor=sqliteConnection.cursor()
         for i in range(dim):
