@@ -138,8 +138,8 @@ def zeroRoundOffValues(inArray,eps):
     return inArray
 roundArray=frompyfunc(round,2,1)
 
-def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,
-                    sqliteConnection,modelGen,stationaryParamsDict, maxSteps):
+def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConnection,modelGen,
+                    stationaryParamsDict, maxSteps, changeBasis=False):
     assert isinstance(funcName,str)
     assert isinstance(fixedNames,tuple)
     assert isinstance(fixedNames[0], str)
@@ -242,13 +242,14 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,
         projectedGradFunc = projectedGradFunc/norm(projectedGradFunc)
         #print projectedGradFunc
 
-        newBasisVectors=[]
-        for i in badSubspace:
-            newBasisVectors.append(i)
-        for i in fixedSubspace:
-            newBasisVectors.append(i)
+        if changeBasis:
+            newBasisVectors=[]
+            for i in badSubspace:
+                newBasisVectors.append(i)
+            for i in fixedSubspace:
+                newBasisVectors.append(i)
 
-        #currentBasis = basis(array(newBasisVectors))
+            currentBasis = basis(array(newBasisVectors))
 
         print currentBasis.basis, currentBasis.isOrthogonal()
 

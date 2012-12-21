@@ -24,7 +24,7 @@ databaseFile         = '/home/jeff/work/rotNSruns/tester.db'
 ROTNS_RUNTYPE        = 30   #30 is 'one model' sequence, designed to generate just one model
 
 def main():
-    parser = argparse.ArgumentParser(epilog="If you get 'too few arguments' error, remember you must "
+    parser = argparse.ArgumentParser(epilog="If you get a 'too few arguments' error, remember you must "
                                             "specify the mode by passing either 'runmodels' or 'evolve'")
     parser.add_argument('mode', choices=['runmodels','evolve'])
 
@@ -98,12 +98,21 @@ def main():
     evolve_parser.add_argument('-p0', help="Python tuple for starting point, e.g.: \"(30.0,1.0,1.0,0.6)\"")
     evolve_parser.add_argument('-p0-string', help="Variable names tuple for starting point"
                                                   ", e.g.: \"('T','a','edMax','rpoe')\" " )
-    evolve_parser.add_argument('-deltas',   help="Initial stepsize tuple for variables, e.g. \"(0.3,.01,.01,.01)\"")
-    evolve_parser.add_argument('-descendVar', help="Variable name to evolve along steepest descent"
-                                                   "e.g.: (and default:  \"ToverW\"", default="ToverW")
-    evolve_parser.add_argument('-fixedVars', help="Tuple of variable names to hold fixed for descent."
+    evolve_parser.add_argument('-deltas',   help="Initial stepsize tuple for variables, e.g. \"(0.3,.01,.01,.01)\" ")
+    evolve_parser.add_argument('-descendVar', help="Variable name to evolve along steepest descent "
+                                                   "e.g.: (and default:  \"ToverW\"", default="ToverW ")
+    evolve_parser.add_argument('-fixedVars', help="Tuple of dependent variable names to fixed for descent. i.e. "
+                                                  "Take steps perpendicular to their gradient, "
                                                   "e.g.: \"('J','baryMass')\"" )
-
+    evolve_parser.add_argument('-fixedParams',  type=str, help="Set if you want to fix parameters for the evolution"
+                                                               "Format is list(tuples) in ('param',value) pairs e.g:\n"
+                                                               "\"[('a',1.0),('T',10.0)]\"")
+    evolve_parser.add_argument('-max-steps', type=int, help="Set the number of steps for the evolution."
+                                                            "Default: 0   (a setup test run)",
+                                                            default=0)
+    evolve_parser.add_argument('-changeBasis', type=bool, help="Set to True to enable adjusting the basis "
+                                                               "each step to split into fixed and non-fixed subspace"
+                                                               "Defalt: False", default = False)
 
     args = parser.parse_args()
     connection = parseGlobalArgumentsAndReturnDBConnection(args)
@@ -153,12 +162,21 @@ def main():
         print T_range
 
     if runMode == 'evolve':
+        assert args.p0, "Selected evolve mode but no p0 specified!"
+        assert args.p0_string, "Selected evolve mode but no p0-string specified!"
+        assert args.deltas, "Selected evolve mode but no deltas specified!"
 
         p0 = ast.literal_eval( args.p0 )
         assert isinstance(p0, tuple)
 
+        #TODO: add -rollMid and -rollScale to this list
+        rotNS_independentVariables=('T','a','rpoe','edMax')
         p0variables = ast.literal_eval( args.p0_string )
         assert isinstance(p0variables, tuple)
+        for var in p0variables:
+            assert var in rotNS_independentVariables, "You specified %s in your p0-string, but it is not" \
+                                                      "a valid RotNS independent variable. " \
+                                                      "Choose from: %s" % (var,rotNS_independentVariables)
 
         deltas =  ast.literal_eval( args.deltas)
         assert isinstance(deltas, tuple)
@@ -167,7 +185,8 @@ def main():
                "Lengths of evolution tuples must be the same! Re-examine your -p0, -p0-string, & -delats options"
 
         fixedVars=()
-        if args.fixedVars:
+        #TODO: check if fixedVars actually are proper RotNS output variables
+        if not args.fixedVars == None:
             fixedVars = ast.literal_eval(args.fixedVars)
         assert isinstance(fixedVars,tuple)
 
@@ -185,14 +204,46 @@ def main():
         firstDeriv=deriv(dim=1, order=1, step=0.1, stencil=theStencil,
                          coeffs=array([1,-8,0,8,-1])/12.,  name="5ptFirstDeriv")
 
-        #TODO generalize stationary params
-        stationaryParams = {'rollMid':14.0,
-                            'rollScale' :  0.5
-                            }
+        stationaryParams = runParametersTemplate.copy()
+        fixedParams = []
+        if args.fixedParams:
+            fixedParams = ast.literal_eval( args.fixedParams)
+            print fixedParams
+            assert isinstance(fixedParams,list) and isinstance(fixedParams[0],tuple), \
+                                             " You have incorrectly specified your -fixedParams argument." \
+                                             " Read the help text (-h) and try again! "
+            for pair in fixedParams:
+                param,value=pair
+                stationaryParams[param]=value
+                assert not param in p0variables,  "Can't list param '%s' in your p0 variables if you are fixing " \
+                                                  "param !%s'!" % (param,param)
+                assert param in rotNS_independentVariables, "fixedParam '%s' must be a valid RotNS independent" \
+                                                            "variable!  Choose from:" \
+                                                            " %s" % (param,rotNS_independentVariables)
 
-        #TODO allow max steps input parameter
-        steepestDescent("ToverW",("baryMass","J"),initialBasis,firstDeriv,p0,
-                        deltas,connection, modelGen,stationaryParams,0)
+        assert len(fixedParams) + len(p0) == len(rotNS_independentVariables), \
+                                             "You have left out a RotNS independent variable when specifying your " \
+                                             "-p0-string and -fixedParams.  " \
+                                             "Must use all of  %s" % str(rotNS_independentVariables)
+
+        assert len(fixedParams) + len(fixedVars) < len(rotNS_independentVariables), \
+                                            "Specified too many fixed vars Must be less than # of independent vars"
+
+        print "/======================== RUNNING STEEPEST DESCENT WITH ========================"
+        print "|"
+        print "|   descendVar:       %s" % descendVar
+        print "|   fixedVars:        %s" % str(fixedVars)
+        print "|   free parameters:  %s" % str(initialBasis.axesNames)
+        print "|   p0:               %s" % str(p0)
+        print "|   deltas:           %s" % str(deltas)
+        print "|   stationaryParams: %s" % stationaryParams
+        print "|   max steps:        %s" % args.max_steps
+        print "|   firstDeriv name:  %s" % firstDeriv.name
+        print "|   changeBasis:      %s" % args.changeBasis
+        print "|"
+        print "\==============================================================================="
+        steepestDescent(descendVar,fixedVars,initialBasis,firstDeriv,p0,
+                        deltas,connection, modelGen,stationaryParams,args.max_steps,args.changeBasis)
 
 
 
