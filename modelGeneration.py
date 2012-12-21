@@ -76,9 +76,6 @@ class modelGenerator(object):
         rotNS_params = {'RunType':self.runType,
                         'EOS':self.rotNS_EosType,
                         'Nsteps':self.rotNS_numSteps}
-        #If we are provided it, override Nsteps
-        if 'Nsteps' in inputParams:
-            rotNS_params['Nsteps'] = inputParams['Nsteps']
         #Add resolution information
         rotNS_params.update(self.rotNS_resolutionParams)
         runName = self.determineRunName(inputParams)
@@ -170,7 +167,12 @@ class modelGenerator(object):
         TASKS = []
         ids = []
         for inputParams in listOfInputParams:
-
+            
+            #If we are provided it, override Nsteps
+            #TODO: fix bad way of setting Nsteps!
+            if 'Nsteps' in inputParams:
+                self.rotNS_numSteps= inputParams['Nsteps']
+                del inputParams['Nsteps']
             existingRunID = self.checkIfRunExistsInDB(inputParams,cursor)
             if existingRunID:
                 continue

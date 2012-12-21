@@ -14,6 +14,7 @@ import numpy
 from modelGeneration import modelGenerator
 import parseFiles
 from minimizeAlgorithm import *
+from pickleHack import *
 
 #Below are default run setup arguments.  They can be easily changed with command line args
 location_MakeEosFile = "/home/jeff/spec/Hydro/EquationOfState/Executables/MakeRotNSeosfile"
@@ -155,7 +156,7 @@ def main():
                             for ed in ed_range
                             for rpoe in rpoe_range
                             ]
-        parametersList=[]
+        #parametersList=[]
         modelGen.generateModels(modelGen.runRotNS,parametersList,connection)
         #Setup run params dictionary
 
