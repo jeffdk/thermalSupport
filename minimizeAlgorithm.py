@@ -249,7 +249,7 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
             for i in fixedSubspace:
                 newBasisVectors.append(i)
 
-            currentBasis = basis(array(newBasisVectors))
+            currentBasis = basis(array(newBasisVectors),currentBasis.axesNames)
 
         print currentBasis.basis, currentBasis.isOrthogonal()
 
