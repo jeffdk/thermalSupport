@@ -102,6 +102,7 @@ class modelGenerator(object):
         rotNS_params.update({'RunName':runName,
                              'RotInvA':inputParams['a'],
                              'RPOEGoal':inputParams['rpoe'] })
+
         #Sets the density parameters differently depending on run type
         rotNS_params = self.setDensityRange(inputParams,rotNS_params)
         writeParametersFile.writeFile(rotNS_params,'Parameters.input')
@@ -158,11 +159,7 @@ class modelGenerator(object):
         assert isinstance(sqliteConnection,sqlite3.Connection)
         currentDirectory=os.getcwd()
         os.chdir(self.locationForRuns)
-        PROCESSES = self.num_cpus
-        print 'Creating pool with %d processes\n' % PROCESSES
-        pool = multiprocessing.Pool(PROCESSES)
-        print 'pool = %s' % pool
-        print
+
         cursor = sqliteConnection.cursor()
         TASKS = []
         ids = []
@@ -187,8 +184,16 @@ class modelGenerator(object):
 
             #print runID
             TASKS.append( (f,  ( inputParams,runID) )  )
-        print "Now queued %s runs for multithreaded execution..." %str(len(ids))
+        print "Now queued %s runs for multithreaded execution..."%str(len(ids))
         start = datetime.datetime.now()
+        print "----- Starting runs at %s -----" % start
+        time.sleep(0.1)
+
+        PROCESSES = self.num_cpus
+        print 'Creating pool with %d processes\n' % PROCESSES
+        pool = multiprocessing.Pool(PROCESSES)
+        print 'pool = %s' % pool
+        print
         result = pool.imap_unordered(calculateStar, TASKS)
 
         for i in result:
