@@ -234,11 +234,7 @@ class modelGenerator(object):
                 print "exists more than once in the database! Should not be possible..."
                 #raise AssertionError
             result = listResult[0][0]
-            print "----WARNING!----"
-            print "  Parameters: "
-            print inputParams
-            print " Have already been run, run ID: ", result
-            print
+            print "  Parameters Have already been run in ID '%s'.  Parameters: " %result, inputParams
 
         return listResult
 

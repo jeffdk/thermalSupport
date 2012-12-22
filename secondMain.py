@@ -95,7 +95,7 @@ stationaryParams = {'rollMid':14.0,
                     }
 pointlist, funcNamesList,gradientDictList,fixedSubspaceList,\
             projectedGradientList, normAfterProjectionList = \
-steepestDescent("ToverW",("baryMass","J"),b,firstDeriv,p0,delta,connection,hsModels,stationaryParams,40)
+steepestDescent("ToverW",("baryMass","J"),b,firstDeriv,p0,delta,connection,hsModels,stationaryParams,50)
 
 
 

@@ -7,6 +7,7 @@ from numpy import *
 from numpy import testing as npt
 from modelGeneration import modelGenerator
 from sqlUtils import queryDBGivenParams
+from trackRecorder import trackRecorder
 
 class basis(object):
     dim=0
@@ -153,6 +154,8 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
     assert inBasis.dim == len(p0), "Dimension of your starting point must be same as input basis!"
     assert isinstance(stationaryParamsDict,dict)
 
+    recorder=trackRecorder("track",sqliteConnection,inBasis.axesNames)
+
     dim = inBasis.dim
 
     stencil = firstDeriv.stencil.indices[0]
@@ -187,8 +190,9 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
                 paramsDict.update(dictUpdate)
                 ithParamsNeeded.append(paramsDict.copy ())
                 if paramsDict in paramsToRun:
-                    print "ARRR MATEY, ALREAYD GOT THAT ONE"
-                    print paramsDict
+                    #print "ARRR MATEY, ALREAYD GOT THAT ONE"
+                    #print paramsDict
+                    pass
                 else:
                     paramsToRun.append(paramsDict.copy())
             paramsNeededForIthBasisVector.append(ithParamsNeeded)
@@ -260,7 +264,7 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
             currentBasis = basis(array(newBasisVectors),currentBasis.axesNames)
 
         print currentBasis.basis, currentBasis.isOrthogonal()
-
+        recorder.record(currentPoint,gradientDict,projectedGradFunc,normAfterProjectionList[step-1],"models")
         currentPoint += -projectedGradFunc * deltas
         pointList.append(deepcopy(currentPoint))
         print "-----------NEW POINT---------------"
