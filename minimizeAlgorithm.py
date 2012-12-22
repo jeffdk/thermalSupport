@@ -161,6 +161,11 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
     currentBasis=deepcopy(inBasis)
     currentPoint = p0
     pointList=[p0]
+    gradientDictList =[]
+    fixedSubspaceList =[]
+    projectedGradientList=[]
+    normAfterProjectionList=[]
+    basisList=[]
     funcNamesList={funcName:[]}
     funcNamesList.update({key:[] for key in fixedNames})
     while continueStepping:
@@ -232,16 +237,19 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
                 #print funcVals
                 gradientDict[func].append( dot(firstDeriv.coeffs, funcVals)/stepInIthDir  )
         #print gradientDict
-        
+        gradientDictList.append(gradientDict)
         badSubspace =  array([gradientDict[fixedName] for fixedName in fixedNames])
         fixedSubspace=removeSubspace(currentBasis, badSubspace )
         #print fixedSubspace
+        fixedSubspaceList.append(fixedSubspace)
         projectedGradFunc=zeros(dim)
         for projection in [project(gradientDict[funcName],vec) for vec in fixedSubspace ]:
             projectedGradFunc += projection
+        normAfterProjectionList.append(norm(projectedGradFunc))
         projectedGradFunc = projectedGradFunc/norm(projectedGradFunc)
         #print projectedGradFunc
-
+        projectedGradientList.append(projectedGradFunc)
+        basisList.append(currentBasis.basis)
         if changeBasis:
             newBasisVectors=[]
             for i in badSubspace:
@@ -272,7 +280,8 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
     print funcNamesList
     print 
     print "-------------------------------------------------"
-    return array(pointList)
+    return array(pointList), funcNamesList,gradientDictList,fixedSubspaceList,\
+           projectedGradientList, normAfterProjectionList
 
 
 class deriv:
