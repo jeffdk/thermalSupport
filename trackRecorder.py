@@ -1,6 +1,8 @@
 #
 # For recording tracks
 #
+import ast
+import mayavi.mlab as mlab
 import sqlite3
 from numpy import *
 from sqlUtils import queryDBGivenParams
@@ -93,3 +95,50 @@ class trackRecorder(object):
         print
         self.dbConnection.commit()
         return
+
+class trackPlotter(object):
+    dbFilenames=[]
+    trackTableName="track"
+    independentVars=()
+    trackData=[]
+
+    def __init__(self,dbFilenames,trackTableName,independentVars):
+
+        self.dbFilenames=dbFilenames
+        self.trackTableName=trackTableName
+        self.independentVars=independentVars
+
+        thisFilesData={}
+        for file in self.dbFilenames:
+            connection=sqlite3.connect(file)
+            c=connection.cursor()
+            rawData=queryDBGivenParams(["pointNum","point","gradDict","projGrad","normProj"],
+                                       {},c,self.trackTableName,(), " ORDER BY pointNum" )
+            pointList=[]
+            gradDictList=[]
+            projGradList=[]
+            normProjList=[]
+            for entry in rawData:
+                point = ast.literal_eval( entry[1] )
+                gradDict = ast.literal_eval( entry[2])
+                projGrad = ast.literal_eval( entry[3])
+                normProj = entry[4]
+                pointList.append(point)
+            thisFilesData.update({'points':pointList})
+        self.trackData.append(thisFilesData)
+
+
+
+    def trackPlotter(self,independentVars):
+        #somehow figure out what indices to plot
+        plotIndices=(1,2,3)
+
+        for track in self.trackData:
+            pointPlot=zip(*track['points'])
+
+            print pointPlot
+            print pointPlot[plotIndices[0]]
+            print pointPlot[plotIndices[1]]
+            print  pointPlot[plotIndices[2]]
+            mlab.plot3d(pointPlot[plotIndices[0]], pointPlot[plotIndices[1]],pointPlot[plotIndices[2]], color=(1,1,1) )
+        mlab.show()

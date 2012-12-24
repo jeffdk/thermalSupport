@@ -7,6 +7,8 @@ import os
 import sqlite3
 from minimizeAlgorithm import *
 import numpy as np
+from trackRecorder import trackPlotter
+
 sys.path.append('./maxMassOrigFiles/')
 #noinspection PyUnresolvedReferences
 from sqlPlotRoutines import sequencePlot
@@ -30,6 +32,10 @@ locationForRuns      = "/home/jeff/work/rotNSruns"
 databaseFile         = '/home/jeff/work/rotNSruns/stepDown_models.db'
 
 
+
+plotter=trackPlotter([databaseFile],"track",("a","edMax","rpoe"))
+plotter.trackPlotter(("a","edMax","rpoe"))
+exit()
 
 databaseExists =os.path.isfile(databaseFile)
 connection=sqlite3.connect(databaseFile)
