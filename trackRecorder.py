@@ -2,10 +2,12 @@
 # For recording tracks
 #
 import ast
-import mayavi.mlab as mlab
 import sqlite3
 from numpy import *
 from sqlUtils import queryDBGivenParams
+MAYAVI_OFF=False
+if not MAYAVI_OFF:
+    import mayavi.mlab as mlab
 
 columnsString=''' (pointNum int, point text, gradDict text, projGrad text, normProj real,
               eos text, rollMid real, rollScale real, a real, T real,
@@ -128,17 +130,17 @@ class trackPlotter(object):
         self.trackData.append(thisFilesData)
 
 
+    if not MAYAVI_OFF:
+        def trackPlotter(self,independentVars):
+            #somehow figure out what indices to plot
+            plotIndices=(1,2,3)
 
-    def trackPlotter(self,independentVars):
-        #somehow figure out what indices to plot
-        plotIndices=(1,2,3)
+            for track in self.trackData:
+                pointPlot=zip(*track['points'])
 
-        for track in self.trackData:
-            pointPlot=zip(*track['points'])
-
-            print pointPlot
-            print pointPlot[plotIndices[0]]
-            print pointPlot[plotIndices[1]]
-            print  pointPlot[plotIndices[2]]
-            mlab.plot3d(pointPlot[plotIndices[0]], pointPlot[plotIndices[1]],pointPlot[plotIndices[2]], color=(1,1,1) )
-        mlab.show()
+                print pointPlot
+                print pointPlot[plotIndices[0]]
+                print pointPlot[plotIndices[1]]
+                print  pointPlot[plotIndices[2]]
+                mlab.plot3d(pointPlot[plotIndices[0]], pointPlot[plotIndices[1]],pointPlot[plotIndices[2]], color=(1,1,1) )
+            mlab.show()
