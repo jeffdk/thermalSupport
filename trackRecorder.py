@@ -110,8 +110,8 @@ class trackPlotter(object):
         self.trackTableName=trackTableName
         self.independentVars=independentVars
 
-        thisFilesData={}
         for file in self.dbFilenames:
+            thisFilesData={}
             connection=sqlite3.connect(file)
             c=connection.cursor()
             rawData=queryDBGivenParams(["pointNum","point","gradDict","projGrad","normProj"],
@@ -127,20 +127,21 @@ class trackPlotter(object):
                 normProj = entry[4]
                 pointList.append(point)
             thisFilesData.update({'points':pointList})
-        self.trackData.append(thisFilesData)
+            self.trackData.append(thisFilesData)
 
 
     if not MAYAVI_OFF:
         def trackPlotter(self,independentVars):
             #somehow figure out what indices to plot
-            plotIndices=(1,2,3)
-
-            for track in self.trackData:
+            plotIndices=(0,1,2)
+            for i,track in enumerate(self.trackData):
                 pointPlot=zip(*track['points'])
 
                 print pointPlot
                 print pointPlot[plotIndices[0]]
                 print pointPlot[plotIndices[1]]
                 print  pointPlot[plotIndices[2]]
-                mlab.plot3d(pointPlot[plotIndices[0]], pointPlot[plotIndices[1]],pointPlot[plotIndices[2]], color=(1,1,1) )
+                mlab.plot3d(pointPlot[plotIndices[0]], pointPlot[plotIndices[1]],pointPlot[plotIndices[2]],
+                            color=(1-(1./(i%3+1)),1,1./(i%2+1.)),
+                            tube_radius=None)
             mlab.show()

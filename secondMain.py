@@ -31,9 +31,11 @@ specEosOptions       = "Tabulated(filename= /home/jeff/work/HS_Tabulated.dat )"
 locationForRuns      = "/home/jeff/work/rotNSruns"
 databaseFile         = '/home/jeff/work/rotNSruns/stepDown_models.db'
 
+dbfileList=['/home/jeff/work/rotNSruns/tester30.0.step.' + str(i) +'.db' for i in [0.5,1.0,2.0]]
 
 
-plotter=trackPlotter([databaseFile],"track",("a","edMax","rpoe"))
+
+plotter=trackPlotter(dbfileList,"track",("a","edMax","rpoe"))
 plotter.trackPlotter(("a","edMax","rpoe"))
 exit()
 
