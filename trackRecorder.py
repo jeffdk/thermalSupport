@@ -114,19 +114,22 @@ class trackPlotter(object):
             thisFilesData={}
             connection=sqlite3.connect(file)
             c=connection.cursor()
-            rawData=queryDBGivenParams(["pointNum","point","gradDict","projGrad","normProj"],
+            rawData=queryDBGivenParams(["pointNum","point","gradDict","projGrad","normProj","baryMass"],
                                        {},c,self.trackTableName,(), " ORDER BY pointNum" )
             pointList=[]
             gradDictList=[]
             projGradList=[]
             normProjList=[]
+            massList=[]
             for entry in rawData:
                 point = ast.literal_eval( entry[1] )
                 gradDict = ast.literal_eval( entry[2])
                 projGrad = ast.literal_eval( entry[3])
                 normProj = entry[4]
+                mass     = entry[5]
+                massList.append(mass)
                 pointList.append(point)
-            thisFilesData.update({'points':pointList})
+            thisFilesData.update({'points':pointList,'baryMass':massList})
             self.trackData.append(thisFilesData)
 
 
@@ -141,7 +144,8 @@ class trackPlotter(object):
                 print pointPlot[plotIndices[0]]
                 print pointPlot[plotIndices[1]]
                 print  pointPlot[plotIndices[2]]
-                mlab.plot3d(pointPlot[plotIndices[0]], pointPlot[plotIndices[1]],pointPlot[plotIndices[2]],
+                print track['baryMass']
+                mlab.plot3d(pointPlot[plotIndices[0]], pointPlot[plotIndices[1]], track['baryMass'], #pointPlot[plotIndices[2]],
                             color=(1-(1./(i%3+1)),1,1./(i%2+1.)),
                             tube_radius=None)
             mlab.show()

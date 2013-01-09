@@ -1,6 +1,7 @@
 
 
 import sys
+from maxMassSurfPlotter import surfacePlotter
 from modelGeneration import runIDToDate, modelGenerator
 import parseFiles
 import os
@@ -33,11 +34,21 @@ databaseFile         = '/home/jeff/work/rotNSruns/stepDown_models.db'
 
 dbfileList=['/home/jeff/work/rotNSruns/tester30.0.step.' + str(i) +'.db' for i in [0.5,1.0,2.0]]
 
+dbfileList=['/home/jeff/work/rotNSruns/tester30.0.db']
 
+
+
+
+TasString = "31.2222222222222"
+
+splotter = surfacePlotter("/home/jeff/work/rotNSruns/mass-shed-models.db", ('a','edMax'), 'baryMass')
+
+splotter.plotWithCondition(" T < 32 AND T > 29 ")
 
 plotter=trackPlotter(dbfileList,"track",("a","edMax","rpoe"))
 plotter.trackPlotter(("a","edMax","rpoe"))
 exit()
+
 
 databaseExists =os.path.isfile(databaseFile)
 connection=sqlite3.connect(databaseFile)
