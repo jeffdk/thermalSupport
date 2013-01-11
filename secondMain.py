@@ -34,8 +34,8 @@ databaseFile         = '/home/jeff/work/rotNSruns/stepDown_models.db'
 
 dbfileList=['/home/jeff/work/rotNSruns/tester30.0.step.' + str(i) +'.db' for i in [0.5,1.0,2.0]]
 
-dbfileList=['/home/jeff/work/rotNSruns/tester30.0.db']
-
+dbfileList=['/home/jeff/work/rotNSruns/jan10.30.0.db']
+#dbfileList=['/home/jeff/work/rotNSruns/tester30.0.db']
 
 
 
@@ -44,9 +44,11 @@ TasString = "31.2222222222222"
 splotter = surfacePlotter("/home/jeff/work/rotNSruns/mass-shed-models.db", ('a','edMax'), 'baryMass')
 
 splotter.plotWithCondition(" T < 32 AND T > 29 ")
-
+#mlab.show()
 plotter=trackPlotter(dbfileList,"track",("a","edMax","rpoe"))
 plotter.trackPlotter(("a","edMax","rpoe"))
+
+splotter.dbConnection.close()
 exit()
 
 

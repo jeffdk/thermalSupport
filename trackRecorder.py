@@ -114,22 +114,26 @@ class trackPlotter(object):
             thisFilesData={}
             connection=sqlite3.connect(file)
             c=connection.cursor()
-            rawData=queryDBGivenParams(["pointNum","point","gradDict","projGrad","normProj","baryMass"],
+            rawData=queryDBGivenParams(["pointNum","point","gradDict","projGrad","normProj","baryMass","RedMax"],
                                        {},c,self.trackTableName,(), " ORDER BY pointNum" )
             pointList=[]
             gradDictList=[]
             projGradList=[]
             normProjList=[]
+            redMaxList=[]
             massList=[]
             for entry in rawData:
+                #print entry
                 point = ast.literal_eval( entry[1] )
                 gradDict = ast.literal_eval( entry[2])
                 projGrad = ast.literal_eval( entry[3])
                 normProj = entry[4]
                 mass     = entry[5]
+                redMax   = entry[6]
+                redMaxList.append(redMax)
                 massList.append(mass)
                 pointList.append(point)
-            thisFilesData.update({'points':pointList,'baryMass':massList})
+            thisFilesData.update({'points':pointList,'baryMass':massList,'RedMax':redMaxList})
             self.trackData.append(thisFilesData)
 
 
@@ -144,8 +148,10 @@ class trackPlotter(object):
                 print pointPlot[plotIndices[0]]
                 print pointPlot[plotIndices[1]]
                 print  pointPlot[plotIndices[2]]
-                print track['baryMass']
-                mlab.plot3d(pointPlot[plotIndices[0]], pointPlot[plotIndices[1]], track['baryMass'], #pointPlot[plotIndices[2]],
+                print  'redmax:', track['RedMax']
+                print track['baryMass'] #track['baryMass'], #
+                mlab.plot3d(pointPlot[plotIndices[0]], pointPlot[plotIndices[1]],track['baryMass'], # pointPlot[plotIndices[2]],
                             color=(1-(1./(i%3+1)),1,1./(i%2+1.)),
+                            reset_zoom=False,
                             tube_radius=None)
             mlab.show()

@@ -64,28 +64,31 @@ class surfacePlotter(object):
             ys.append(val)
         #print xs
         #print ys
-        ys, xs =  meshgrid(xs,ys)  #reverse order since mlab uses mgrid format which is reversed in order
-        #roundArray=frompyfunc(round,2,1)
-        #xs = roundArray(xs,9)
-        #ys = roundArray(ys,9)
-        #print xs
-        #print ys
-        xx = xs
-        yy = ys
-        #input={yname:x,xname:y}
+
+        #####
+        #
+        xs, ys =  meshgrid(xs,ys)
+        # reverse order since mlab uses mgrid format which returns transpose of matrices in meshgrid style
+        xs = xs.transpose()
+        ys = ys.transpose()
+        #
+        #####
+
         def lookup(x,y):
+            assert x >= 0.,  "Lookup only well defined for x >=0"
+            assert y >= 0.,  "Lookup only well defined for y >=0"
             tolerance = 1.0001
             additionalConditions=[]
             if not x == 0:
-                additionalConditions.append( yname + ">" + str(x/tolerance) )
-                additionalConditions.append( yname + "<" + str(x*tolerance) )
+                additionalConditions.append( xname + ">" + str(x/tolerance) )
+                additionalConditions.append( xname + "<" + str(x*tolerance) )
             else:
-                additionalConditions.append(yname + "=" + str(x))
+                additionalConditions.append(xname + "=" + str(x))
             if not y == 0:
-                additionalConditions.append(xname + ">" + str(y/tolerance))
-                additionalConditions.append( xname + "<" + str(y*tolerance))
+                additionalConditions.append(yname + ">" + str(y/tolerance))
+                additionalConditions.append( yname + "<" + str(y*tolerance))
             else:
-                additionalConditions.append(xname + "=" + str(y))
+                additionalConditions.append(yname + "=" + str(y))
             additionalConditions.append(condition)
             #print additionalConditions
             value= queryDBGivenParams(self.dependentVar,
@@ -93,16 +96,14 @@ class surfacePlotter(object):
                 cursor,"models", tuple( additionalConditions ))
             #print x,y, value
             if value:
+                if len(value[0]) > 1 :
+                    print "WARNING MORE THAN ONE VALUE FOUND!!!"
                 return value[0][0]
             else:
                 print "WARNING: no value"
                 return 0.0
-        lookupPrime=frompyfunc(lookup,2,1)
 
-        #print xs
-        #print ys
         zs = zeros(xs.shape)
-        #isinf(array(ys))
 
         for i in range(len(xs)):
             row = xs[i]
@@ -111,19 +112,35 @@ class surfacePlotter(object):
                 #print xs[i][j], ys[i][j]
                 zs[i][j] = lookup(xs[i][j], ys[i][j] )
 
-        xs = array(xs*1e-15)
-        ys = array(ys)
+        if xname == "edMax":
+            xs = array(xs*1e-15)
+        else:
+            xs = array(xs)
+
+        if yname == "edMax":
+            ys=array(ys*1e-15)
+        else:
+            ys = array(ys)
         zs = array(zs)
         #print xs
         #print ys
         #print zs
-        mlab.surf(xs,ys,zs, colormap="bone")
+        #print size(xs)
+        #print size(ys)
+        #print size(zs)
+        fig=mlab.figure(bgcolor=(.5,.5,.5))
+        extents=[xs.min(),xs.max(),
+                 ys.min(),ys.max(),
+                 zs.min(),zs.max()]
+
+        mlab.surf(xs,ys,zs, colormap="bone",representation='wireframe',
+            extent=extents
+        )
+
+        mlab.axes(extent=extents,nb_labels=6)
+        mlab.outline(extent=extents)
+        mlab.xlabel(xname)
+        mlab.ylabel(yname)
+        mlab.zlabel(self.dependentVar)
         #mlab.show()
-
-
-    #for i in cursor.execute("SELECT * FROM models " + condition):
-        #    print i
-
-
-
 
