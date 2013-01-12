@@ -155,7 +155,8 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
     assert isinstance(stationaryParamsDict,dict)
 
     recorder=trackRecorder("track",sqliteConnection,inBasis.axesNames)
-
+    recorder.recordTrackMetadata(inBasis.axesNames,funcName,fixedNames,firstDeriv.name,deltas,
+        stationaryParamsDict,maxSteps,changeBasis)
     dim = inBasis.dim
 
     stencil = firstDeriv.stencil.indices[0]

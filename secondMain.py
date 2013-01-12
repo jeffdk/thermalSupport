@@ -44,13 +44,16 @@ TasString = "31.2222222222222"
 splotter = surfacePlotter("/home/jeff/work/rotNSruns/mass-shed-models.db", ('a','edMax'), 'baryMass')
 
 splotter.plotWithCondition(" T < 32 AND T > 29 ")
-#mlab.show()
-plotter=trackPlotter(dbfileList,"track",("a","edMax","rpoe"))
-plotter.trackPlotter(("a","edMax","rpoe"))
+mlab.show()
+#plotter=trackPlotter(dbfileList,"track",("a","edMax","rpoe"))
+#plotter.trackPlotter(("a","edMax","rpoe"))
 
 splotter.dbConnection.close()
-exit()
 
+dbfileList=['/home/jeff/work/rotNSruns/stepDown_models.db']
+plotter2=trackPlotter(dbfileList,"track",("baryMass","RedMax"))
+plotter2.trackPlotter(("edMax","baryMass","a"))
+exit()
 
 databaseExists =os.path.isfile(databaseFile)
 connection=sqlite3.connect(databaseFile)

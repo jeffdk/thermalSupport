@@ -18,6 +18,9 @@ columnsString=''' (pointNum int, point text, gradDict text, projGrad text, normP
               RedMax real, propRe real, runType int, runID text, lineNum int) '''
 #  Omega_c    cJ/GMs^2    M/Ms       Eps_c      Mo/Ms      T/W        R_c        v/c     omg_c/Omg_c     rp       Z_p        Z_b        Z_f      h-direct   h-retro     e/m  Shed RedMax
 
+metadataColumns='''(independentVars, minimizedFunc, fixedFuncs, derivName, deltas,
+                    stationaryParamsDict, maxSteps, changeBasis)'''
+
 class trackRecorder(object):
     dbFile=None
     trackTableName=None
@@ -25,7 +28,7 @@ class trackRecorder(object):
     pointNumber=0
     doRecording=True
     independentVars=None
-    trackMetaTable = None #TODO: IMPLEMENT THIS
+    trackMetaTable = None
 
     def __init__(self,trackTableName,dbConnection,independentVars):
         assert isinstance(trackTableName,str)
@@ -36,6 +39,7 @@ class trackRecorder(object):
         self.trackTableName=trackTableName
         self.dbConnection=dbConnection
         self.independentVars=independentVars
+        self.trackMetaTable = trackTableName + "Metadata"
 
         #Check if table already exists
         curs = self.dbConnection.cursor()
@@ -52,6 +56,31 @@ class trackRecorder(object):
         self.dbConnection.commit()
         return
 
+    def recordTrackMetadata(self,independentVars,funcName,fixedNames,firstDeriv,deltas,
+                         stationaryParamsDict, maxSteps, changeBasis):
+
+        curs = self.dbConnection.cursor()
+        curs.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='%s'" % self.trackMetaTable)
+        result=curs.fetchall()
+        if not result:
+            print "Track metadata table '%s' not found in db; creating now" % self.trackMetaTable
+            curs.execute("CREATE TABLE %s  %s" %(self.trackMetaTable,metadataColumns) )
+        else:
+            print "Track metadata table already exists, returning without recording metadata!"
+            return 1
+
+        entry=[str(independentVars).replace(" ",""),
+               funcName, str(fixedNames).replace(" ",""),
+               firstDeriv, str(tuple(deltas)).replace(" ",""),
+               str(stationaryParamsDict).replace(" ",""),
+               maxSteps,str(changeBasis)]
+        print entry
+        print tuple(entry)
+        print str(tuple(entry))
+        curs.execute("INSERT INTO "+self.trackMetaTable+" VALUES "+ str(tuple(entry)) )
+
+        self.dbConnection.commit()
+        return 0
 
     def record(self,point,gradientDict,projectedGradFunc,normAfterProjection, modelsTable):
         if not self.doRecording:
@@ -101,56 +130,109 @@ class trackRecorder(object):
 class trackPlotter(object):
     dbFilenames=[]
     trackTableName="track"
-    independentVars=()
+    trackVars=()
     trackData=[]
+    trackMetaTable="trackMetadata"
 
-    def __init__(self,dbFilenames,trackTableName,independentVars):
+    def __init__(self,dbFilenames,trackTableName,trackVars):
 
+        assert isinstance(trackVars,tuple)
         self.dbFilenames=dbFilenames
+        #TODO: what if track tablenames differ between dbNames!
         self.trackTableName=trackTableName
-        self.independentVars=independentVars
+        self.trackMetaTable=trackTableName+"Metadata"
+        self.trackVars=trackVars
+
 
         for file in self.dbFilenames:
-            thisFilesData={}
+            thisFilesData={key:[] for key in trackVars}
             connection=sqlite3.connect(file)
+
+            metadataDict=self.readTrackMetadata(connection)
+            thisFilesData.update(metadataDict)
             c=connection.cursor()
-            rawData=queryDBGivenParams(["pointNum","point","gradDict","projGrad","normProj","baryMass","RedMax"],
+            rawData=queryDBGivenParams(["pointNum","point","gradDict","projGrad","normProj"]+list(trackVars),
                                        {},c,self.trackTableName,(), " ORDER BY pointNum" )
             pointList=[]
             gradDictList=[]
             projGradList=[]
             normProjList=[]
-            redMaxList=[]
-            massList=[]
             for entry in rawData:
                 #print entry
                 point = ast.literal_eval( entry[1] )
                 gradDict = ast.literal_eval( entry[2])
                 projGrad = ast.literal_eval( entry[3])
                 normProj = entry[4]
-                mass     = entry[5]
-                redMax   = entry[6]
-                redMaxList.append(redMax)
-                massList.append(mass)
+                gradDictList.append(gradDict)
+                projGradList.append(projGrad)
+                normProjList.append(normProj)
+                for i,key in enumerate(trackVars):
+                    thisFilesData[key].append( entry[ i + 5]) #since there are 5 variables before the trackVars
+
                 pointList.append(point)
-            thisFilesData.update({'points':pointList,'baryMass':massList,'RedMax':redMaxList})
+            thisFilesData.update({'points':pointList,'gradDicts':gradDictList,
+                                  'projGrads':projGradList, 'normProjs':normProjList})
+            print thisFilesData
             self.trackData.append(thisFilesData)
 
+    def readTrackMetadata(self,dbConnection):
+
+        c = dbConnection.cursor()
+        c.execute("SELECT * FROM " +self.trackMetaTable )
+        rawMetadata=c.fetchall()
+        assert len(rawMetadata) < 2, "Metadata table shouldn't have multiple entries!"
+        rawMetadata=list(rawMetadata[0])
+        #print rawMetadata
+        keys = metadataColumns.strip('()').replace(" ","").replace('\n',"").split(',')
+        metadataDict={}
+        for i,key in enumerate(keys):
+            if isinstance(rawMetadata[i],unicode):
+                rawMetadata[i]=str(rawMetadata[i])
+            value = None
+
+            try:
+                value = ast.literal_eval(rawMetadata[i])
+            except ValueError:
+                value = rawMetadata[i]
+            #Weird syntax error in ast occurs if the literal is a string that begins with a number
+            except SyntaxError:
+                value = ast.literal_eval("'" + rawMetadata[i] + "'")
+
+            metadataDict[key] = value
+
+        dbConnection.commit()
+        return metadataDict
 
     if not MAYAVI_OFF:
-        def trackPlotter(self,independentVars):
-            #somehow figure out what indices to plot
-            plotIndices=(0,1,2)
-            for i,track in enumerate(self.trackData):
-                pointPlot=zip(*track['points'])
+        def trackPlotter(self,plotVars):
 
-                print pointPlot
-                print pointPlot[plotIndices[0]]
-                print pointPlot[plotIndices[1]]
-                print  pointPlot[plotIndices[2]]
+
+            for i,track in enumerate(self.trackData):
+                pointList=zip(*track['points'])
+                xs_ys_zs=[]
+                #Here we search through the available data and add the correct data to plot to xs_ys_zs
+                for plotVar in plotVars:
+                    gotItFlag=False
+                    for pointIndex,pointVar in enumerate(track['independentVars']):
+                        if pointVar==plotVar:
+                            print 'got ind var %s' % plotVar
+                            xs_ys_zs.append(pointList[pointIndex])
+                            gotItFlag=True
+                            break
+                    if gotItFlag:
+                        continue
+                    for availData in track.keys():
+                        if availData == plotVar:
+                            print 'got other track var %s' % plotVar
+                            gotItFlag=True
+                            xs_ys_zs.append(track[plotVar])
+                            break
+                    assert gotItFlag, "uh oh didn't find our variable to plot '%s'" % plotVar
+
+
                 print  'redmax:', track['RedMax']
-                print track['baryMass'] #track['baryMass'], #
-                mlab.plot3d(pointPlot[plotIndices[0]], pointPlot[plotIndices[1]],track['baryMass'], # pointPlot[plotIndices[2]],
+                print track['baryMass']
+                mlab.plot3d(*xs_ys_zs,
                             color=(1-(1./(i%3+1)),1,1./(i%2+1.)),
                             reset_zoom=False,
                             tube_radius=None)
