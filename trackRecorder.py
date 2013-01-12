@@ -4,6 +4,7 @@
 import ast
 import sqlite3
 from numpy import *
+import minimizeAlgorithm
 from sqlUtils import queryDBGivenParams
 MAYAVI_OFF=False
 if not MAYAVI_OFF:
@@ -127,12 +128,25 @@ class trackRecorder(object):
         self.dbConnection.commit()
         return
 
+def returnGradientXsYsZsForPlot(gradDictList,grad):
+    xs,ys,zs = [],[],[]
+    normalize=True
+    for i,thisPointsGrads in enumerate(gradDictList):
+        desiredGrad=array(thisPointsGrads[grad])
+        if normalize:
+            desiredGrad = desiredGrad/minimizeAlgorithm.norm(desiredGrad)
+        xs.append(desiredGrad[0])
+        ys.append(desiredGrad[1])
+        zs.append(desiredGrad[2])
+    return xs,ys,zs
+
 class trackPlotter(object):
     dbFilenames=[]
     trackTableName="track"
     trackVars=()
     trackData=[]
     trackMetaTable="trackMetadata"
+    maxLabelLength= 9
 
     def __init__(self,dbFilenames,trackTableName,trackVars):
 
@@ -204,9 +218,11 @@ class trackPlotter(object):
         return metadataDict
 
     if not MAYAVI_OFF:
-        def trackPlotter(self,plotVars):
-
-
+        def trackPlotter(self,plotVars,plotGradients=None,plotProjGrad=False):
+            '''Gradients must be one of one of minimizedFunc or fixedFuncs as these are only ones
+               Stored in gradient dict
+            '''
+            assert len(plotVars) == 3, "Track plotter requires 3 plotVars for 3D track! You gave: %s" % len(plotVars)
             for i,track in enumerate(self.trackData):
                 pointList=zip(*track['points'])
                 xs_ys_zs=[]
@@ -228,12 +244,39 @@ class trackPlotter(object):
                             xs_ys_zs.append(track[plotVar])
                             break
                     assert gotItFlag, "uh oh didn't find our variable to plot '%s'" % plotVar
-
-
-                print  'redmax:', track['RedMax']
-                print track['baryMass']
+                print 'redmax:   ', track['RedMax']
+                print 'baryMass: ', track['baryMass']
                 mlab.plot3d(*xs_ys_zs,
                             color=(1-(1./(i%3+1)),1,1./(i%2+1.)),
                             reset_zoom=False,
                             tube_radius=None)
+
+                if plotGradients:
+                    if plotVars == track['independentVars']:
+                        print "Mkay good, you're plotting gradients in same space as your tracks"
+                        pass
+                    else:
+                        assert False, "Bad! WARNING your gradients are not in the same space as your tracks!!"
+                    if not isinstance(plotGradients,tuple):
+                        plotGradients = [plotGradients]
+                    for j,grad in enumerate(plotGradients):
+                        vxs,vys,vzs= returnGradientXsYsZsForPlot(track['gradDicts'],grad)
+                        print vxs
+                        print vys
+                        print vzs
+                        thisColor=( (j%2)/2.+0.5,1./(j+1.3),((j+1)%2.)/1.7 )
+                        mlab.quiver3d(xs_ys_zs[0],xs_ys_zs[1],xs_ys_zs[2],
+                                      vxs,vys,vzs,
+                                      color=thisColor)
+                        label = grad + " " * ( self.maxLabelLength - len(grad) )
+                        mlab.text(0.01,0.1 + j*0.2, label, color=thisColor, width=0.1)
+                if plotProjGrad:
+                    assert plotVars== track['independentVars']
+                    vxs,vyx,vzs=zip(*track['projGrads'])
+                    mlab.quiver3d(xs_ys_zs[0],xs_ys_zs[1],xs_ys_zs[2],
+                                  vxs,vys,vzs,
+                                  color=(1,1,1) )
+                    mlab.text(0.5,0.1 , "projGrad", color=(1,1,1), width=0.1)
+
             mlab.show()
+            return 0
