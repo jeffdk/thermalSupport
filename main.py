@@ -59,7 +59,9 @@ def main():
     globalOptions.add_argument('-rollScale', type=float, help="Temperature roll-off scale in log10(density-cgs)"
                                                               "Default: 0.5",
                                                               default=0.5)
-
+    globalOptions.add_argument('-eos-Tmin', type=float, help="Roll temperature off to this value (in MeV)"
+                                                              "Default: 0.5",
+                                                              default=0.5)
     runModels_parser = parser.add_argument_group('Options for Run Models mode (all floats)')
     runModels_parser.add_argument('-a1', type=float,
         help='Start value for range in differential rotation parameter a')
@@ -123,9 +125,10 @@ def main():
 
     #as well as our run parameters dictionary template
     runParametersTemplate={'rollMid':args.rollMid,
-                           'rollScale':args.rollScale}
+                           'rollScale':args.rollScale,
+                           'eosTmin':args.eos_Tmin}
 
-
+    print "Stationary EOS Params: ", runParametersTemplate
     runMode = args.mode
     print "Run mode: %s" % runMode
     if runMode == 'runmodels':
@@ -269,7 +272,7 @@ def populateParamsDict(runParamsTemplate, a,T,ed=None,rpoe=None):
 def rangeFromParams(start,end,steps,fixedValue,paramName):
 
     result = None
-    if fixedValue:
+    if not fixedValue == None:
         assert (start==None and end==None and steps ==None),\
             "Cannot specify range AND a fixed value for parameter: %s" %paramName
         result = array([fixedValue])

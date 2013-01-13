@@ -9,6 +9,7 @@ import sqlite3
 import subprocess
 import datetime
 import time
+import re
 from parseFiles import parseCstFileList, parseEntriesIntoDB
 from sqlUtils import queryDBGivenParams
 import writeParametersFile
@@ -166,10 +167,13 @@ class modelGenerator(object):
         for inputParams in listOfInputParams:
             
             #If we are provided it, override Nsteps
-            #TODO: fix bad way of setting Nsteps!
+            #TODO: fix bad way of setting Nsteps! AND TMIN
             if 'Nsteps' in inputParams:
                 self.rotNS_numSteps= inputParams['Nsteps']
                 del inputParams['Nsteps']
+            if 'eosTmin' in inputParams:
+                self.default_Tmin = inputParams['eosTmin']
+                del inputParams['eosTmin']
             existingRunID = self.checkIfRunExistsInDB(inputParams,cursor)
             if existingRunID:
                 continue
@@ -255,7 +259,11 @@ class modelGenerator(object):
     def getEosName(self):
         #following line gets the EOS table name by getting the string
         # AFTER the last / and before the first _
-        return self.specEosOptions.split('/')[-1].split('_')[0]
+        answer = self.specEosOptions.split('/')[-1].split('_')[0]
+        #also strip out some bad characters for filenames if they exist
+        answer = re.sub('[\(\);=]','',answer)
+        print "EOSNAME: ", answer
+        return answer
 #END class modelGenerator
 
 def generateRunID():
