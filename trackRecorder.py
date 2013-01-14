@@ -224,6 +224,7 @@ class trackPlotter(object):
             '''
             assert len(plotVars) == 3, "Track plotter requires 3 plotVars for 3D track! You gave: %s" % len(plotVars)
             for i,track in enumerate(self.trackData):
+                stepScale = minimizeAlgorithm.norm(array(track['deltas']))
                 pointList=zip(*track['points'])
                 xs_ys_zs=[]
                 #Here we search through the available data and add the correct data to plot to xs_ys_zs
@@ -267,7 +268,8 @@ class trackPlotter(object):
                         thisColor=( (j%2)/2.+0.5,1./(j+1.3),((j+1)%2.)/1.7 )
                         mlab.quiver3d(xs_ys_zs[0],xs_ys_zs[1],xs_ys_zs[2],
                                       vxs,vys,vzs,
-                                      color=thisColor)
+                                      color=thisColor,
+                                      scale_factor=stepScale )
                         label = grad + " " * ( self.maxLabelLength - len(grad) )
                         mlab.text(0.01,0.1 + j*0.2, label, color=thisColor, width=0.1)
                 if plotProjGrad:
@@ -275,8 +277,10 @@ class trackPlotter(object):
                     vxs,vyx,vzs=zip(*track['projGrads'])
                     mlab.quiver3d(xs_ys_zs[0],xs_ys_zs[1],xs_ys_zs[2],
                                   vxs,vys,vzs,
-                                  color=(1,1,1) )
+                                  color=(1,1,1),
+                                  scale_factor=stepScale )
                     mlab.text(0.5,0.1 , "projGrad", color=(1,1,1), width=0.1)
-
+            # Below move doesnt work
+            #print mlab.move(xs_ys_zs[0][0],xs_ys_zs[1][0],xs_ys_zs[2][0])  # move camera to first point
             mlab.show()
             return 0

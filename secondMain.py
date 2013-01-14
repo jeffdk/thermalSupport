@@ -34,9 +34,12 @@ databaseFile         = '/home/jeff/work/rotNSruns/stepDown_models.db'
 
 dbfileList=['/home/jeff/work/rotNSruns/tester30.0.step.' + str(i) +'.db' for i in [0.5,1.0,2.0]]
 
-dbfileList=['/home/jeff/work/rotNSruns/jan10.30.0.db']
+dbfileList=['/home/jeff/work/rotNSruns/jan12.30.0.s0.25.cb.db',
+            '/home/jeff/work/rotNSruns/jan12.30.0.s0.5.cb.db',
+            '/home/jeff/work/rotNSruns/jan12.30.0.s1.cb.db']
 #dbfileList=['/home/jeff/work/rotNSruns/tester30.0.db']
-
+dbfileList=['/home/jeff/work/rotNSruns/jan12.30.0.s1.cb.db',
+            '/home/jeff/work/rotNSruns/jan10.30.0.db']
 
 
 TasString = "31.2222222222222"
@@ -53,7 +56,7 @@ splotter.dbConnection.close()
 #dbfileList=['/home/jeff/work/rotNSruns/stepDown_models.db']
 #plotter2=trackPlotter(dbfileList,"track",("baryMass","RedMax"))
 #plotter2.trackPlotter(("a","edMax","rpoe"))
-#exit()
+exit()
 
 databaseExists =os.path.isfile(databaseFile)
 connection=sqlite3.connect(databaseFile)

@@ -266,7 +266,7 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
 
         print currentBasis.basis, currentBasis.isOrthogonal()
         recorder.record(currentPoint,gradientDict,projectedGradFunc,normAfterProjectionList[step-1],"models")
-        currentPoint += -projectedGradFunc * deltas
+        currentPoint += -projectedGradFunc * norm(deltas)
         pointList.append(deepcopy(currentPoint))
         print "-----------NEW POINT---------------"
         print currentPoint
