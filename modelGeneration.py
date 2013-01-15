@@ -149,13 +149,6 @@ class modelGenerator(object):
         time.sleep(secs)
         return secs
 
-    def hardDelete(self,runID):
-        """USE WITH CAUTION: runs rm -rf in current directory on its argument!"""
-        assert isinstance(runID, str)
-        if '/' in runID:
-            exit("You GONE DUN TRYIN TO ERASE A NON LOCAL DIRECTORY!!")
-        subprocess.call(["rm", "-rf", runID])
-
     def generateModels(self, f, listOfInputParams,sqliteConnection):
         assert isinstance(sqliteConnection,sqlite3.Connection)
         currentDirectory=os.getcwd()
@@ -262,7 +255,6 @@ class modelGenerator(object):
         answer = self.specEosOptions.split('/')[-1].split('_')[0]
         #also strip out some bad characters for filenames if they exist
         answer = re.sub('[\(\);=]','',answer)
-        print "EOSNAME: ", answer
         return answer
 #END class modelGenerator
 
