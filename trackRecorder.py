@@ -128,9 +128,8 @@ class trackRecorder(object):
         self.dbConnection.commit()
         return
 
-def returnGradientXsYsZsForPlot(gradDictList,grad):
+def returnGradientXsYsZsForPlot(gradDictList,grad,normalize=True):
     xs,ys,zs = [],[],[]
-    normalize=True
     for i,thisPointsGrads in enumerate(gradDictList):
         desiredGrad=array(thisPointsGrads[grad])
         if normalize:
@@ -274,7 +273,7 @@ class trackPlotter(object):
                         mlab.text(0.01,0.1 + j*0.2, label, color=thisColor, width=0.1)
                 if plotProjGrad:
                     assert plotVars== track['independentVars']
-                    vxs,vyx,vzs=zip(*track['projGrads'])
+                    vxs,vys,vzs=zip(*track['projGrads'])
                     mlab.quiver3d(xs_ys_zs[0],xs_ys_zs[1],xs_ys_zs[2],
                                   vxs,vys,vzs,
                                   color=(1,1,1),

@@ -38,8 +38,7 @@ dbfileList=['/home/jeff/work/rotNSruns/jan12.30.0.s0.25.cb.db',
             '/home/jeff/work/rotNSruns/jan12.30.0.s0.5.cb.db',
             '/home/jeff/work/rotNSruns/jan12.30.0.s1.cb.db']
 #dbfileList=['/home/jeff/work/rotNSruns/tester30.0.db']
-dbfileList=['/home/jeff/work/rotNSruns/jan12.30.0.s1.cb.db',
-            '/home/jeff/work/rotNSruns/jan10.30.0.db']
+dbfileList=['/home/jeff/work/rotNSruns/jan14b.30.0.s1.cb.db']
 
 
 TasString = "31.2222222222222"
