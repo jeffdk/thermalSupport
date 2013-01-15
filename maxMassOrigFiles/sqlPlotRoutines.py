@@ -91,9 +91,9 @@ def partitionPlot(partitionField, partitionValue,c,sequence,color):
     
     return
 
-def sequencePlot(plotFields, sqliteCursor,filters=(),colorBy=None,tableName="models", **mplKwargs ):
+def sequencePlot(plotFields, sqliteCursor,filters=(),colorBy=None,tableName="models",grid=True,title="", **mplKwargs ):
     """
-    plotFields:        2-tuple, fields to plot
+    plotFields:        2-list, fields to plot
     sqliteCursor:      sqlite3.connection.cursor object for database
     filters:           list of strings for sqlite WHERE filters
     colorBy:           table field to color the points by
@@ -110,8 +110,9 @@ def sequencePlot(plotFields, sqliteCursor,filters=(),colorBy=None,tableName="mod
 
     fig = mpl.figure()
     axis = fig.add_subplot(111)
-
+    mpl.title(title)
     if colorBy:
+        mpl.grid(grid)
         mpl.scatter(*zip(*points)[:2], c=zip(*points)[-1], **mplKwargs)
     else:
         mpl.plot(*zip(*points)[:2],  **mplKwargs)

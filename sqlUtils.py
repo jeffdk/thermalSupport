@@ -28,7 +28,9 @@ def queryDBGivenParams(paramsDesired,inGivenParams,sqliteCursor,tableName,
     """
     Runs: SELECT paramsDesired  WHERE givenParams.keys() == givenParams[key] AND customFilters FROM tableName+extraOpts
     """
-    assert isinstance(customFilters,tuple)
+    if not isinstance(customFilters,tuple):
+        assert isinstance(customFilters,str)
+        customFilters= [customFilters]
     if isinstance(paramsDesired,str):
         paramsDesired=[paramsDesired]
     else:
@@ -52,7 +54,7 @@ def queryDBGivenParams(paramsDesired,inGivenParams,sqliteCursor,tableName,
     if extraOpts:
         query += extraOpts
 
-    #print query
+    print query
     sqliteCursor.execute(query)
     listResult  =sqliteCursor.fetchall()
     return listResult
