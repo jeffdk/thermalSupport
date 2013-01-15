@@ -54,7 +54,7 @@ def queryDBGivenParams(paramsDesired,inGivenParams,sqliteCursor,tableName,
     if extraOpts:
         query += extraOpts
 
-    print query
+    #print query
     sqliteCursor.execute(query)
     listResult  =sqliteCursor.fetchall()
     return listResult
