@@ -52,7 +52,7 @@ class basis(object):
 
 def stableGramSchmidt(inVectors):
     assert inVectors.dtype == array([0.0]).dtype, "Input must be of type floats!!"
-    assert inVectors.ndim==2, "Array of input vectors to basis must have 2 axes (indexes)"
+    assert inVectors.ndim==2, "Array of input vectors to basis must have 2 axes (indexes), not %s axes" % inVectors.ndim
 
     vectors=inVectors.copy()
     dim = len(vectors)
@@ -72,6 +72,8 @@ def project(vector,ontoVector):
 def removeSubspace(inputBasis, inVectorsToRemove):
     assert inVectorsToRemove.dtype == array([0.0]).dtype, "Input must be of type floats!!"
     assert len(inVectorsToRemove) < inputBasis.dim, "Can't remove more vectors than there are basis vectors!"
+    if not inVectorsToRemove:
+        return inputBasis.basis
     vectorsToRemove=stableGramSchmidt(inVectorsToRemove)
 
     #It's possible that we may select the 'wrong' set of basis vectors such that replacing
@@ -95,6 +97,8 @@ def removeSubspace(inputBasis, inVectorsToRemove):
             pass
         else:
             #if it's not singular, we're done!
+            if abs(linalg.det(testBasis.basis)) < 1.0e-12:
+                 print "WARNING, new basis in removeSubspace is nearly singular!"
             allCombosSingular = False
             break
     assert not allCombosSingular, "Wow, all replacement combinations of the orig basis result in linear \"" \
@@ -143,7 +147,8 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
                     stationaryParamsDict, maxSteps, changeBasis=False):
     assert isinstance(funcName,str)
     assert isinstance(fixedNames,tuple)
-    assert isinstance(fixedNames[0], str)
+    if not len(fixedNames)==0:
+        assert isinstance(fixedNames[0], str)
     assert isinstance(inBasis,basis)
     assert isinstance(firstDeriv, deriv)
     assert isinstance(deltas, ndarray)
