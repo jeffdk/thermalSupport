@@ -268,11 +268,13 @@ def runIDToDate(runID):
     return datetime.datetime(2012,11,11) + datetime.timedelta( seconds=float(runID) )
 
 
-def cleanUpAfterRun():
+def cleanUpAfterRun(leaveDumpFiles=False):
     print('Cleaning up in dir ' + os.getcwd() +'... ')
     outdataToDelete=glob.glob("outdata*")
-    subprocess.call(["rm"] + outdataToDelete)
-    subprocess.call(["rm",  "output.EOS"])
-    subprocess.call(["rm",  "RotNS.state"])
+    if not leaveDumpFiles:
+        subprocess.call(["rm"] + outdataToDelete)
+        subprocess.call(["rm",  "output.EOS"])
+        subprocess.call(["rm",  "RotNS.state"])
+    #Always remove execs:
     subprocess.call(["rm",  "RotNS"])
     subprocess.call(["rm",  "MakeRotNSeosfile"])
