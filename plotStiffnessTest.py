@@ -12,7 +12,7 @@ sys.path.append('./maxMassOrigFiles/')
 from sqlPlotRoutines import sequencePlot
 
 
-databaseFile         = '/home/jeff/work/rotNSruns/stiffness-test-alt.db'
+databaseFile         = '/home/jeff/work/rotNSruns/stiffness-test-new.db'
 connection=sqlite3.connect(databaseFile)
 c=connection.cursor()
 
@@ -22,10 +22,15 @@ ahs=c.fetchall()
 
 
 for a in ahs:
-    sequencePlot(["edMax","baryMass"],c,("eos='Gam3' "," a="+str(a[0])),
+    sequencePlot(["edMax","baryMass"],c,("RedMax=0","eos='Gam3' "," a="+str(a[0])),
         grid=True,title="",suppressShow=True,c=matplotlib.pyplot.cm.jet(a[0]))
-sequencePlot(["edMax","baryMass"],c,("eos='Gam2'"),"a",
-             grid=True,title="",suppressShow=False,marker='o')
+    sequencePlot(["edMax","baryMass"],c,("RedMax>0","eos='Gam3' "," a="+str(a[0])),
+        grid=True,title="",suppressShow=True,c=matplotlib.pyplot.cm.jet(a[0]),linestyle='--')
+sequencePlot(["edMax","baryMass"],c,("RedMax=0","eos='Gam2'"),"a",
+    grid=True,title="",suppressShow=True,marker='o')
+
+sequencePlot(["edMax","baryMass"],c,("RedMax>0","eos='Gam2'"),"a",
+    grid=True,title="$M_b$ vs $Ed_{max}$.\n Lines: $\Gamma=3$  /w Dashed => toroid \n Points: $\Gamma=2$  /w Triangle => toroid  ",suppressShow=False,marker='^')
 connection.close()
 del connection
 
