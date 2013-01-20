@@ -1,6 +1,7 @@
 
 import sys
 import sqlite3
+import matplotlib
 import matplotlib.pyplot as mpl
 from mpl_toolkits.mplot3d import Axes3D
 import numpy
@@ -11,13 +12,20 @@ sys.path.append('./maxMassOrigFiles/')
 from sqlPlotRoutines import sequencePlot
 
 
-databaseFile         = '/home/jeff/work/rotNSruns/sekiguchi-models.db'
+databaseFile         = '/home/jeff/work/rotNSruns/stiffness-test-alt.db'
 connection=sqlite3.connect(databaseFile)
 c=connection.cursor()
 
-#sequencePlot(["edMax","baryMass"],c,("rpoe=.66"),"T",
-#             grid=True,title="Sekiguichi-like Models A=1.0, rpoe=.66")
+c.execute("SELECT DISTINCT a FROM MODELS")
+ahs=c.fetchall()
 
+
+
+for a in ahs:
+    sequencePlot(["edMax","baryMass"],c,("eos='Gam3' "," a="+str(a[0])),
+        grid=True,title="",suppressShow=True,c=matplotlib.pyplot.cm.jet(a[0]))
+sequencePlot(["edMax","baryMass"],c,("eos='Gam2'"),"a",
+             grid=True,title="",suppressShow=False,marker='o')
 connection.close()
 del connection
 
@@ -50,7 +58,7 @@ for T in cTov.execute("SELECT DISTINCT T FROM models"):
 
 
 
-databaseFile         = '/home/jeff/work/rotNSruns/mass-shed-models.db'
+databaseFile         = '/home/jeff/work/rotNSruns/stiffness-test-alt.db'
 #databaseFile         = '/home/jeff/work/rotNSruns/christian-request.db'
 connection=sqlite3.connect(databaseFile)
 c=connection.cursor()

@@ -91,7 +91,8 @@ def partitionPlot(partitionField, partitionValue,c,sequence,color):
     
     return
 
-def sequencePlot(plotFields, sqliteCursor,filters=(),colorBy=None,tableName="models",grid=True,title="", **mplKwargs ):
+def sequencePlot(plotFields, sqliteCursor,filters=(),colorBy=None,tableName="models",
+                 grid=True,title="", suppressShow=False, **mplKwargs ):
     """
     plotFields:        2-list, fields to plot
     sqliteCursor:      sqlite3.connection.cursor object for database
@@ -108,8 +109,8 @@ def sequencePlot(plotFields, sqliteCursor,filters=(),colorBy=None,tableName="mod
 
     points = queryDBGivenParams(getFields,[],sqliteCursor,tableName,filters, " ORDER BY " + plotFields[0])
 
-    fig = mpl.figure()
-    axis = fig.add_subplot(111)
+    #fig = mpl.figure()
+    #axis = fig.add_subplot(111)
     mpl.title(title)
     if colorBy:
         mpl.grid(grid)
@@ -117,10 +118,13 @@ def sequencePlot(plotFields, sqliteCursor,filters=(),colorBy=None,tableName="mod
     else:
         mpl.plot(*zip(*points)[:2],  **mplKwargs)
 
-    axis.set_xlabel(getFields[0])
-    axis.set_ylabel(getFields[1])
-    if colorBy:
+    #axis.set_xlabel(getFields[0])
+    #axis.set_ylabel(getFields[1])
+    mpl.xlabel(getFields[0])
+    mpl.ylabel(getFields[1])
+    if colorBy and not suppressShow:
         colorLegend = mpl.colorbar()
         colorLegend.set_label(colorBy)
     print "Plotting %i entries" % len(points)
-    mpl.show()
+    if not suppressShow:
+        mpl.show()
