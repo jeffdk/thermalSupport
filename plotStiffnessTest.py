@@ -12,25 +12,28 @@ sys.path.append('./maxMassOrigFiles/')
 from sqlPlotRoutines import sequencePlot
 
 
-databaseFile         = '/home/jeff/work/rotNSruns/stiffness-test-new.db'
+databaseFile         = '/home/jeff/work/rotNSruns/mass-shed-models.db'
 connection=sqlite3.connect(databaseFile)
 c=connection.cursor()
 
 c.execute("SELECT DISTINCT a FROM MODELS")
 ahs=c.fetchall()
 
-
+databaseFile2         = '/home/jeff/work/rotNSruns/ls-cold-manual2.db'
+connection2=sqlite3.connect(databaseFile2)
+c2=connection2.cursor()
 
 for a in ahs:
-    sequencePlot(["edMax","baryMass"],c,("RedMax=0","eos='Gam3' "," a="+str(a[0])),
+    sequencePlot(["edMax","baryMass"],c2,("RedMax=0","eos='LS220' "," a="+str(a[0])),
         grid=True,title="",suppressShow=True,c=matplotlib.pyplot.cm.jet(a[0]))
-    sequencePlot(["edMax","baryMass"],c,("RedMax>0","eos='Gam3' "," a="+str(a[0])),
+    sequencePlot(["edMax","baryMass"],c2,("RedMax>0","eos='LS220' "," a="+str(a[0])),
         grid=True,title="",suppressShow=True,c=matplotlib.pyplot.cm.jet(a[0]),linestyle='--')
-sequencePlot(["edMax","baryMass"],c,("RedMax=0","eos='Gam2'"),"a",
-    grid=True,title="",suppressShow=True,marker='o')
+sequencePlot(["edMax","baryMass"],c,("RedMax=0","eos='HS'","T=0.5"),"a",
+    grid=True,title="",suppressShow=True,marker='o',s=40,vmin=0.0,vmax=1.0)
 
-sequencePlot(["edMax","baryMass"],c,("RedMax>0","eos='Gam2'"),"a",
-    grid=True,title="$M_b$ vs $Ed_{max}$.\n Lines: $\Gamma=3$  /w Dashed => toroid \n Points: $\Gamma=2$  /w Triangle => toroid  ",suppressShow=False,marker='^')
+sequencePlot(["edMax","baryMass"],c,("RedMax>0","eos='HS'","T=0.5"),"a",
+    grid=True,title="$M_b$ vs $Ed_{max}$.\n Lines: $Cold LS220$  /w Dashed => toroid \n Points: $Cold HS$  /w Triangle => toroid  ",
+    suppressShow=False,marker='^',s=40,vmin=0.0,vmax=1.0)
 connection.close()
 del connection
 
