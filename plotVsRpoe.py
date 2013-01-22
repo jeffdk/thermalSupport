@@ -57,7 +57,7 @@ databaseFile         = '/home/jeff/work/rotNSruns/rpoe-sequence.db'
 #databaseFile         = '/home/jeff/work/rotNSruns/christian-request.db'
 connection=sqlite3.connect(databaseFile)
 c=connection.cursor()
-avalue=0.3
+avalue=0.7
 #sequencePlot(["rpoe","baryMass"],c, ("a>%s" % (avalue-.001), "a<%s" % (avalue+.001), "RedMax=0."),"T",grid=True)
 #exit()
 c.execute("SELECT DISTINCT T,rpoe FROM models")
@@ -77,8 +77,9 @@ lastT = 0.0
 count = -1
 for T,rpoe in grid:
     print rpoe,T
-    answer = edOfMaxMass( ("rpoe>%s" % (rpoe-.001), "rpoe<%s" % (rpoe+.001),
-                           "T>%s" % (T -.01), "T<%s" % (T +.01))  ,connection)
+    answer = edOfMaxMass(  ("a>%s" % (avalue -.01), "a<%s" % (avalue +.01),
+    "rpoe>%s" % (rpoe-.001), "rpoe<%s" % (rpoe+.001),
+    "T>%s" % (T -.01), "T<%s" % (T +.01))  ,connection)
     if not T == lastT:
         linePlot.append([])
         lastT = T
@@ -121,8 +122,8 @@ if plot3d:
     mpl.show()
     exit()
 
-mpl.scatter(resultS[0],resultS[2],c=resultS[1],s=20,marker='o')
-#mpl.scatter(resultT[0],resultT[2],c=resultT[1],s=40,marker='^')
+mpl.scatter(resultS[0],resultS[2],c=resultS[1],s=30,marker='o')
+mpl.scatter(resultT[0],resultT[2],c=resultT[1],s=30,marker='^')
 #mpl.scatter(resultTov[0],resultTov[2],c=resultTov[1],s=40,marker='s')
 colorLegend=mpl.colorbar()
 colorLegend.set_label("Model Temperature (MeV)")
