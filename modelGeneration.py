@@ -35,7 +35,6 @@ class modelGenerator(object):
     rotNS_EosType = "PP"      #eos PP causes RotNS to look for EOS/EOS.PP
     requestQueue=[]
     rotNS_numSteps = 50       # number of steps to get to target RPOEGoal
-    default_Tmin   = 0.5      # default tmin for MakeRotNSeosfile
     num_cpus = multiprocessing.cpu_count()
     locationForRuns=""
     tableName = "models"
@@ -92,7 +91,7 @@ class modelGenerator(object):
         makeEosFileArgs={'-eos-opts'     : self.specEosOptions,
                          '-roll-midpoint': inputParams['rollMid'],
                          '-roll-scale'   : inputParams['rollScale'],
-                         '-roll-tmin'    : self.default_Tmin,
+                         '-roll-tmin'    : inputParams['eosTmin'],
                          '-roll-tmax'    : inputParams['T'] }
         argList=[str(arg) for item in makeEosFileArgs.items() for arg in item ]
 
@@ -161,13 +160,10 @@ class modelGenerator(object):
         for inputParams in listOfInputParams:
             
             #If we are provided it, override Nsteps
-            #TODO: fix bad way of setting Nsteps! AND TMIN
+            #TODO: fix bad way of setting Nsteps!
             if 'Nsteps' in inputParams:
                 self.rotNS_numSteps= inputParams['Nsteps']
                 del inputParams['Nsteps']
-            if 'eosTmin' in inputParams:
-                self.default_Tmin = inputParams['eosTmin']
-                del inputParams['eosTmin']
             existingRunID = self.checkIfRunExistsInDB(inputParams,cursor)
             if existingRunID:
                 continue

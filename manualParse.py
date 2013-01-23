@@ -19,6 +19,7 @@ nonOutputRunParameters=[{}]
 nonOutputRunParameters[0]['eos']=eosBase
 nonOutputRunParameters[0]['rollMid']=14.0
 nonOutputRunParameters[0]['rollScale']=0.5
+nonOutputRunParameters[0]['eosTmin']=0.5
 nonOutputRunParameters[0]['T']=0.5
 
 

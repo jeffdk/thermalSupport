@@ -212,7 +212,6 @@ def steepestDescent(funcName,fixedNames,inBasis,firstDeriv,p0,deltas,sqliteConne
         sqliteCursor=sqliteConnection.cursor()
         for i in range(dim):
             for j in paramsNeededForIthBasisVector[i]:
-                del j['eosTmin']  #TODO: Fix this hack removal of eosTmin... ideally by adding a column for it!
                 funcs = queryDBGivenParams(funcsDesired,j,sqliteCursor,tableName="models")
                 assert len(funcs), "QUERY RETURNED NO ENTRIES, MATCHING PARAMS: %s" % str(j)
                 if len(funcs) > 1:
