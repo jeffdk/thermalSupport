@@ -34,12 +34,13 @@ class modelGenerator(object):
     rotNS_resolutionParams={} #Default is Ns = 800, Nu = 800, Nl = 30
     rotNS_EosType = "PP"      #eos PP causes RotNS to look for EOS/EOS.PP
     requestQueue=[]
-    rotNS_numSteps = 20       # number of steps to get to target RPOEGoal
+    rotNS_numSteps = 50       # number of steps to get to target RPOEGoal
     default_Tmin   = 0.5      # default tmin for MakeRotNSeosfile
     num_cpus = multiprocessing.cpu_count()
     locationForRuns=""
     tableName = "models"
     cleanUpRuns = True
+    wipeRunDirectory = True
     runType = 30
     def __init__(self,rotNS_location,makeEosFile_location,
                  specEosOptions,locationForRuns, runType=30, tableName="models",
@@ -198,8 +199,17 @@ class modelGenerator(object):
             entries, runID = i
             if entries:
                 parseEntriesIntoDB(entries, cursor,self.tableName,self.runType,runID=runID)
+                sqliteConnection.commit()
+                if self.wipeRunDirectory:
+                    doWipeRunDirectory(runID,self.getEosName(),True)
             else: 
-                print "ERROR FOR LAST MODEL, RUNID: ",  runID
+                print "\nERROR FOR LAST MODEL, RUNID: %s \n " %  runID
+                if self.wipeRunDirectory:
+                    #doWipeRunDirectory(runID,self.getEosName(),False)
+                    f=open("allData.log",'ab') #ab is append binary
+                    f.write("\n ERROR FOR LAST MODEL, RUNID: %s Not removing directory.\n" %  runID)
+                    f.close()
+            
         pool.close()
         pool.join()
         sqliteConnection.commit()
@@ -268,13 +278,36 @@ def runIDToDate(runID):
     return datetime.datetime(2012,11,11) + datetime.timedelta( seconds=float(runID) )
 
 
-def cleanUpAfterRun(leaveDumpFiles=False):
+def cleanUpAfterRun(leaveDumpFiles=True):
     print('Cleaning up in dir ' + os.getcwd() +'... ')
     outdataToDelete=glob.glob("outdata*")
     if not leaveDumpFiles:
         subprocess.call(["rm"] + outdataToDelete)
-        subprocess.call(["rm",  "output.EOS"])
+        #subprocess.call(["rm",  "output.EOS"])
         subprocess.call(["rm",  "RotNS.state"])
     #Always remove execs:
     subprocess.call(["rm",  "RotNS"])
     subprocess.call(["rm",  "MakeRotNSeosfile"])
+
+#runID is same as run directory name
+def doWipeRunDirectory(runID,eosName,saveOutputFile=True):
+
+    if saveOutputFile:
+        os.chdir(runID)
+        #output file is only file starting with EOS name
+        outputFile=glob.glob(eosName+"*")
+        #print eosName, outputFile, eosName+"*"
+        #print "dir: %s, " % os.getcwd()
+        assert len(outputFile) < 2,"Uhhh, shouldn't have two output files with EOS basename '%s' in dir '%s'" % (eosName,runID)
+        assert len(outputFile) > 0, "Uhh, no output file found with EOS basename '%s' in dir '%s'"% (eosName,runID)
+        outputFile=outputFile[0]
+        f=open("../allData.log",'ab') #ab is append binary 
+        subprocess.call(["cat",outputFile],stdout=f,stderr=f)
+        f.close()
+        os.chdir("../")
+    failed=subprocess.call(["rm","-r",runID])
+    if failed:
+        print "FAILED wipeRunDirectory, %s" % runID
+    else:
+        print "wipeRunDirectory %s success! " % runID
+        

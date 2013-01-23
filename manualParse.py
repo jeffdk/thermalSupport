@@ -6,15 +6,15 @@ import sqlite3
 from parseFiles import *
 
 
-databaseFile         = '/home/jeff/work/rotNSruns/stiffness-test-alt.db'
+databaseFile         = '/home/jeff/work/rotNSruns/testParse.db'
 connection=sqlite3.connect(databaseFile)
 c=connection.cursor()
-#c.execute("CREATE TABLE models" + columnsString)
+c.execute("CREATE TABLE models" + columnsString)
 currentDirectory=os.getcwd()
 os.chdir("/home/jeff/work/rotNSruns/")
 
-directoryBase="6002247.*"
-eosBase="Gam3"
+directoryBase="6194575.82135/newRotNS*"
+eosBase="HS"
 nonOutputRunParameters=[{}]
 nonOutputRunParameters[0]['eos']=eosBase
 nonOutputRunParameters[0]['rollMid']=14.0
@@ -41,5 +41,5 @@ for thisDir in dirNames:
     connection.commit()
     paramsFile.close()
     print file
-
+print "PARSED  %s files" %len(dirNames)
 connection.close()

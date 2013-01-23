@@ -264,7 +264,7 @@ def populateParamsDict(runParamsTemplate, a,T,ed=None,rpoe=None):
     newDict.update( {'T':T})
     if ed:
         newDict.update( {'edMax':ed})
-    if rpoe:
+    if not rpoe == None:
         newDict.update({'rpoe':rpoe})
     newDict.update( runParamsTemplate)
     return newDict
