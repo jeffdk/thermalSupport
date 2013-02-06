@@ -92,7 +92,8 @@ def partitionPlot(partitionField, partitionValue,c,sequence,color):
     return
 
 def sequencePlot(plotFields, sqliteCursor,filters=(),colorBy=None,tableName="models",
-                 grid=True,title="", suppressShow=False, **mplKwargs ):
+                 grid=True,title="", suppressShow=False,orderBy=None,forceColorbar=False,
+                 **mplKwargs ):
     """
     plotFields:        2-list, fields to plot
     sqliteCursor:      sqlite3.connection.cursor object for database
@@ -106,14 +107,15 @@ def sequencePlot(plotFields, sqliteCursor,filters=(),colorBy=None,tableName="mod
     getFields = plotFields[:]
     if colorBy:
         getFields.append(colorBy)
-
-    points = queryDBGivenParams(getFields,[],sqliteCursor,tableName,filters, " ORDER BY " + plotFields[0])
+    if orderBy is None:
+        orderBy = plotFields[0]
+    points = queryDBGivenParams(getFields,[],sqliteCursor,tableName,filters, " ORDER BY " + orderBy)
 
     #fig = mpl.figure()
     #axis = fig.add_subplot(111)
     mpl.title(title)
+    mpl.grid(grid)
     if colorBy:
-        mpl.grid(grid)
         mpl.scatter(*zip(*points)[:2], c=zip(*points)[-1], **mplKwargs)
     else:
         mpl.plot(*zip(*points)[:2],  **mplKwargs)
@@ -125,6 +127,22 @@ def sequencePlot(plotFields, sqliteCursor,filters=(),colorBy=None,tableName="mod
     if colorBy and not suppressShow:
         colorLegend = mpl.colorbar()
         colorLegend.set_label(colorBy)
+    if forceColorbar:
+        colorLegend = mpl.colorbar()
+        colorLegend.set_label(colorBy)
     print "Plotting %i entries" % len(points)
     if not suppressShow:
         mpl.show()
+
+def nearValueFilter(field,value,tolerance):
+    """
+    Generates a filter tuple for selecting entries with
+    field = value +/-  value * tolerance
+    """
+    result = ()
+    if value == 0.0:
+        result= (field+"=0.0",)
+    if value > 0.0:
+        result= (field+">%s" % (value - value*tolerance),
+                field+ "<%s" % (value + value*tolerance))
+    return result

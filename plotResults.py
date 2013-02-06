@@ -11,17 +11,7 @@ sys.path.append('./maxMassOrigFiles/')
 from sqlPlotRoutines import sequencePlot
 
 
-databaseFile         = '/home/jeff/work/rotNSruns/sekiguchi-models.db'
-connection=sqlite3.connect(databaseFile)
-c=connection.cursor()
-
-#sequencePlot(["edMax","baryMass"],c,("rpoe=.66"),"T",
-#             grid=True,title="Sekiguichi-like Models A=1.0, rpoe=.66")
-
-connection.close()
-del connection
-
-databaseFile = '/home/jeff/work/rotNSruns/hotTov.db'
+databaseFile = '/home/jeff/work/27cols_rotNSruns/hotTov.db'
 connectionTov=sqlite3.connect(databaseFile)
 cTov=connectionTov.cursor()
 
@@ -50,13 +40,13 @@ for T in cTov.execute("SELECT DISTINCT T FROM models"):
 
 
 
-databaseFile         = '/home/jeff/work/rotNSruns/mass-shed-models.db'
+databaseFile         = '/home/jeff/work/rotNSruns/macroRun.db'
 #databaseFile         = '/home/jeff/work/rotNSruns/christian-request.db'
 connection=sqlite3.connect(databaseFile)
 c=connection.cursor()
 
 sequencePlot(["edMax","baryMass"],c, ("a>%s" % (0.7-.001), "a<%s" % (0.7+.001), "RedMax=0."),"rpoe",grid=True)
-exit()
+
 c.execute("SELECT DISTINCT a,T FROM models")
 grid = c.fetchall()
 
