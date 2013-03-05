@@ -91,9 +91,10 @@ def partitionPlot(partitionField, partitionValue,c,sequence,color):
     
     return
 
-def sequencePlot(plotFields, sqliteCursor,filters=(),colorBy=None,tableName="models",
-                 grid=True,title="", suppressShow=False,orderBy=None,forceColorbar=False,
-                 **mplKwargs ):
+
+def sequencePlot(plotFields, sqliteCursor, filters=(), colorBy=None, tableName="models",
+                 grid=True, title="", suppressShow=False, orderBy=None, forceColorbar=False,
+                 **mplKwargs):
     """
     plotFields:        2-list, fields to plot
     sqliteCursor:      sqlite3.connection.cursor object for database
@@ -102,14 +103,16 @@ def sequencePlot(plotFields, sqliteCursor,filters=(),colorBy=None,tableName="mod
     tableName:         name of database table accessible from sqliteCursor
     mplKwargs:         keyword arguments passed on to matplotlib plotting function
 
-    Note:  If colorBy is set, plots a scatter plot instead of regular plot; adjust mplKwargs accordingly
+    Note:  If colorBy is set, plots a scatter plot instead of regular plot!
+           Remember to adjust mplKwargs accordingly in this case
     """
     getFields = plotFields[:]
     if colorBy:
         getFields.append(colorBy)
     if orderBy is None:
         orderBy = plotFields[0]
-    points = queryDBGivenParams(getFields,[],sqliteCursor,tableName,filters, " ORDER BY " + orderBy)
+    points = queryDBGivenParams(getFields, [], sqliteCursor,
+                                tableName, filters, " ORDER BY " + orderBy)
 
     #fig = mpl.figure()
     #axis = fig.add_subplot(111)
@@ -118,7 +121,7 @@ def sequencePlot(plotFields, sqliteCursor,filters=(),colorBy=None,tableName="mod
     if colorBy:
         mpl.scatter(*zip(*points)[:2], c=zip(*points)[-1], **mplKwargs)
     else:
-        mpl.plot(*zip(*points)[:2],  **mplKwargs)
+        mpl.plot(*zip(*points)[:2], **mplKwargs)
 
     #axis.set_xlabel(getFields[0])
     #axis.set_ylabel(getFields[1])
@@ -134,15 +137,16 @@ def sequencePlot(plotFields, sqliteCursor,filters=(),colorBy=None,tableName="mod
     if not suppressShow:
         mpl.show()
 
-def nearValueFilter(field,value,tolerance):
+
+def nearValueFilter(field, value, tolerance=1e-3):
     """
     Generates a filter tuple for selecting entries with
     field = value +/-  value * tolerance
     """
     result = ()
     if value == 0.0:
-        result= (field+"=0.0",)
+        result = (field + "=0.0",)
     if value > 0.0:
-        result= (field+">%s" % (value - value*tolerance),
-                field+ "<%s" % (value + value*tolerance))
+        result = (field + ">%s" % (value - value * tolerance),
+                  field + "<%s" % (value + value * tolerance))
     return result

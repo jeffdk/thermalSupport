@@ -3,6 +3,8 @@
 import sys
 import sqlite3
 import matplotlib
+from numpy.core.multiarray import arange
+
 matplotlib.use( 'WXAgg' )
 import matplotlib.pyplot as mpl
 from mpl_toolkits.mplot3d import Axes3D
@@ -22,12 +24,28 @@ matplotlib.rc('font', **font)
 databaseFile         = '/home/jeff/work/rotNSruns/macroRun.db'
 connection=sqlite3.connect(databaseFile)
 c=connection.cursor()
-c.execute("SELECT DISTINCT T FROM MODELS")
-Ts=c.fetchall()
-print "TS: ", Ts
-c.execute("SELECT DISTINCT edMax FROM MODELS ORDER BY edMax")
-edMaxes=c.fetchall()
-print edMaxes
+#c.execute("SELECT DISTINCT T FROM MODELS")
+#Ts=c.fetchall()
+#print "TS: ", Ts
+#c.execute("SELECT DISTINCT edMax FROM MODELS ORDER BY edMax")
+#edMaxes=c.fetchall()
+#print edMaxes
+#c.execute("SELECT DISTINCT a FROM MODELS ORDER BY a")
+#aes=c.fetchall()
+#print aes
+# Here we try and do Ansorg plots SHED vs RPOE  with a curves
+
+aes=arange(0.0,1.1,0.1)
+print aes
+filtersT = nearValueFilter("T",0.5)
+filtersEd = nearValueFilter("edMax",528787878700000.0)
+filters=filtersT+filtersEd
+for a in aes:
+    thisFilter=filters + nearValueFilter("a",a)
+    sequencePlot(["rpoe","shed"],c,thisFilter,suppressShow=True,c=(a,a/2.0,0.5))
+
+sequencePlot(["rpoe","shed"],c,thisFilter,c=(a,a/2.0,0.5))
+exit()
 
 T=0.5
 filtersT = nearValueFilter("T",T,0.001)#("T>%s" % (T -.01), "T<%s" % (T +.01))
@@ -35,6 +53,7 @@ a=0.7
 filtersA = nearValueFilter("a",a,0.001) #("a>%s" % (a -.001), "a<%s" % (a +.001))
 filtersEd = ("edMax>1.5e14",)# nearValueFilter("edMax",528787878700000.0,0.001 )
 filters=filtersA+filtersT+filtersEd
+
 
 
 
