@@ -4,6 +4,7 @@
 import glob
 import multiprocessing
 import os
+from eosDriver import eosDriver
 import random
 import sqlite3
 import subprocess
@@ -29,22 +30,27 @@ def calculateStar(args):
 
 class modelGenerator(object):
     rotNS_location = ""
-    makeEosFile_location = ""
-    specEosOptions = ""
-    rotNS_resolutionParams={} #Default is Ns = 800, Nu = 800, Nl = 30
-    rotNS_EosType = "PP"      #eos PP causes RotNS to look for EOS/EOS.PP
-    requestQueue=[]
+    makeEosFile_location = None
+    specEosOptions = None
+    rotNS_resolutionParams = None  # Default is Ns = 800, Nu = 800, Nl = 30
+    rotNS_EosType = "PP"           # eos PP causes RotNS to look for EOS/EOS.PP
+    requestQueue = []
     rotNS_numSteps = 50       # number of steps to get to target RPOEGoal
     num_cpus = multiprocessing.cpu_count()
-    locationForRuns=""
+    locationForRuns = ""
     tableName = "models"
     cleanUpRuns = True
     wipeRunDirectory = True
     runType = 30
-    def __init__(self,rotNS_location,makeEosFile_location,
-                 specEosOptions,locationForRuns, runType=30, tableName="models",
-                 rotNS_resolutionParams=(800,800,30)):
+    eosPrescription = None
+    eosPrescriptionTypes = ('tableFromEosDriver', 'tableFromSpEC',
+                            'rotNSPolytrope')
+    eosDriverPrescriptionDict = None
+
+    def __init__(self, rotNS_location, eosPrescription, locationForRuns, runType=30,
+                 tableName="models", rotNS_resolutionParams=(800, 800, 30)):
         """
+        eosPrescription:        dictionary
         rotNS_location:         string
         makeEosFile_location:   string
         specEosOptions:         string
@@ -52,25 +58,41 @@ class modelGenerator(object):
         rotNS_resolutionParams: tuple in (Ns,Nu,Nl) format
         """
         assert isinstance(rotNS_location, str)
-        self.rotNS_location=rotNS_location
-        assert isinstance(makeEosFile_location, str)
-        self.makeEosFile_location=makeEosFile_location
-        assert isinstance(specEosOptions, str)
-        self.specEosOptions=specEosOptions
+        self.rotNS_location = rotNS_location
         assert isinstance(locationForRuns, str)
-        self.locationForRuns=locationForRuns
+        self.locationForRuns = locationForRuns
 
         assert isinstance(rotNS_resolutionParams, tuple)
-        self.rotNS_resolutionParams['Ns']=rotNS_resolutionParams[0]
-        self.rotNS_resolutionParams['Nu']=rotNS_resolutionParams[1]
-        self.rotNS_resolutionParams['Nl']=rotNS_resolutionParams[2]
+        self.rotNS_resolutionParams = dict(())
+        self.rotNS_resolutionParams['Ns'] = rotNS_resolutionParams[0]
+        self.rotNS_resolutionParams['Nu'] = rotNS_resolutionParams[1]
+        self.rotNS_resolutionParams['Nl'] = rotNS_resolutionParams[2]
 
         assert isinstance(runType, int)
         self.runType=runType
 
         assert isinstance(tableName, str)
         self.tableName=tableName
-        
+
+        assert isinstance(eosPrescription, dict)
+        self.eosPrescription = eosPrescription['type']
+        assert self.eosPrescription in self.eosPrescriptionTypes
+
+        if self.eosPrescription == 'tableFromSpEC':
+            self.makeEosFile_location = eosPrescription['makeEosFile_location']
+            self.specEosOptions = eosPrescription['specEosOptions']
+        elif self.eosPrescription == 'rotNSPolytrope':
+            # Polystring is of formula "PT n"
+            # n is a float for the polytropic index
+            self.rotNS_EosType = eosPrescription['polyString']
+        elif self.eosPrescription == 'tableFromEosDriver':
+            self.eosDriverPrescriptionDict = eosPrescription.copy()
+            del self.eosDriverPrescriptionDict['type']
+        else:
+            assert False, \
+                "You must have forgotten to update eosPrescriptionTypes " \
+                "after adding a new eosPrescription in __init__."
+
     def runRotNS(self, inputParams, runID):
         assert isinstance(inputParams, dict)
 
@@ -83,22 +105,9 @@ class modelGenerator(object):
         
         os.mkdir(runID)
         os.chdir(runID)
-        
-        ####
-        # Do EOS generation here
-        subprocess.call(["cp", self.makeEosFile_location, "./"])
-        
-        makeEosFileArgs={'-eos-opts'     : self.specEosOptions,
-                         '-roll-midpoint': inputParams['rollMid'],
-                         '-roll-scale'   : inputParams['rollScale'],
-                         '-roll-tmin'    : inputParams['eosTmin'],
-                         '-roll-tmax'    : inputParams['T'] }
-        argList=[str(arg) for item in makeEosFileArgs.items() for arg in item ]
 
-        subprocess.call(["./MakeRotNSeosfile"] + argList )
-        
-        subprocess.call(["mkdir", "EOS"])
-        subprocess.call(["cp", "output.EOS", "EOS/EOS.PP"])
+        if not self.eosPrescription == 'rotNSPolytrope':
+            self.generateEosTable(inputParams)
 
         rotNS_params.update({'RunName':runName,
                              'RotInvA':inputParams['a'],
@@ -109,7 +118,7 @@ class modelGenerator(object):
         writeParametersFile.writeFile(rotNS_params,'Parameters.input')
 
         subprocess.call(["cp", self.rotNS_location, "./"])
-        print "MakeRotNSeosfile done!  Now running  RotNs, runID: ", runID
+        print "EOS generated!  Now running  RotNs, runID: ", runID
         subprocess.call("./RotNS < Parameters.input > run.log ", shell=True)
         nonOutputParams=inputParams.copy()
         nonOutputParams['eos']=self.getEosName()
@@ -117,10 +126,65 @@ class modelGenerator(object):
 
         if self.cleanUpRuns:
             cleanUpAfterRun()
+            if self.eosPrescription == 'tableFromSpEC':
+                subprocess.call(["rm",  "MakeRotNSeosfile"])
 
         os.chdir("../")
         #print entries, runID
         return entries,runID
+
+    def generateEosTable(self, inputParams):
+
+        if self.eosPrescription == 'tableFromSpEC':
+
+            subprocess.call(["cp", self.makeEosFile_location, "./"])
+
+            makeEosFileArgs={'-eos-opts'     : self.specEosOptions,
+                             '-roll-midpoint': inputParams['rollMid'],
+                             '-roll-scale'   : inputParams['rollScale'],
+                             '-roll-tmin'    : inputParams['eosTmin'],
+                             '-roll-tmax'    : inputParams['T'] }
+            argList = [str(arg) for item in makeEosFileArgs.items() for arg in item ]
+
+            #default output file name is output.EOS
+            subprocess.call(["./MakeRotNSeosfile"] + argList)
+
+        elif self.eosPrescription == 'tableFromEosDriver':
+
+            prescriptionDict = {}
+
+            eosTable = eosDriver(self.eosDriverPrescriptionDict['sc.orgTableFile'])
+
+            prescriptionName = self.eosDriverPrescriptionDict['prescriptionName']
+
+            if prescriptionName == 'isothermal':
+                # isothermal has a temperature rolloff
+                keysForDict = ('rollMid', 'rollScale', 'eosTmin', 'T')
+                for key in keysForDict:
+                    prescriptionDict[key] = inputParams[key]
+            elif prescriptionName == 'constQuantity':
+                assert False, "ConstQuantity not implemented yet"
+            else:
+                assert False, "Unknown eosDriver prescription type."
+
+            eosTable.writeRotNSeosfile('output.EOS', prescriptionDict, ye=0.1)
+
+        subprocess.call(["mkdir", "EOS"])
+        subprocess.call(["cp", "output.EOS", "EOS/EOS.PP"])
+        return 0
+
+    def getEosName(self):
+        answer = None
+        if self.eosPrescription == 'tableFromSpEC':
+            #following line gets the EOS table name by getting the string
+            # AFTER the last / and before the first _
+            answer = self.specEosOptions.split('/')[-1].split('_')[0]
+            #also strip out some bad characters for filenames if they exist
+            answer = re.sub('[\(\);=]','',answer)
+        if self.eosPrescription == 'tableFromEosDriver':
+            answer = self.eosDriverPrescriptionDict['sc.orgTableFile'].split('/')[-1].split('_')[0]
+        return answer
+
 
     def setDensityRange(self,inputParams, rotNS_params):
         """
@@ -158,7 +222,7 @@ class modelGenerator(object):
         TASKS = []
         ids = []
         for inputParams in listOfInputParams:
-            
+
             #If we are provided it, override Nsteps
             #TODO: fix bad way of setting Nsteps!
             if 'Nsteps' in inputParams:
@@ -255,13 +319,7 @@ class modelGenerator(object):
         result = result[:32]   #RotNS wont write an output file with > 30 chars
         return result
 
-    def getEosName(self):
-        #following line gets the EOS table name by getting the string
-        # AFTER the last / and before the first _
-        answer = self.specEosOptions.split('/')[-1].split('_')[0]
-        #also strip out some bad characters for filenames if they exist
-        answer = re.sub('[\(\);=]','',answer)
-        return answer
+
 #END class modelGenerator
 
 def generateRunID():
@@ -281,9 +339,9 @@ def cleanUpAfterRun(leaveDumpFiles=True):
         subprocess.call(["rm"] + outdataToDelete)
         #subprocess.call(["rm",  "output.EOS"])
         subprocess.call(["rm",  "RotNS.state"])
-    #Always remove execs:
+    #Always remove exec:
     subprocess.call(["rm",  "RotNS"])
-    subprocess.call(["rm",  "MakeRotNSeosfile"])
+
 
 #runID is same as run directory name
 def doWipeRunDirectory(runID,eosName,saveOutputFile=True):
@@ -306,4 +364,4 @@ def doWipeRunDirectory(runID,eosName,saveOutputFile=True):
         print "FAILED wipeRunDirectory, %s" % runID
     else:
         print "wipeRunDirectory %s success! " % runID
-        
+

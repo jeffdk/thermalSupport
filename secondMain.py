@@ -68,8 +68,11 @@ if not databaseExists:
     c.execute("CREATE TABLE models" + parseFiles.columnsString)
 connection.commit()
 
+eosPrescription = {'type': 'tableFromSpEC',
+                   'makeEosFile_location': location_MakeEosFile,
+                   'specEosOptions': specEosOptions}
 
-hsModels = modelGenerator(location_RotNS,location_MakeEosFile,specEosOptions,locationForRuns,30)
+hsModels = modelGenerator(location_RotNS, eosPrescription, locationForRuns, 30)
 
 
 ##Test sequence plot

@@ -121,7 +121,10 @@ def main():
     connection = parseGlobalArgumentsAndReturnDBConnection(args)
 
     #Now we have all information to create our modelGenerator object
-    modelGen=modelGenerator(location_RotNS,location_MakeEosFile,specEosOptions,locationForRuns,ROTNS_RUNTYPE)
+    eosPrescription = {'type': 'tableFromSpEC',
+                       'makeEosFile_location': location_MakeEosFile,
+                       'specEosOptions': specEosOptions}
+    modelGen = modelGenerator(location_RotNS, eosPrescription, locationForRuns, ROTNS_RUNTYPE)
 
     #as well as our run parameters dictionary template
     runParametersTemplate={'rollMid':args.rollMid,
