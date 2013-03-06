@@ -33,13 +33,18 @@ def parseCstFileList(files,nonOutputRunParameters=()):
     for ind,file in enumerate(files):
         nonOutputParams = []
 
-
+        print "nonOutputRunParameters[ind]: ", nonOutputRunParameters[ind]
+        #ORDER MUST BE SAME AS IN COLUMNSTRING!
         nonOutputParams.append(nonOutputRunParameters[ind]['eos'])
+        nonOutputParams.append(nonOutputRunParameters[ind]['eosPrescription'])
         nonOutputParams.append(nonOutputRunParameters[ind]['rollMid'])
         nonOutputParams.append(nonOutputRunParameters[ind]['rollScale'])
         nonOutputParams.append(nonOutputRunParameters[ind]['eosTmin'])
-        nonOutputParams.append(nonOutputRunParameters[ind]['a'])
         nonOutputParams.append(nonOutputRunParameters[ind]['T'])
+        nonOutputParams.append(nonOutputRunParameters[ind]['ye'])
+        nonOutputParams.append(str(nonOutputRunParameters[ind]['fixedQuantity']))
+        nonOutputParams.append(nonOutputRunParameters[ind]['fixedTarget'])
+        nonOutputParams.append(nonOutputRunParameters[ind]['a'])
         fileHandle = open(file, 'r')
         #dump first 3 lines of comments
         fileHandle.readline(); fileHandle.readline(); fileHandle.readline()
@@ -82,6 +87,6 @@ def parseEntriesIntoDB(entries, sqliteCursor, tableName, runType, runID):
         entry.append(runID)
         entry.append(lineNum)
         #print "this entry: ", entry
-        #print "query: ", "INSERT INTO "+tableName+" VALUES "  + str(tuple(entry))
+        print "query: ", "INSERT INTO "+tableName+" VALUES "  + str(tuple(entry))
         sqliteCursor.execute("INSERT INTO "+tableName+" VALUES "
                                           + str(tuple(entry)) )

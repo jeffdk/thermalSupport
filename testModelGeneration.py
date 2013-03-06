@@ -26,19 +26,27 @@ connection.commit()
 
 eosPrescription = {'type': 'tableFromSpEC',
                    'makeEosFile_location': location_MakeEosFile,
-                   'specEosOptions': specEosOptions}
+                   'specEosOptions': specEosOptions,
+                   'ye': 0.12}
 
 eosPrescription = \
      {'type': 'tableFromEosDriver',
       'sc.orgTableFile': '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5',
-      'prescriptionName': 'isothermal'}
-
+      'prescriptionName': 'isothermal',
+      'ye': 0.12}
+eosPrescription = \
+     {'type': 'tableFromEosDriver',
+      'sc.orgTableFile': '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5',
+      'prescriptionName': 'fixedQuantity',
+      'quantity': 'entropy',
+      'target': 1.0,
+      'ye': 'BetaEq'}
 
 modelGen = modelGenerator(location_RotNS, eosPrescription, locationForRuns, ROTNS_RUNTYPE)
 
 runParametersTemplate = {'rollMid': 14.0,
                          'rollScale': 0.5,
-                         'eosTmin': 0.01, 'T': 0.02}
+                         'eosTmin': 0.01, 'T': 0.059}
 
 #modelGen.generateEosTable(runParametersTemplate)
 
