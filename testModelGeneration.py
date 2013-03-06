@@ -28,19 +28,19 @@ eosPrescription = {'type': 'tableFromSpEC',
                    'makeEosFile_location': location_MakeEosFile,
                    'specEosOptions': specEosOptions}
 
-# eosPrescription = \
-#     {'type': 'tableFromEosDriver',
-#      'sc.orgTableFile': '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5',
-#      'prescriptionName': 'isothermal'}
+eosPrescription = \
+     {'type': 'tableFromEosDriver',
+      'sc.orgTableFile': '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5',
+      'prescriptionName': 'isothermal'}
 
 
 modelGen = modelGenerator(location_RotNS, eosPrescription, locationForRuns, ROTNS_RUNTYPE)
 
 runParametersTemplate = {'rollMid': 14.0,
                          'rollScale': 0.5,
-                         'eosTmin': 0.01, 'T': 0.07}
+                         'eosTmin': 0.01, 'T': 0.02}
 
-modelGen.generateEosTable(runParametersTemplate)
+#modelGen.generateEosTable(runParametersTemplate)
 
 thisRunParameters = {'edMax': 0.5,
                      'edMin': 0.5,

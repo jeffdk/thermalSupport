@@ -4,18 +4,19 @@ import os
 from numpy import *
 
 #  Omega_c    cJ/GMs^2    M/Ms       Eps_c      Mo/Ms      T/W        R_c        v/c     omg_c/Omg_c     rp       Z_p        Z_b        Z_f      h-direct   h-retro     e/m       Shed        RedMax     PradE     CoordRadE     RotT        GravPotW     PropM 
-columnsString=''' (eos text, rollMid real, rollScale real,eosTmin real,
-              a real, T real,
+columnsString=''' (eos text, eosPrescription text,
+              rollMid real, rollScale real,eosTmin real, T real,
+              ye real, fixedQuantity text, fixedTarget real,
+              a real,
               omega_c real,  J real, gravMass real, edMax real, baryMass real,
               ToverW real, arealR real, VoverC real, omg_c_over_Omg_c real,
               rpoe real,  Z_p real, Z_b real, Z_f real,  h_direct real,
               h_retro real, e_over_m real, shed real,  RedMax real,
               propRe real, coordRadE real, rotT real,
               gravPotW real, propM real,
-
               runType int, runID text, lineNum int) '''
 
-# fixedQuantity text, fixedValue real,               eosPrescription text,
+#
 def parseCstDataDirectoryIntoDB(dataDirName, sqliteCursor,tableName,runType):
 
     files = os.listdir(dataDirName)
@@ -31,6 +32,7 @@ def parseCstFileList(files,nonOutputRunParameters=()):
     entries=[]
     for ind,file in enumerate(files):
         nonOutputParams = []
+
 
         nonOutputParams.append(nonOutputRunParameters[ind]['eos'])
         nonOutputParams.append(nonOutputRunParameters[ind]['rollMid'])

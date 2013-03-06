@@ -46,6 +46,7 @@ class modelGenerator(object):
     eosPrescriptionTypes = ('tableFromEosDriver', 'tableFromSpEC',
                             'rotNSPolytrope')
     eosDriverPrescriptionDict = None
+    ye = 0.15
 
     def __init__(self, rotNS_location, eosPrescription, locationForRuns, runType=30,
                  tableName="models", rotNS_resolutionParams=(800, 800, 30)):
@@ -105,7 +106,7 @@ class modelGenerator(object):
         
         os.mkdir(runID)
         os.chdir(runID)
-
+        print "INPUT PARAMS: ", inputParams
         if not self.eosPrescription == 'rotNSPolytrope':
             self.generateEosTable(inputParams)
 
@@ -122,7 +123,8 @@ class modelGenerator(object):
         subprocess.call("./RotNS < Parameters.input > run.log ", shell=True)
         nonOutputParams=inputParams.copy()
         nonOutputParams['eos']=self.getEosName()
-        entries = parseCstFileList([runName],[nonOutputParams])
+        nonOutputParams['eosPrescription'] = self.eosPrescription
+        entries = parseCstFileList([runName], [nonOutputParams])
 
         if self.cleanUpRuns:
             cleanUpAfterRun()
@@ -134,6 +136,14 @@ class modelGenerator(object):
         return entries,runID
 
     def generateEosTable(self, inputParams):
+        """
+        Creates EOS table and returns nonOutputRunParams
+        which are parameters describing the run not output by the CST
+        code.
+        """
+        nonOutputRunParams = {'a': inputParams['a'], 'ye': self.ye}
+        isothermalParams = ('rollMid', 'rollScale', 'eosTmin', 'T')
+        fixedQuantityParams = ('quantity', 'target')
 
         if self.eosPrescription == 'tableFromSpEC':
 
@@ -149,6 +159,11 @@ class modelGenerator(object):
             #default output file name is output.EOS
             subprocess.call(["./MakeRotNSeosfile"] + argList)
 
+            #tableFromSpEC uses isothermal with roll prescription
+            for key in isothermalParams:
+                nonOutputRunParams[key] = inputParams[key]
+            for key in fixedQuantityParams:
+                nonOutputRunParams[key] = None
         elif self.eosPrescription == 'tableFromEosDriver':
 
             prescriptionDict = {}
@@ -159,19 +174,29 @@ class modelGenerator(object):
 
             if prescriptionName == 'isothermal':
                 # isothermal has a temperature rolloff
-                keysForDict = ('rollMid', 'rollScale', 'eosTmin', 'T')
-                for key in keysForDict:
+                for key in isothermalParams:
+                    nonOutputRunParams[key] = inputParams[key]
                     prescriptionDict[key] = inputParams[key]
-            elif prescriptionName == 'constQuantity':
-                assert False, "ConstQuantity not implemented yet"
+                for key in fixedQuantityParams:
+                    nonOutputRunParams[key] = None
+            elif prescriptionName == 'fixedQuantity':
+                for key in isothermalParams:
+                    nonOutputRunParams[key] = None
+                for key in fixedQuantityParams:
+                    prescriptionDict[key] = self.eosDriverPrescriptionDict[key]
+                    keyForDatabase = 'fixed' + key.capitalize()
+                    nonOutputRunParams[keyForDatabase] = \
+                        self.eosDriverPrescriptionDict[key]
+
+                assert False, "fixedQuantity not implemented yet"
             else:
                 assert False, "Unknown eosDriver prescription type."
 
-            eosTable.writeRotNSeosfile('output.EOS', prescriptionDict, ye=0.1)
+            eosTable.writeRotNSeosfile('output.EOS', prescriptionDict, ye=self.ye)
 
         subprocess.call(["mkdir", "EOS"])
         subprocess.call(["cp", "output.EOS", "EOS/EOS.PP"])
-        return 0
+        return nonOutputRunParams
 
     def getEosName(self):
         answer = None
