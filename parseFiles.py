@@ -12,43 +12,33 @@ columnsString=''' (eos text, rollMid real, rollScale real,eosTmin real,
               h_retro real, e_over_m real, shed real,  RedMax real,
               propRe real, coordRadE real, rotT real,
               gravPotW real, propM real,
+
               runType int, runID text, lineNum int) '''
 
-
+# fixedQuantity text, fixedValue real,               eosPrescription text,
 def parseCstDataDirectoryIntoDB(dataDirName, sqliteCursor,tableName,runType):
 
-
-    files=os.listdir(dataDirName)
+    files = os.listdir(dataDirName)
     cwd = os.getcwd()
     os.chdir(dataDirName)
-    entries=parseCstFileList(files,nonOutputParamsFromFilename=True)
+    entries=parseCstFileList(files)
     os.chdir(cwd)
     parseEntriesIntoDB(entries,sqliteCursor,tableName,runType)
 
-def parseCstFileList(files,nonOutputRunParameters=(),nonOutputParamsFromFilename=False):
+def parseCstFileList(files,nonOutputRunParameters=()):
     #print "Processing " + str(len(files)) + " files: ", files
     #print " in current dir: ", os.getcwd()
     entries=[]
     for ind,file in enumerate(files):
-        nonOutputParams=[]
-        if nonOutputParamsFromFilename:
-            #first extract parameter information contained in filename
-            noSuffix=file.split('.log')[0]
-            filenameData=noSuffix.split('_')
-            #remove a and T identifiers and make floats
-            filenameData[1]=float(filenameData[1][3:])
-            filenameData[2]=float(filenameData[2][5:])
-            filenameData[3]=float(filenameData[3][1:])
-            filenameData[4]=float(filenameData[4][1:])
-            nonOutputParams= filenameData
-        else:
-            nonOutputParams.append(nonOutputRunParameters[ind]['eos'])
-            nonOutputParams.append(nonOutputRunParameters[ind]['rollMid'])
-            nonOutputParams.append(nonOutputRunParameters[ind]['rollScale'])
-            nonOutputParams.append(nonOutputRunParameters[ind]['eosTmin'])
-            nonOutputParams.append(nonOutputRunParameters[ind]['a'])
-            nonOutputParams.append(nonOutputRunParameters[ind]['T'])
-        fileHandle=open(file,'r')
+        nonOutputParams = []
+
+        nonOutputParams.append(nonOutputRunParameters[ind]['eos'])
+        nonOutputParams.append(nonOutputRunParameters[ind]['rollMid'])
+        nonOutputParams.append(nonOutputRunParameters[ind]['rollScale'])
+        nonOutputParams.append(nonOutputRunParameters[ind]['eosTmin'])
+        nonOutputParams.append(nonOutputRunParameters[ind]['a'])
+        nonOutputParams.append(nonOutputRunParameters[ind]['T'])
+        fileHandle = open(file, 'r')
         #dump first 3 lines of comments
         fileHandle.readline(); fileHandle.readline(); fileHandle.readline()
         fileIsEmpty = True
@@ -56,18 +46,6 @@ def parseCstFileList(files,nonOutputRunParameters=(),nonOutputParamsFromFilename
         for line in fileHandle:
             fileIsEmpty = False
             entry = line.split()
-            #print entry
-            #HACK OUT BROKEN Z_b & Z_f entry
-            # only occurs sometimes, so if it is not present, we take otu BOTH
-            # entries
-            #if len(entry)>18:
-            #    takeOutVal=13
-            #else:
-            #    takeOutVal=12
-            #tmp   = entry[takeOutVal:]
-            #entry = entry[0:11]
-            #entry = entry + tmp
-            #make data floats
             for i in range(len(entry)):
                 entry[i]=float(entry[i])
 
@@ -94,7 +72,8 @@ def parseCstFileList(files,nonOutputRunParameters=(),nonOutputParamsFromFilename
 #    print "Entries processed: ", entries
     return entries
 
-def parseEntriesIntoDB(entries,sqliteCursor,tableName,runType,runID="noneOrOld"):
+
+def parseEntriesIntoDB(entries, sqliteCursor, tableName, runType, runID):
     for i, entry in enumerate(entries):
         lineNum = i + 1
         entry.append(runType)
