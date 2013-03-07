@@ -24,45 +24,77 @@ locationForRuns      = "/home/jeff/work/rotNSruns"
 databaseFile         = '/home/jeff/work/rotNSruns/tester.db'
 ROTNS_RUNTYPE        = 30   #30 is 'one model' sequence, designed to generate just one model
 
+
 def main():
-    parser = argparse.ArgumentParser(epilog="If you get a 'too few arguments' error, remember you must "
-                                            "specify the mode by passing either 'runmodels' or 'evolve'")
-    parser.add_argument('mode', choices=['runmodels','evolve'])
+    parser = argparse.ArgumentParser(
+        epilog="If you get a 'too few arguments' error, remember you must "
+               "specify the mode by passing either 'runmodels' or 'evolve'")
 
-    globalOptions = parser.add_argument_group('Global options.  Optional.  Applies to all run modes')
-    globalOptions.add_argument("-MakeEosFile-exec",  help="Location of MakeRotNSeosfile executable. "
-                                                   "default: '%s'" %location_MakeEosFile,
-                                                   default = location_MakeEosFile )
-    globalOptions.add_argument("-RotNS-exec",        help="Location of RotNS executable. "
-                                                   "default: '%s'" % location_RotNS,
-                                                   default = location_RotNS)
-    globalOptions.add_argument("-eos-opts",          help="Option passed to MakeRotNSeosfile. Format is a SpEC "
-                                                   "EOS input file option. "
-                                                   "default: '%s'" % specEosOptions,
-                                                   default = specEosOptions)
-    globalOptions.add_argument("-location-for-runs", help="Directory where code will it's many RotNS runs. "
-                                                   "default: '%s'" % locationForRuns,
-                                                   default = locationForRuns)
-    globalOptions.add_argument("-database-file",     help="sqlite3 database file to commit run results to. "
-                                                   "default: '%s'" % databaseFile,
-                                                   default = databaseFile )
-    globalOptions.add_argument("-RotNS-runtype",     help="RotNS 'RunType'. Supported values are 30 (one-model)"
-                                                   "and 3 (mass-shed) Must be integer "
-                                                   "default: %s" % ROTNS_RUNTYPE,
-                                                   type = int,
-                                                   default = ROTNS_RUNTYPE)
+    parser.add_argument('mode', choices=['runmodels', 'evolve'])
 
+    globalOptions = parser.add_argument_group(
+        'Global options.  Optional.  Applies to all run modes')
+
+    globalOptions.add_argument("-MakeEosFile-exec",
+                               help="Location of MakeRotNSeosfile executable. "
+                               "default: '%s'" % location_MakeEosFile,
+                               default=location_MakeEosFile)
+
+    globalOptions.add_argument("-RotNS-exec",
+                               help="Location of RotNS executable. "
+                               "default: '%s'" % location_RotNS,
+                               default=location_RotNS)
+
+    globalOptions.add_argument("-eos-opts",
+                               help="Option passed to MakeRotNSeosfile."
+                                    " Format is a SpEC EOS input file option. "
+                               "default: '%s'" % specEosOptions,
+                               default=specEosOptions)
+
+    globalOptions.add_argument("-location-for-runs",
+                               help="Directory where code will do"
+                                    " it's many RotNS runs. "
+                               "default: '%s'" % locationForRuns,
+                               default=locationForRuns)
+
+    globalOptions.add_argument("-database-file",
+                               help="sqlite3 database file to commit"
+                                    " run results to. "
+                               "default: '%s'" % databaseFile,
+                               default=databaseFile)
+
+    globalOptions.add_argument("-RotNS-runtype",
+                               help="RotNS 'RunType'. Supported values are "
+                                    "30 (one-model) and "
+                                    "3  (mass-shed)  Must be integer. "
+                               "default: %s" % ROTNS_RUNTYPE,
+                               type=int,
+                               default=ROTNS_RUNTYPE)
+
+
+    globalOptions.add_argument('-rollMid',
+                               type=float,
+                               help="Temperature roll-off midpoint"
+                                    " in log10(density-cgs)"
+                               "Default: 14.0",
+                               default=14.0)
+
+    globalOptions.add_argument('-rollScale',
+                               type=float,
+                               help="Temperature roll-off scale"
+                                    " in log10(density-cgs)"
+                               "Default: 0.5",
+                               default=0.5)
+
+    globalOptions.add_argument('-eos-Tmin',
+                               type=float,
+                               help="Roll temperature off to this value (MeV)"
+                               "Default: 0.5",
+                               default=0.5)
+
+    runModels_parser = parser.add_argument_group(
+        'Options for Run Models mode (all floats)')
     #TODO: JESUS CHRIST CLEAN THIS UP
-    globalOptions.add_argument('-rollMid', type=float, help="Temperature roll-off midpoint in log10(density-cgs)"
-                                                            "Default: 14.0",
-                                                            default=14.0)
-    globalOptions.add_argument('-rollScale', type=float, help="Temperature roll-off scale in log10(density-cgs)"
-                                                              "Default: 0.5",
-                                                              default=0.5)
-    globalOptions.add_argument('-eos-Tmin', type=float, help="Roll temperature off to this value (in MeV)"
-                                                              "Default: 0.5",
-                                                              default=0.5)
-    runModels_parser = parser.add_argument_group('Options for Run Models mode (all floats)')
     runModels_parser.add_argument('-a1', type=float,
         help='Start value for range in differential rotation parameter a')
     runModels_parser.add_argument('-a2', type=float,
@@ -116,8 +148,12 @@ def main():
     evolve_parser.add_argument('-changeBasis', type=bool, help="Set to True to enable adjusting the basis "
                                                                "each step to split into fixed and non-fixed subspace"
                                                                "Defalt: False", default = False)
-
     args = parser.parse_args()
+
+    ###################################################################
+    # Command line arguments parsed!  Next, setup model generator
+    ###################################################################
+
     connection = parseGlobalArgumentsAndReturnDBConnection(args)
 
     #Now we have all information to create our modelGenerator object
