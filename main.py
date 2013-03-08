@@ -23,8 +23,11 @@ specEosOptions       = "Tabulated(filename= /home/jeff/work/HS_Tabulated.dat )"
 locationForRuns      = "/home/jeff/work/rotNSruns"
 databaseFile         = '/home/jeff/work/rotNSruns/tester.db'
 ROTNS_RUNTYPE        = 30   #30 is 'one model' sequence, designed to generate just one model
-
-
+eosPrescription = {'type': 'tableFromSpEC',
+                   'makeEosFile_location': location_MakeEosFile,
+                   'specEosOptions': specEosOptions,
+                   'ye': 0.1}
+#{'type':'tableFromSpEC','makeEosFile_location':'/home/jeff/spec/Hydro/EquationOfState/Executables/MakeRotNSeosfile', 'specEosOptions':'Tabulated(filename=/home/jeff/work/HS_Tabulated.dat)', 'ye': 0.15, 'rollMid': 14.0, 'rollScale': 0.5, 'eosTmin': 0.5}
 def main():
     parser = argparse.ArgumentParser(
         epilog="If you get a 'too few arguments' error, remember you must "
@@ -37,19 +40,20 @@ def main():
 
     globalOptions.add_argument("-MakeEosFile-exec",
                                help="Location of MakeRotNSeosfile executable. "
-                               "default: '%s'" % location_MakeEosFile,
-                               default=location_MakeEosFile)
+                               "DEPRECATED USE eosPrescription"
+                               )
 
     globalOptions.add_argument("-RotNS-exec",
                                help="Location of RotNS executable. "
                                "default: '%s'" % location_RotNS,
                                default=location_RotNS)
 
+
     globalOptions.add_argument("-eos-opts",
                                help="Option passed to MakeRotNSeosfile."
                                     " Format is a SpEC EOS input file option. "
-                               "default: '%s'" % specEosOptions,
-                               default=specEosOptions)
+                               "DEPRECATED USE eosPrescription"
+                               )
 
     globalOptions.add_argument("-location-for-runs",
                                help="Directory where code will do"
@@ -71,26 +75,32 @@ def main():
                                type=int,
                                default=ROTNS_RUNTYPE)
 
+    globalOptions.add_argument("-eosPrescription",
+                               help="Dictionary defining EOS prescriptions. "
+                                    "See TODO FIX ME for examples."
+                               "default: %s" % eosPrescription,
+                               type=str,
+                               default=eosPrescription)
 
     globalOptions.add_argument('-rollMid',
                                type=float,
                                help="Temperature roll-off midpoint"
                                     " in log10(density-cgs)"
-                               "Default: 14.0",
-                               default=14.0)
+                               "DEPRECATED USE eosPrescription"
+                               )
 
     globalOptions.add_argument('-rollScale',
                                type=float,
                                help="Temperature roll-off scale"
                                     " in log10(density-cgs)"
-                               "Default: 0.5",
-                               default=0.5)
+                               "DEPRECATED USE eosPrescription"
+                               )
 
     globalOptions.add_argument('-eos-Tmin',
                                type=float,
                                help="Roll temperature off to this value (MeV)"
-                               "Default: 0.5",
-                               default=0.5)
+                               "DEPRECATED USE eosPrescription"
+                               )
 
     runModels_parser = parser.add_argument_group(
         'Options for Run Models mode (all floats)')
@@ -157,17 +167,15 @@ def main():
     connection = parseGlobalArgumentsAndReturnDBConnection(args)
 
     #Now we have all information to create our modelGenerator object
-    eosPrescription = {'type': 'tableFromSpEC',
-                       'makeEosFile_location': location_MakeEosFile,
-                       'specEosOptions': specEosOptions}
+    # eosPrescription = {'type': 'tableFromSpEC',
+    #                    'makeEosFile_location': location_MakeEosFile,
+    #                    'specEosOptions': specEosOptions}
     modelGen = modelGenerator(location_RotNS, eosPrescription, locationForRuns, ROTNS_RUNTYPE)
 
     #as well as our run parameters dictionary template
-    runParametersTemplate={'rollMid':args.rollMid,
-                           'rollScale':args.rollScale,
-                           'eosTmin':args.eos_Tmin}
+    runParametersTemplate = {}
 
-    print "Stationary EOS Params: ", runParametersTemplate
+    print "EOS prescription: ", eosPrescription
     runMode = args.mode
     print "Run mode: %s" % runMode
     if runMode == 'runmodels':
@@ -322,22 +330,49 @@ def rangeFromParams(start,end,steps,fixedValue,paramName):
     return result
 
 
+def flattenDictOfOptions(input):
+    assert isinstance(input, dict)
+
+    currentTuple =()
+
+    for thisTuple in input.values():
+        newTuple = ()
+        for thisEntry in thisTuple:
+            if isinstance(thisEntry, dict):
+                thisEntry = flattenDictOfOptions(thisEntry)
+                newTuple += thisEntry
+            else:
+                newTuple += (thisEntry,)
+        currentTuple += newTuple
+
+    #print currentTuple
+    return currentTuple
+
+
 def parseGlobalArgumentsAndReturnDBConnection(args):
-    global location_MakeEosFile, location_RotNS, specEosOptions, locationForRuns, databaseFile, ROTNS_RUNTYPE
+    global eosPrescription, location_RotNS, locationForRuns, databaseFile, ROTNS_RUNTYPE
+    assert args.MakeEosFile_exec is None, "Option MakeEosFile-exec DEPRECATED"
 
-    location_MakeEosFile = args.MakeEosFile_exec
-    assert os.path.isfile(location_MakeEosFile), "Cannot find MakeRotNSeosfile exec: %s" % location_MakeEosFile
+    eosPrescription = ast.literal_eval(args.eosPrescription)
+    assert isinstance(eosPrescription, dict), \
+        "eosPrescription argument is not a valid dictionary!"
+    #print type(prescriptDict), prescriptDict
+    for key in eosPrescription.keys():
+        # type is the key for the eosPrescriptionType itself
+        assert key in ('type',) + flattenDictOfOptions(modelGenerator.eosPrescriptionTypes),\
+            "%s is not a valid key for any eosPrescription! " \
+            "See modelGenerator.eosPrescriptionTypes" % key
 
-    location_RotNS       = args.RotNS_exec
-    assert os.path.isfile(location_RotNS),       "Cannot find RotNS exec: %s" % location_RotNS
+    location_RotNS = args.RotNS_exec
+    assert os.path.isfile(location_RotNS), \
+        "Cannot find RotNS exec: %s" % location_RotNS
 
-    specEosOptions       = args.eos_opts
+    locationForRuns = args.location_for_runs
+    assert os.path.exists(locationForRuns), \
+        "Path specified for RotNS runs doesn't exist! %s" % locationForRuns
 
-    locationForRuns      = args.location_for_runs
-    assert os.path.exists(locationForRuns),      "Path specified for RotNS runs doesn't exist! %s" % locationForRuns
-
-    databaseFile         = args.database_file
-    databaseExists=os.path.isfile(databaseFile)
+    databaseFile = args.database_file
+    databaseExists = os.path.isfile(databaseFile)
     connection = sqlite3.connect(databaseFile)
     cursor = connection.cursor()
     if not databaseExists:
@@ -347,11 +382,10 @@ def parseGlobalArgumentsAndReturnDBConnection(args):
             cursor.execute("CREATE TABLE models" + parseFiles.columnsString)
     connection.commit()
 
-    ROTNS_RUNTYPE        = args.RotNS_runtype
+    ROTNS_RUNTYPE = args.RotNS_runtype
     assert ROTNS_RUNTYPE == 3 or ROTNS_RUNTYPE == 30, "Only supported RotNS RunTypes are 3 and 30!"
 
     return connection
-
 
 
 if __name__ == "__main__":

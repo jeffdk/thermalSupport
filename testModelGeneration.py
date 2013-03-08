@@ -33,7 +33,10 @@ eosPrescription = \
      {'type': 'tableFromEosDriver',
       'sc.orgTableFile': '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5',
       'prescriptionName': 'isothermal',
-      'ye': 0.12}
+      'ye': 0.12,
+      'rollMid': 14.0,
+      'rollScale': 0.5,
+      'eosTmin': 0.01}
 eosPrescription = \
      {'type': 'tableFromEosDriver',
       'sc.orgTableFile': '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5',
