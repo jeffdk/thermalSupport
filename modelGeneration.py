@@ -343,36 +343,50 @@ class modelGenerator(object):
         pool.close()
         pool.join()
         sqliteConnection.commit()
-        print "DIFFERENCE: ", datetime.datetime.now()- start
+        print "DIFFERENCE: ", datetime.datetime.now() - start
         
         del pool
 
         os.chdir(currentDirectory)
 
-    #todo: modify to include eosPrescription!!
-    def checkIfRunExistsInDB(self,inputParams,cursor):
+    #TODO: omg refactor eosPrescription shit here
+    def checkIfRunExistsInDB(self, inputParams, cursor):
         myParams = inputParams.copy()
         myParams['eos'] = self.getEosName()
+        for key in ('ye', 'rollMid', 'rollScale', 'eosTmin'):
+            if key in self.eosPrescriptionDict:
+                myParams[key] = self.eosPrescriptionDict[key]
+            else:
+                myParams[key] = str(None)
+        for key in ('quantity', 'target'):
+            keyForDatabase = 'fixed' + key.capitalize()
+            if key in self.eosPrescriptionDict:
+                myParams[keyForDatabase] = self.eosPrescriptionDict[key]
+            else:
+                myParams[keyForDatabase] = str(None)
+        if self.eosPrescriptionDict['prescriptionName'] == 'fixedQuantity':
+            myParams['T'] = str(None)
 
-        #edMin not relevant for run type one model
+        #edMin not relevant for run type one model...
+        #I think the following to do is fine now
         #TODO: modify checkIfRunExistsInDB to work properly with mass shed sequences!
         if self.runType == 30 and 'edMin' in myParams:
             del myParams['edMin']
-        elif self.runType ==3 and  'edMin' in myParams:
+        elif self.runType == 3 and 'edMin' in myParams:
             del myParams['edMin']
-        elif self.runType ==3 and  'Nsteps' in myParams:
+        elif self.runType == 3 and 'Nsteps' in myParams:
             del myParams['Nsteps']
 
-        listResult =queryDBGivenParams('runID',myParams,cursor,self.tableName)
+        listResult = queryDBGivenParams('runID', myParams, cursor, self.tableName)
 
         if listResult:
             if len(listResult) > 1 or len(listResult[0]) > 1:
                 print "Wow, this entry: "
-                print inputParams
-                print "exists more than once in the database! Should not be possible..."
+                print myParams
+                print "exists more than once in the database!"
                 #raise AssertionError
             result = listResult[0][0]
-            print "  Parameters Have already been run in ID '%s'.  Parameters: " %result, inputParams
+            print " Parameters Have already been run in ID '%s': \n%s" % (result, myParams)
 
         return listResult
 
