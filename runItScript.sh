@@ -15,19 +15,23 @@ step=0.5
 
 
  python main.py runmodels $1\
-     -database-file '/home/jeff/work/rotNSruns/cott-ls220-try2.db' \
-     -eos-opts "Tabulated(filename= /home/jeff/work/LS220_Tabulated.dat )" \
-     -rollMid 14.0 \
-     -eos-Tmin 2.0 \
-     -a 0.7 \
-     -T 28.0 \
+     -database-file '/home/jeff/work/rotNSruns/newHS.db' \
+     -eosPrescription      "{'type': 'tableFromEosDriver',
+      'sc.orgTableFile': '/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5',
+      'prescriptionName': 'isothermal',
+      'ye': 0.12,
+      'rollMid': 14.0,
+      'rollScale': 0.5,
+      'eosTmin': 0.01}" \
+     -a 0.5 \
+     -T 20.0 \
      -edMin .1 \
-     -edMax 2.0 \
-     -ed-steps 40 \
+     -edMax 3.0 \
+     -ed-steps 20 \
      -rpoe1 1.0 \
      -rpoe2 0.5 \
      -rpoe-steps 2 \
-     -RotNS-runtype 3  2>&1  | tee  runmodels2.log 
+     -RotNS-runtype 3  2>&1  | tee  newHS.log
 
 
 # Python main.py runmodels $1\
