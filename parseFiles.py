@@ -87,6 +87,6 @@ def parseEntriesIntoDB(entries, sqliteCursor, tableName, runType, runID):
         entry.append(runID)
         entry.append(lineNum)
         #print "this entry: ", entry
-        print "query: ", "INSERT INTO "+tableName+" VALUES "  + str(tuple(entry))
+        #print "query: ", "INSERT INTO "+tableName+" VALUES "  + str(tuple(entry))
         sqliteCursor.execute("INSERT INTO "+tableName+" VALUES "
                                           + str(tuple(entry)) )
