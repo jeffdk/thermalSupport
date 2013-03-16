@@ -6,7 +6,7 @@ import sqlite3
 from numpy import *
 import minimizeAlgorithm
 from sqlUtils import queryDBGivenParams
-MAYAVI_OFF=False
+MAYAVI_OFF=True
 if not MAYAVI_OFF:
     import mayavi.mlab as mlab
 
