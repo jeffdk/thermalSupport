@@ -56,7 +56,8 @@ class modelGenerator(object):
          'tableFromEosDriver': ('sc.orgTableFile',
                                 'prescriptionName',
                                 {'fixedQuantity': ('quantity', 'target'),
-                                 'isothermal': ('rollMid', 'rollScale', 'eosTmin')
+                                 'isothermal': ('rollMid', 'rollScale', 'eosTmin'),
+                                 'manual':  ('funcTofLogRho',)
                                  },
                                 'ye'
                                 )
@@ -172,6 +173,7 @@ class modelGenerator(object):
         nonOutputRunParams = {'a': inputParams['a'], 'ye': self.ye}
         isothermalParams = ('rollMid', 'rollScale', 'eosTmin', 'T')
         fixedQuantityParams = ('quantity', 'target')
+        manualTofLogRhoParams = ('funcTofLogRho',)
 
         if self.eosPrescription == 'tableFromSpEC':
 
@@ -229,6 +231,16 @@ class modelGenerator(object):
                     keyForDatabase = 'fixed' + key.capitalize()
                     nonOutputRunParams[keyForDatabase] = \
                         self.eosPrescriptionDict[key]
+            # All field quantities are 'None' for manual prescription
+            elif prescriptionName == 'manual':
+                for key in isothermalParams:
+                    nonOutputRunParams[key] = str(None)
+                for key in fixedQuantityParams:
+                    keyForDatabase = 'fixed' + key.capitalize()
+                    nonOutputRunParams[keyForDatabase] = str(None)
+                for key in manualTofLogRhoParams:
+                    prescriptionDict[key] = self.eosPrescriptionDict[key]
+
             else:
                 assert False, "Unknown eosDriver prescription type."
 
@@ -364,7 +376,8 @@ class modelGenerator(object):
                 myParams[keyForDatabase] = self.eosPrescriptionDict[key]
             else:
                 myParams[keyForDatabase] = str(None)
-        if self.eosPrescriptionDict['prescriptionName'] == 'fixedQuantity':
+        if self.eosPrescriptionDict['prescriptionName'] == 'fixedQuantity' \
+            or self.eosPrescriptionDict['prescriptionName'] == 'manual':
             myParams['T'] = str(None)
 
         #edMin not relevant for run type one model...

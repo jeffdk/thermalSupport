@@ -44,7 +44,12 @@ eosPrescription = \
       'quantity': 'entropy',
       'target': 1.0,
       'ye': 'BetaEq'}
-
+eosPrescription = \
+     {'type': 'tableFromEosDriver',
+      'sc.orgTableFile': '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5',
+      'prescriptionName': 'manual',
+      'funcTofLogRho': 'kentaDataTofLogRhoFit1',
+      'ye': 0.15}
 modelGen = modelGenerator(location_RotNS, eosPrescription, locationForRuns, ROTNS_RUNTYPE)
 
 runParametersTemplate = {'rollMid': 14.0,
