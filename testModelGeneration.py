@@ -48,7 +48,7 @@ eosPrescription = \
      {'type': 'tableFromEosDriver',
       'sc.orgTableFile': '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5',
       'prescriptionName': 'manual',
-      'funcTofLogRho': 'kentaDataTofLogRhoFit1',
+      'funcTofLogRho': 'kentaDataTofLogRhoFit2',
       'ye': 0.15}
 modelGen = modelGenerator(location_RotNS, eosPrescription, locationForRuns, ROTNS_RUNTYPE)
 
