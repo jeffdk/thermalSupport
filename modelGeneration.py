@@ -240,6 +240,9 @@ class modelGenerator(object):
                     nonOutputRunParams[keyForDatabase] = str(None)
                 for key in manualTofLogRhoParams:
                     prescriptionDict[key] = self.eosPrescriptionDict[key]
+                #HACK for kentaDataTofLogRhoFit2
+                if  self.eosPrescriptionDict['funcTofLogRho'] == 'kentaDataTofLogRhoFit2':
+                    nonOutputRunParams['eosTmin'] = 5.0
 
             else:
                 assert False, "Unknown eosDriver prescription type."
@@ -370,6 +373,11 @@ class modelGenerator(object):
                 myParams[key] = self.eosPrescriptionDict[key]
             else:
                 myParams[key] = str(None)
+                if self.eosPrescriptionDict['prescriptionName'] == 'manual':
+                    #HACK for kentaDataTofLogRhoFit2
+                    if  self.eosPrescriptionDict['funcTofLogRho'] == 'kentaDataTofLogRhoFit2':
+                        myParams['eosTmin'] = 5.0
+
         for key in ('quantity', 'target'):
             keyForDatabase = 'fixed' + key.capitalize()
             if key in self.eosPrescriptionDict:
