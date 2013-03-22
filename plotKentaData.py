@@ -9,12 +9,17 @@ plt.rcParams['legend.fontsize'] = 18
 ##############################################################################
 shen = eosDriver.eosDriver('/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5')
 plotBetaEq = True
+parametrizedTempProfile = True
+paramdTfunc = eosDriver.kentaDataTofLogRhoFit1()
 
 def readFile(filename):
 
-    data = {'d': [], 'rho': [], 'p': [], 's': [], 'T': [], 'Omega': [], 'ye': [], 'yeBetaEq': []}
+    data = {'d': [], 'rho': [], 'p': [], 's': [], 'T': [], 'Omega': [], 'ye': [], 'yeBetaEq': [],
+            'yeBetaParamdTemp': [], 'tableP': [], 'betaP': [], 'constP': []}
     labels = {'d': None, 'rho': None, 'p': None, 's': None, 'T': None, 'Omega': None, 'ye': None,
-              'yeBetaEq': "Ye in BetaEq"}
+              'yeBetaEq': "Ye in BetaEq", 'tableP': 'Simulation', 'betaP': 'BetaEq',
+              'constP': 'Ye=.15'
+              }
     answer = data.copy()
 
     infile = open(filename, 'r')
@@ -39,8 +44,23 @@ def readFile(filename):
         answer['Omega'].append(float(entries[5]))
         answer['ye'].append(float(entries[6]))
         betaYe = shen.setBetaEqState({'rho': float(entries[1]),
-                                      'temp': float(entries[4])}
-                                      )
+                                      'temp': float(entries[4])})
+        paramdT = paramdTfunc(numpy.log10(float(entries[1])))
+        paramdBetaYe = shen.setBetaEqState({'rho': float(entries[1]),
+                                            'temp': paramdT})
+        shen.setState({'rho': float(entries[1]),
+                       'temp': float(entries[4]),
+                       'ye': float(entries[6])})
+        answer['tableP'].append(shen.query('logpress', deLog10Result=True))
+        shen.setState({'rho': float(entries[1]),
+                       'temp': float(entries[4]),
+                       'ye': betaYe})
+        answer['betaP'].append(shen.query('logpress', deLog10Result=True))
+        shen.setState({'rho': float(entries[1]),
+                       'temp': float(entries[4]),
+                       'ye': 0.15})
+        answer['constP'].append(shen.query('logpress', deLog10Result=True))
+        answer['yeBetaParamdTemp'].append(paramdBetaYe)
         answer['yeBetaEq'].append(betaYe)
     for key in data.keys():
         answer[key] = numpy.array(answer[key])
@@ -50,12 +70,32 @@ xaxisData, xlabels = readFile('/home/jeff/work/Shen135135_x_v2.dat')
 yaxisData, ylabels = readFile('/home/jeff/work/Shen135135_y_v2.dat')
 #zaxisData, zlabels = readFile('/home/jeff/work/Shen135135_z_v2.dat')
 
+##############################################################################
+#Pressure plots for different ye
+##############################################################################
+fracDiff = lambda x: x/xaxisData['tableP'] - 1.0
+plt.plot(xaxisData['d'], fracDiff(xaxisData['p']),
+         xaxisData['d'], fracDiff(xaxisData['betaP']),
+         xaxisData['d'], fracDiff(xaxisData['constP']))
+plt.legend(['Simulation', xlabels['betaP'], xlabels['constP']], loc=0)
+plt.xlabel("Position on X-axis [km]")
+plt.ylabel(r"P/P(table$|_{SimulationData}) - 1$")
+plt.show()
+
+plt.plot(numpy.log10(xaxisData['rho']),  fracDiff(xaxisData['p']),
+         numpy.log10(xaxisData['rho']),  fracDiff(xaxisData['betaP']),
+         numpy.log10(xaxisData['rho']),  fracDiff(xaxisData['constP']))
+plt.legend(['Simulation', xlabels['betaP'], xlabels['constP']], loc=0)
+plt.ylabel(r"P/P(table$|_{SimulationData}) - 1$")
+plt.xlabel(xlabels['rho'])
+plt.show()
+exit()
 
 ##############################################################################
 # Plots vs distance; func allows for transformations on y-axis data
 ##############################################################################
 for plotVar, func in [ #('Omega', None), ('rho', None), ('T', None), ('s', None), ('p', None),
-                      ('ye', None),
+                      ('ye', None), ('tableP', None), ('betaP', None), ('constP', None),
                       ('rho', lambda rho: numpy.log10(rho))]:
     yaxisLabel = ylabels[plotVar]
     logStr = ""
@@ -69,13 +109,15 @@ for plotVar, func in [ #('Omega', None), ('rho', None), ('T', None), ('s', None)
         print "Warning unknown function type, not modifying label!"
     plt.xlabel("Distance from origin [km]")
     assert xlabels[plotVar] == ylabels[plotVar], "Column header mismatch!"
-    plt.ylabel(yaxisLabel, labelpad=12)
-    plt.plot(xaxisData['d'], func(xaxisData[plotVar]), yaxisData['d'], func(yaxisData[plotVar]))
+    plt.ylabel(yaxisLabel, labelPad=12)
+    plt.plot(xaxisData['d'], func(xaxisData[plotVar]), 'b')
     if plotBetaEq and plotVar == 'ye':
         print "wtf"
         legends += ['X-ax BetaEq', 'Y-ax BetaEq']
-        plt.plot(xaxisData['d'], func(xaxisData['yeBetaEq']), 'b',
-                 yaxisData['d'], func(yaxisData['yeBetaEq']), 'g', ls='--')
+        plt.plot(xaxisData['d'], func(xaxisData['yeBetaEq']), 'b', ls='--')
+        if parametrizedTempProfile:
+            plt.plot(xaxisData['d'], func(xaxisData['yeBetaParamdTemp']), 'b', ls=':')
+            legends = ['Simulation', r'BetaEq($T_{simulation}$)', r'BetaEq($T_{parametrized}$)']
     d1, d2, var1, var2 = plt.axis()
     if numpy.log10(var2) > 2:
         scalePower = int(numpy.log10(var2))
@@ -108,12 +150,14 @@ for plotVar, func in [#('Omega', None), ('T', None), ('s', None), ('p', None),
         print "Warning unknown function type, not modifying label!"
     plt.xlabel(xaxisLabel)
     plt.ylabel(yaxisLabel, labelpad=12)
+    plt.plot(func(xaxisData['rho']), xaxisData[plotVar])
     if plotBetaEq and plotVar == 'ye':
         print "wtf"
         legends += ['X-ax BetaEq', 'Y-ax BetaEq']
-        plt.plot(func(xaxisData['rho']), xaxisData['yeBetaEq'], 'b',
-                 func(yaxisData['rho']), yaxisData['yeBetaEq'], 'g', ls='--')
-    plt.plot(func(xaxisData['rho']), xaxisData[plotVar], func(yaxisData['rho']), yaxisData[plotVar])
+        plt.plot(func(xaxisData['rho']), xaxisData['yeBetaEq'], 'b', ls='--')
+        if parametrizedTempProfile:
+            plt.plot(func(xaxisData['rho']), xaxisData['yeBetaParamdTemp'], 'b', ls=':')
+            legends = ['Simulation', r'BetaEq($T_{simulation}$)', r'BetaEq($T_{parametrized}$)']
     rho1, rho2, var1, var2 = plt.axis()
     if numpy.log10(var2) > 2:
         ylocs, ylabs = plt.yticks()

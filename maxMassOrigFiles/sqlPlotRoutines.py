@@ -150,3 +150,31 @@ def nearValueFilter(field, value, tolerance=1e-3):
         result = (field + ">%s" % (value - value * tolerance),
                   field + "<%s" % (value + value * tolerance))
     return result
+
+def equalsFiltersFromDict(theDict, tolerance=1e-3):
+    """
+    From dictionary, return filters which match values given for
+    use in sequencePlot.  Uses nearValueFilter to set floating point values
+    """
+    assert isinstance(theDict, dict)
+
+    result = ()
+    for key, value in theDict.iteritems():
+
+        if value is None:
+            result += (key + "='None'",)
+        elif isinstance(value, str) or isinstance(value, unicode):
+            result += (key + "='%s'" % value,)
+        elif isinstance(value, int):
+            result += (key + "=%s" % value,)
+        elif isinstance( value, float):
+            result += nearValueFilter(key, value, tolerance)
+        else:
+            print "Bad value type: ", type(value), value
+            assert False, "There should only be None, str, int, or float in the database!"
+
+    return result #+ ("rpoe<0.75", "rpoe>0.7")
+
+def symbolFromDBentry(paramsDict):
+    prescriptionParameters = ('T', 'rollMid', 'rollScale', 'eosTmin',
+                              'fixedTarget', 'fixedQuantity')
