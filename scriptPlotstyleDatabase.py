@@ -1,3 +1,6 @@
+import numpy
+from sqlUtils import queryDBGivenParams
+from matplotlib import pyplot as plt
 
 class eosPrescription(object):
     prescriptionParameters = ('T', 'rollMid', 'rollScale', 'eosTmin',
@@ -89,3 +92,55 @@ def symbolFromDBentry(paramsDict):
 
     assert symbol is not None, "Couldn't find entry matching paramsDict!"
     return symbol
+
+def manyScriptSequencePlot(plotFields, sqliteCursor, filters=(), colorBy=None,
+                           grid=True, title="", orderBy=None, forceColorbar=False,
+                           **mplKwargs):
+    """
+    Version of sequence plot for plotting huge amount of data
+    assumes tablename is models
+
+    """
+    filters = ("ye=0.15",)
+    tableName = "models"
+    if colorBy is None:
+        colorBy = "arealR"
+    getFields = plotFields[:]
+    getFields.append(colorBy)
+    if orderBy is None:
+        orderBy = plotFields[0]
+
+    for key in eosPrescription.prescriptionParameters:
+        getFields.append(key)
+    getFields.append('RedMax')
+
+    points = queryDBGivenParams(getFields, [], sqliteCursor,
+                                tableName, filters, " ORDER BY " + orderBy)
+    for i, point in enumerate(points):
+        prescriptDict = None
+
+    points = zip(*points)
+    points = numpy.array(points)
+    print points[:, 3:]
+    #fig = plt.figure()
+    #axis = fig.add_subplot(111)
+    plt.title(title)
+    plt.grid(grid)
+    if colorBy:
+        plt.scatter(*points[:2], c=points[2], **mplKwargs)
+    else:
+        plt.plot(*points[:2], **mplKwargs)
+
+    #axis.set_xlabel(getFields[0])
+    #axis.set_ylabel(getFields[1])
+    plt.xlabel(getFields[0])
+    plt.ylabel(getFields[1])
+    if colorBy:
+        colorLegend = plt.colorbar()
+        colorLegend.set_label(colorBy)
+    if forceColorbar:
+        colorLegend = plt.colorbar()
+        colorLegend.set_label(colorBy)
+    print "Plotting %i entries" % len(points)
+
+    plt.show()

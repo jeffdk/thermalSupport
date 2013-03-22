@@ -1,7 +1,7 @@
 import sys
 import sqlite3
 import matplotlib.pyplot as mpl
-from scriptPlotstyleDatabase import symbolFromDBentry
+from scriptPlotstyleDatabase import symbolFromDBentry, manyScriptSequencePlot
 from sqlUtils import queryDBGivenParams
 
 
@@ -20,6 +20,7 @@ prescriptionParameters = ('T', 'rollMid', 'rollScale', 'eosTmin', 'fixedTarget',
 paramsDict = dict([(key, None) for key in prescriptionParameters])
 #paramsDict['eosTmin'] = 5.0
 symbolFromDBentry(paramsDict)
+manyScriptSequencePlot(["edMax", "gravMass"], c, (), grid=True,  title="")
 
 exit()
 
