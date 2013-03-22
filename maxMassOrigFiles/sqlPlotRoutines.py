@@ -175,6 +175,3 @@ def equalsFiltersFromDict(theDict, tolerance=1e-3):
 
     return result #+ ("rpoe<0.75", "rpoe>0.7")
 
-def symbolFromDBentry(paramsDict):
-    prescriptionParameters = ('T', 'rollMid', 'rollScale', 'eosTmin',
-                              'fixedTarget', 'fixedQuantity')
