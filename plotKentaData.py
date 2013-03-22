@@ -15,10 +15,11 @@ paramdTfunc = eosDriver.kentaDataTofLogRhoFit1()
 def readFile(filename):
 
     data = {'d': [], 'rho': [], 'p': [], 's': [], 'T': [], 'Omega': [], 'ye': [], 'yeBetaEq': [],
-            'yeBetaParamdTemp': [], 'tableP': [], 'betaP': [], 'constP': []}
+            'yeBetaParamdTemp': [], 'tableP': [], 'betaP': [], 'constP': [],
+            'constP.08': [], 'constP.1': [], 'constP.12': []  }
     labels = {'d': None, 'rho': None, 'p': None, 's': None, 'T': None, 'Omega': None, 'ye': None,
               'yeBetaEq': "Ye in BetaEq", 'tableP': 'Simulation', 'betaP': 'BetaEq',
-              'constP': 'Ye=.15'
+              'constP': 'Ye=.15', 'constP.08': 'Ye=.08', 'constP.1': 'Ye=.1', 'constP.12': 'Ye=.12'
               }
     answer = data.copy()
 
@@ -60,6 +61,22 @@ def readFile(filename):
                        'temp': float(entries[4]),
                        'ye': 0.15})
         answer['constP'].append(shen.query('logpress', deLog10Result=True))
+
+        shen.setState({'rho': float(entries[1]),
+                       'temp': float(entries[4]),
+                       'ye': 0.08})
+        answer['constP.08'].append(shen.query('logpress', deLog10Result=True))
+
+        shen.setState({'rho': float(entries[1]),
+                       'temp': float(entries[4]),
+                       'ye': 0.1})
+        answer['constP.1'].append(shen.query('logpress', deLog10Result=True))
+
+        shen.setState({'rho': float(entries[1]),
+                       'temp': float(entries[4]),
+                       'ye': 0.12})
+        answer['constP.12'].append(shen.query('logpress', deLog10Result=True))
+
         answer['yeBetaParamdTemp'].append(paramdBetaYe)
         answer['yeBetaEq'].append(betaYe)
     for key in data.keys():
@@ -76,16 +93,24 @@ yaxisData, ylabels = readFile('/home/jeff/work/Shen135135_y_v2.dat')
 fracDiff = lambda x: x/xaxisData['tableP'] - 1.0
 plt.plot(xaxisData['d'], fracDiff(xaxisData['p']),
          xaxisData['d'], fracDiff(xaxisData['betaP']),
-         xaxisData['d'], fracDiff(xaxisData['constP']))
-plt.legend(['Simulation', xlabels['betaP'], xlabels['constP']], loc=0)
+         xaxisData['d'], fracDiff(xaxisData['constP']),
+         xaxisData['d'], fracDiff(xaxisData['constP.08']),
+         xaxisData['d'], fracDiff(xaxisData['constP.1']),
+         xaxisData['d'], fracDiff(xaxisData['constP.12']))
+plt.legend(['Simulation', xlabels['betaP'], xlabels['constP'],
+            xlabels['constP.08'], xlabels['constP.1'], xlabels['constP.12']], loc=0)
 plt.xlabel("Position on X-axis [km]")
 plt.ylabel(r"P/P(table$|_{SimulationData}) - 1$")
 plt.show()
 
 plt.plot(numpy.log10(xaxisData['rho']),  fracDiff(xaxisData['p']),
          numpy.log10(xaxisData['rho']),  fracDiff(xaxisData['betaP']),
-         numpy.log10(xaxisData['rho']),  fracDiff(xaxisData['constP']))
-plt.legend(['Simulation', xlabels['betaP'], xlabels['constP']], loc=0)
+         numpy.log10(xaxisData['rho']),  fracDiff(xaxisData['constP']),
+         numpy.log10(xaxisData['rho']),  fracDiff(xaxisData['constP.08']),
+         numpy.log10(xaxisData['rho']),  fracDiff(xaxisData['constP.1']),
+         numpy.log10(xaxisData['rho']),  fracDiff(xaxisData['constP.12']))
+plt.legend(['Simulation', xlabels['betaP'], xlabels['constP'],
+            xlabels['constP.08'], xlabels['constP.1'], xlabels['constP.12']], loc=0)
 plt.ylabel(r"P/P(table$|_{SimulationData}) - 1$")
 plt.xlabel(xlabels['rho'])
 plt.show()
