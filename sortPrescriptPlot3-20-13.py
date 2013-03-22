@@ -1,6 +1,7 @@
 import sys
 import sqlite3
 import matplotlib.pyplot as mpl
+from scriptPlotstyleDatabase import symbolFromDBentry
 from sqlUtils import queryDBGivenParams
 
 
@@ -17,6 +18,10 @@ c=connectionTov.cursor()
 prescriptionParameters = ('T', 'rollMid', 'rollScale', 'eosTmin', 'fixedTarget', 'fixedQuantity')
 
 paramsDict = dict([(key, None) for key in prescriptionParameters])
+#paramsDict['eosTmin'] = 5.0
+symbolFromDBentry(paramsDict)
+
+exit()
 
 paramsDict['eos'] = 'HShenEOS'
 paramsDict['ye'] = 0.15
