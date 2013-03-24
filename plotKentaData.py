@@ -1,9 +1,15 @@
+from eosDriver import kentaDataTofLogRhoFit1, kentaDataTofLogRhoFit2, getTRollFunc
 from matplotlib import pyplot as plt
 from matplotlib import rcParams
 import numpy
 import eosDriver
 import plot_defaults
-plt.rcParams['legend.fontsize'] = 18
+#plt.rcParams['legend.fontsize'] = 18
+print rcParams.keys()
+rcParams['ytick.major.pad'] = 5
+rcParams['xtick.major.pad'] = 10
+rcParams['figure.subplot.left'] = 0.13
+rcParams['figure.figsize'] = 8, 6
 ##############################################################################
 # Load Shen EOS for ye comparisons
 ##############################################################################
@@ -44,49 +50,77 @@ def readFile(filename):
         answer['T'].append(float(entries[4]))
         answer['Omega'].append(float(entries[5]))
         answer['ye'].append(float(entries[6]))
-        betaYe = shen.setBetaEqState({'rho': float(entries[1]),
-                                      'temp': float(entries[4])})
-        paramdT = paramdTfunc(numpy.log10(float(entries[1])))
-        paramdBetaYe = shen.setBetaEqState({'rho': float(entries[1]),
-                                            'temp': paramdT})
-        shen.setState({'rho': float(entries[1]),
-                       'temp': float(entries[4]),
-                       'ye': float(entries[6])})
-        answer['tableP'].append(shen.query('logpress', deLog10Result=True))
-        shen.setState({'rho': float(entries[1]),
-                       'temp': float(entries[4]),
-                       'ye': betaYe})
-        answer['betaP'].append(shen.query('logpress', deLog10Result=True))
-        shen.setState({'rho': float(entries[1]),
-                       'temp': float(entries[4]),
-                       'ye': 0.15})
-        answer['constP'].append(shen.query('logpress', deLog10Result=True))
-
-        shen.setState({'rho': float(entries[1]),
-                       'temp': float(entries[4]),
-                       'ye': 0.08})
-        answer['constP.08'].append(shen.query('logpress', deLog10Result=True))
-
-        shen.setState({'rho': float(entries[1]),
-                       'temp': float(entries[4]),
-                       'ye': 0.1})
-        answer['constP.1'].append(shen.query('logpress', deLog10Result=True))
-
-        shen.setState({'rho': float(entries[1]),
-                       'temp': float(entries[4]),
-                       'ye': 0.12})
-        answer['constP.12'].append(shen.query('logpress', deLog10Result=True))
-
-        answer['yeBetaParamdTemp'].append(paramdBetaYe)
-        answer['yeBetaEq'].append(betaYe)
+        # betaYe = shen.setBetaEqState({'rho': float(entries[1]),
+        #                               'temp': float(entries[4])})
+        # paramdT = paramdTfunc(numpy.log10(float(entries[1])))
+        # paramdBetaYe = shen.setBetaEqState({'rho': float(entries[1]),
+        #                                     'temp': paramdT})
+        # shen.setState({'rho': float(entries[1]),
+        #                'temp': float(entries[4]),
+        #                'ye': float(entries[6])})
+        # answer['tableP'].append(shen.query('logpress', deLog10Result=True))
+        # shen.setState({'rho': float(entries[1]),
+        #                'temp': float(entries[4]),
+        #                'ye': betaYe})
+        # answer['betaP'].append(shen.query('logpress', deLog10Result=True))
+        # shen.setState({'rho': float(entries[1]),
+        #                'temp': float(entries[4]),
+        #                'ye': 0.15})
+        # answer['constP'].append(shen.query('logpress', deLog10Result=True))
+        #
+        # shen.setState({'rho': float(entries[1]),
+        #                'temp': float(entries[4]),
+        #                'ye': 0.08})
+        # answer['constP.08'].append(shen.query('logpress', deLog10Result=True))
+        #
+        # shen.setState({'rho': float(entries[1]),
+        #                'temp': float(entries[4]),
+        #                'ye': 0.1})
+        # answer['constP.1'].append(shen.query('logpress', deLog10Result=True))
+        #
+        # shen.setState({'rho': float(entries[1]),
+        #                'temp': float(entries[4]),
+        #                'ye': 0.12})
+        # answer['constP.12'].append(shen.query('logpress', deLog10Result=True))
+        #
+        # answer['yeBetaParamdTemp'].append(paramdBetaYe)
+        # answer['yeBetaEq'].append(betaYe)
     for key in data.keys():
         answer[key] = numpy.array(answer[key])
     return answer, labels
 
 xaxisData, xlabels = readFile('/home/jeff/work/Shen135135_x_v2.dat')
-yaxisData, ylabels = readFile('/home/jeff/work/Shen135135_y_v2.dat')
+#yaxisData, ylabels = readFile('/home/jeff/work/Shen135135_y_v2.dat')
 #zaxisData, zlabels = readFile('/home/jeff/work/Shen135135_z_v2.dat')
 
+##############################################################################
+#Paper temperature plot
+##############################################################################
+fig = plt.figure(figsize=(8,6))
+fig.set_size_inches(8, 6)
+
+plateau10 = kentaDataTofLogRhoFit1()
+plateau5 = kentaDataTofLogRhoFit2()
+core20 = getTRollFunc(20.0, 0.01, 14.0 - .07, .25)
+core30 = getTRollFunc(30.0, 0.01, 14.125 - .07, .375)
+core40 = getTRollFunc(40.0, 0.01, 14.25 - 0.07, .5)
+
+lrs = numpy.log10([xaxisData['rho'][i] for i in range(len(xaxisData['rho'])) if xaxisData['d'][i] > 0.0])
+simTemps = [xaxisData['T'][i] for i in range(len(xaxisData['rho'])) if xaxisData['d'][i] > 0.0]
+lrsMore = numpy.array([15.1, 15.0, 14.9, 14.8] + lrs.tolist())
+fig.add_subplot(111).plot(lrs, simTemps, 'm',
+         lrsMore, core40(lrsMore), 'r',
+         lrsMore, core30(lrsMore), 'g',
+         lrsMore, core20(lrsMore), 'b',
+         lrsMore, plateau10(lrsMore), 'k',
+         lrsMore, plateau5(lrsMore), 'c')
+legends = ["Sekiguchi et al.", "c40p0", "c30p0", "c20p0", "c30p10", "c30p5"]
+plt.xlabel(r"$\mathrm{log10}(\rho_b$ CGS)", labelpad=12)
+plt.ylabel(r"T (MeV)", labelpad=12)
+plt.legend(legends, bbox_to_anchor=(0, 0, .65, .92))
+plt.xlim([11.0, 15.0])
+plt.show()
+exit()
 ##############################################################################
 #Pressure plots for different ye
 ##############################################################################
@@ -114,7 +148,7 @@ plt.legend(['Simulation', xlabels['betaP'], xlabels['constP'],
 plt.ylabel(r"P/P(table$|_{SimulationData}) - 1$")
 plt.xlabel(xlabels['rho'])
 plt.show()
-exit()
+
 
 ##############################################################################
 # Plots vs distance; func allows for transformations on y-axis data
