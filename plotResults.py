@@ -8,21 +8,26 @@ from sqlUtils import queryDBGivenParams
 
 sys.path.append('./maxMassOrigFiles/')
 #noinspection PyUnresolvedReferences
-from sqlPlotRoutines import sequencePlot
+from sqlPlotRoutines import sequencePlot, equalsFiltersFromDict
 
 
-databaseFile = '/home/jeff/work/27cols_rotNSruns/hotTov.db'
+databaseFile = '/home/jeff/work/rotNSruns/allRuns3-20-13.db'
 connectionTov=sqlite3.connect(databaseFile)
 cTov=connectionTov.cursor()
+filter="T=40"
+#afilt="a=0.4"
+#sequencePlot(["a","gravMass"],cTov,(filter),"rpoe",grid=True,title=filter, s=50)
 
-#sequencePlot(["edMax","baryMass"],cTov,(),"T",grid=True,title="TOV Models for Shen_14.0_0.5")
-
+#exit()
 #Find energy density of maximum mass as function of variables
 plotVar = 'max'
-plot3d  = True
-def edOfMaxMass(filters,connection):
+plot3d  = False
+prescriptionParameters = ('T', 'rollMid', 'rollScale', 'eosTmin', 'fixedTarget', 'fixedQuantity')
+paramsDict = dict([(key, None) for key in prescriptionParameters])
+
+def edOfMaxMass(filters, connection, prescription=paramsDict):
     c=connection.cursor()
-    answer={'max':-1.e10,'edMax':0.0,'RedMax':False}
+    answer={'max':-1.e10,'edMax':0.0,'RedMax':False, 'symbol': 'o'}
     values = queryDBGivenParams("gravMass,edMax,RedMax",(),c,"models",filters)
     for max,edMax,RedMax in values:
         if max > answer['max']:
@@ -35,17 +40,17 @@ def edOfMaxMass(filters,connection):
 resultTov=[]
 for T in cTov.execute("SELECT DISTINCT T FROM models"):
     T=T[0]
-    answer = edOfMaxMass( ("T>%s" % (T -.01), "T<%s" % (T +.01))  ,connectionTov)
-    resultTov.append((-.10,T,answer[plotVar]))
+    print T
+    answer = edOfMaxMass(equalsFiltersFromDict({'T': T})  ,connectionTov)
+    resultTov.append((-.10, T, answer[plotVar]))
 
 
 
-databaseFile         = '/home/jeff/work/rotNSruns/macroRun.db'
-#databaseFile         = '/home/jeff/work/rotNSruns/christian-request.db'
+databaseFile = '/home/jeff/work/rotNSruns/allRuns3-20-13.db'
 connection=sqlite3.connect(databaseFile)
-c=connection.cursor()
+c = connection.cursor()
 
-sequencePlot(["edMax","baryMass"],c, ("a>%s" % (0.7-.001), "a<%s" % (0.7+.001), "RedMax=0."),"rpoe",grid=True)
+sequencePlot(["edMax", "baryMass"], c, equalsFiltersFromDict({'a': 0.8, 'RedMax': 0.0}),"rpoe",grid=True)
 
 c.execute("SELECT DISTINCT a,T FROM models")
 grid = c.fetchall()
@@ -61,8 +66,7 @@ resultS =[]
 resultT =[]
 for a,T in grid:
     print a,T
-    answer = edOfMaxMass( ("a>%s" % (a-.001), "a<%s" % (a+.001),
-                           "T>%s" % (T -.01), "T<%s" % (T +.01))  ,connection)
+    answer = edOfMaxMass(equalsFiltersFromDict({'a': a, 'T': T}), connection)
 
     if answer['RedMax'] > 0:
         resultT.append((a,T,answer[plotVar]))
