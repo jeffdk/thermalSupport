@@ -20,14 +20,16 @@ prescriptionParameters = ('T', 'rollMid', 'rollScale', 'eosTmin', 'fixedTarget',
 paramsDict = dict([(key, str(None)) for key in prescriptionParameters])
 #paramsDict['eosTmin'] = 5.0
 symbolFromDBentry(paramsDict)
-manyScriptSequencePlot(["a", "edMax"], c, ("eos='LS220'", "fixedQuantity='None'", "ye=.1"), "arealR",
+manyScriptSequencePlot(["a", "gravMass"], c, ("eos='HShenEOS'", "ye=.1"), "arealR", "gravMass",
                        grid=True,  title="", vmax=40, vmin=12)
 
 #exit()
+c.execute("SELECT DISTINCT edMax FROM models")
+print c.fetchall()
 
-paramsDict['eos'] = 'HShenEOS'
+paramsDict['eos'] = 'LS220'
 paramsDict['ye'] = 0.1
-#paramsDict['edMax'] = 704166666600000.0
+paramsDict['edMax'] = 694871794800000.0
 paramsDict['a'] = 0.0
 #paramsDict['rpoe'] = 0.7272727272727
 colorVar = "arealR"

@@ -1,4 +1,6 @@
 import numpy
+import operator
+from plotUtilsForPaper import latexField
 from sqlUtils import queryDBGivenParams
 from matplotlib import pyplot as plt
 
@@ -42,7 +44,7 @@ def getScriptsDb():
 
     c40p0 = eosPrescription(r"c40p0", '^')
     c40p0dict = nonesDict.copy()
-    c40p0dict.update({'T': 40,
+    c40p0dict.update({'T': 40.,
                       'rollMid': 14.18,
                       'rollScale': 0.5,
                       'eosTmin': 0.01})
@@ -51,7 +53,7 @@ def getScriptsDb():
 
     c30p0 = eosPrescription(r"c30p0", 's')
     c30p0dict = nonesDict.copy()
-    c30p0dict.update({'T': 30,
+    c30p0dict.update({'T': 30.,
                       'rollMid': 14.055,
                       'rollScale': 0.375,
                       'eosTmin': 0.01})
@@ -60,7 +62,7 @@ def getScriptsDb():
 
     c20p0 = eosPrescription(r"c20p0", 'v')
     c20p0dict = nonesDict.copy()
-    c20p0dict.update({'T': 20,
+    c20p0dict.update({'T': 20.,
                       'rollMid': 13.93,
                       'rollScale': 0.25,
                       'eosTmin': 0.01})
@@ -79,7 +81,7 @@ def getScriptsDb():
 
     rolloff_m14_s05_T40 = eosPrescription(r"$\mathrm{Roll}^{\mathrm{mid}=14}_{\mathrm{scale}=.5}$ T=40", '^', ':')
     rolloff_m14_s05_T40dict = nonesDict.copy()
-    rolloff_m14_s05_T40dict.update({'T': 40,
+    rolloff_m14_s05_T40dict.update({'T': 40.,
                                     'rollMid': 14.0,
                                     'rollScale': 0.5,
                                     'eosTmin': 0.01})
@@ -88,7 +90,7 @@ def getScriptsDb():
 
     rolloff_m14_s05_T20 = eosPrescription("$\mathrm{Roll}^{\mathrm{mid}=14}_{\mathrm{scale}=.5}$  T=20", 'v', '-.')
     rolloff_m14_s05_T20dict = nonesDict.copy()
-    rolloff_m14_s05_T20dict.update({'T': 20,
+    rolloff_m14_s05_T20dict.update({'T': 20.,
                                     'rollMid': 14.0,
                                     'rollScale': 0.5,
                                     'eosTmin': 0.01})
@@ -97,7 +99,7 @@ def getScriptsDb():
 
     rolloff_m135_s05_T20 = eosPrescription("Roll mid=13.5 scale=.5  T=20", '1', '-.')
     rolloff_m135_s05_T20dict = nonesDict.copy()
-    rolloff_m135_s05_T20dict.update({'T': 20,
+    rolloff_m135_s05_T20dict.update({'T': 20.,
                                     'rollMid': 13.5,
                                     'rollScale': 0.5,
                                     'eosTmin': 0.01})
@@ -106,7 +108,7 @@ def getScriptsDb():
 
     rolloff_m135_s05_T40 = eosPrescription("Roll mid=13.5 scale=.5  T=40", '2', '-.')
     rolloff_m135_s05_T40dict = nonesDict.copy()
-    rolloff_m135_s05_T40dict.update({'T': 40,
+    rolloff_m135_s05_T40dict.update({'T': 40.,
                                     'rollMid': 13.5,
                                     'rollScale': 0.5,
                                     'eosTmin': 0.01})
@@ -115,7 +117,7 @@ def getScriptsDb():
 
     rolloff_m14_s025_T40 = eosPrescription("Roll mid=14 scale=.25  T=40", '3', ':')
     rolloff_m14_s025_T40dict = nonesDict.copy()
-    rolloff_m14_s025_T40dict.update({'T': 40,
+    rolloff_m14_s025_T40dict.update({'T': 40.,
                                     'rollMid': 14.0,
                                     'rollScale': 0.25,
                                     'eosTmin': 0.01})
@@ -124,7 +126,7 @@ def getScriptsDb():
 
     rolloff_m14_s025_T20 = eosPrescription("Roll mid=14 scale=.25  T=20", '4', '-.')
     rolloff_m14_s025_T20dict = nonesDict.copy()
-    rolloff_m14_s025_T20dict.update({'T': 20,
+    rolloff_m14_s025_T20dict.update({'T': 20.,
                                     'rollMid': 14.0,
                                     'rollScale': 0.25,
                                     'eosTmin': 0.01})
@@ -216,9 +218,10 @@ def getLinestyle(eos, ye):
     assert False, "Ye and EOS combination not found in getLinestyle"
 
 
-def manyScriptSequencePlot(plotFields, sqliteCursor, filters=(), colorBy=None, maxPlot='gravMass',
-                           grid=True, title="", orderBy=None, forceColorbar=False,
+def manyScriptSequencePlot(plotFields, sqliteCursor, filters=(), colorBy=None, maxPlot=None,
+                           grid=False, title="", orderBy=None, forceColorbar=False,
                            suppressShow=False, legendList=[], vmax=None, vmin=None,
+                           loc=0, minRpoeOnly=False,
                            **mplKwargs):
     """
     Version of sequence plot for plotting huge amount of data
@@ -226,9 +229,10 @@ def manyScriptSequencePlot(plotFields, sqliteCursor, filters=(), colorBy=None, m
     if maxPlot plots maximum value of quantity for sequence only
     """
     orderBy = plotFields[0] + ',' + ','.join(eosPrescription.prescriptionParameters) + ",eos,ye,edMax"
-    #print orderBy
-    size = 80
-    plotLines = True
+    #orderBy = 'rpoe'+','+ ','.join(eosPrescription.prescriptionParameters) + ",eos,ye,edMax"
+#print orderBy
+    size = 40
+    plotLines = False
     #filters = ("ye=0.15",)
     filters += ("arealR < 100",)
     tableName = "models"
@@ -246,9 +250,16 @@ def manyScriptSequencePlot(plotFields, sqliteCursor, filters=(), colorBy=None, m
     getFields.append('eos')     # eos 11
     if maxPlot is not None:
         getFields.append(maxPlot)  # maxPlot 12
+    if minRpoeOnly:
+        getFields.append('runID')    # runIDcol
+        runIDcol = len(getFields) - 1
+        getFields.append('lineNum')  # lineNumcol
+        lineNumcol = len(getFields) - 1
+        orderBy = 'runID,lineNum,' + orderBy
 
     points = queryDBGivenParams(getFields, [], sqliteCursor,
                                 tableName, filters, " ORDER BY " + orderBy)
+    assert points, "No points returned for query with filters: %s" % str(filters)
     currentSymbol = ""
     previousSymbol = ""
     previousName = ""
@@ -259,6 +270,7 @@ def manyScriptSequencePlot(plotFields, sqliteCursor, filters=(), colorBy=None, m
     currentYe = None
     previousEos = None
     previousYe = None
+    previousPoint = None
     if vmax is None:
         vmax = max([point[2] for point in points])
     if vmin is None:
@@ -266,7 +278,7 @@ def manyScriptSequencePlot(plotFields, sqliteCursor, filters=(), colorBy=None, m
 
     #print vmin, vmax
     for i, point in enumerate(points):
-        print point
+        #print point
         currentYe = point[10]
         currentEos = point[11]
         prescriptDict = dict()
@@ -286,10 +298,18 @@ def manyScriptSequencePlot(plotFields, sqliteCursor, filters=(), colorBy=None, m
             if point[9] > 0.0:
                 #print "TOROIZZLE"
                 currentToroidPoints.append(point)
-        elif not previousSymbol == "":
+        elif not previousSymbol == "" and not currentPoints == []:
+            if minRpoeOnly:
+                currentPoints = reduceToMinRpoeOnly(currentPoints, runIDcol, lineNumcol)
             if maxPlot is not None:
                 currentPoints = [getPointWithMaxOfCol(currentPoints, 12)]
+                if currentPoints[0][9] == 0.0:
+                    #print "antigotcha "
+                    currentToroidPoints = []
+                else:
+                    currentToroidPoints = [getPointWithMaxOfCol(currentToroidPoints, 12)]
             currentPoints = zip(*currentPoints)
+            print currentPoints
             plt.scatter(*currentPoints[:2], c=currentPoints[2], marker=previousSymbol, label=previousName,
                         vmax=vmax, vmin=vmin, s=size, **mplKwargs)
             if plotLines:
@@ -297,36 +317,50 @@ def manyScriptSequencePlot(plotFields, sqliteCursor, filters=(), colorBy=None, m
             currentPoints = []
             #legendList.append(currentName)
             if not currentToroidPoints == []:
-                if maxPlot is not None:
-                    currentToroidPoints = [getPointWithMaxOfCol(currentToroidPoints, 12)]
-                    print currentToroidPoints
                 currentToroidPoints = zip(*currentToroidPoints)
-
+                #below line sets circle color to black
+                currentToroidPoints[2] = [(0., 0., 0.) for _ in currentToroidPoints[2]]
                 plt.scatter(*currentToroidPoints[:2], c=currentToroidPoints[2],
-                            marker='o', facecolor='none', s=size * 1.5,
+                            marker='o', facecolor='none', s=size * 2,
                             vmax=vmax, vmin=vmin, **mplKwargs)
                 currentToroidPoints = []
         previousSymbol = currentSymbol
         previousEos = currentEos
         previousYe = currentYe
         previousName = currentName
+        previousPoint = point
         #symbolList.append(symbolFromDBentry(prescriptDict))
+    print "Done with loop"
     #Don't forget to plot the last set!
-    print getPointWithMaxOfCol(currentPoints, 12)
+    #print getPointWithMaxOfCol(currentPoints, 12)
+    if minRpoeOnly:
+        currentPoints = reduceToMinRpoeOnly(currentPoints, runIDcol, lineNumcol)
     if maxPlot is not None:
         currentPoints = [getPointWithMaxOfCol(currentPoints, 12)]
+        if currentPoints[0][9] == 0.0:
+            currentToroidPoints = []
     currentPoints = zip(*currentPoints)
     plt.scatter(*currentPoints[:2], c=currentPoints[2], marker=previousSymbol, label=previousName,
                 vmax=vmax, vmin=vmin, s=size, **mplKwargs)
     if plotLines:
         plt.plot(*currentPoints[:2], ls=getLinestyle(previousEos, previousYe), c='k', lw=.5)
     #legendList.append(currentName)
+    #Set colorbar before doing toroidal points because toroidal points have black coloring
+    if colorBy and not suppressShow:
+        colorLegend = plt.colorbar()
+        colorLegend.set_label(latexField(colorBy))
+    if forceColorbar:
+        colorLegend = plt.colorbar()
+        colorLegend.set_label(latexField(colorBy))
     if not currentToroidPoints == []:
         if maxPlot is not None:
             currentToroidPoints = [getPointWithMaxOfCol(currentToroidPoints, 12)]
         currentToroidPoints = zip(*currentToroidPoints)
+        #print "dur", currentToroidPoints
+        #below line sets circle color to black
+        currentToroidPoints[2] = [(0., 0., 0.) for _ in currentToroidPoints[2]]
         plt.scatter(*currentToroidPoints[:2], c=currentToroidPoints[2],
-                    marker='o', facecolor='none', s=size * 1.5,
+                    marker='o', facecolor='none', s=size * 2,
                     vmax=vmax, vmin=vmin, **mplKwargs)
 
 
@@ -335,20 +369,14 @@ def manyScriptSequencePlot(plotFields, sqliteCursor, filters=(), colorBy=None, m
 
     #axis.set_xlabel(getFields[0])
     #axis.set_ylabel(getFields[1])
-    plt.xlabel(getFields[0])
-    plt.ylabel(getFields[1])
-    if colorBy and not suppressShow:
-        colorLegend = plt.colorbar()
-        colorLegend.set_label(colorBy)
-    if forceColorbar:
-        colorLegend = plt.colorbar()
-        colorLegend.set_label(colorBy)
+    plt.xlabel(latexField(getFields[0]))
+    plt.ylabel(latexField(getFields[1]))
     print "Plotting %i entries" % len(points)
 
     if not suppressShow:
         #ax = plt.gca()
         #handles, labels = ax.get_legend_handles_labels()
-        plt.legend()#handles, labels)
+        plt.legend(loc=loc)
         plt.show()
         legendList = []
 
@@ -359,9 +387,43 @@ def getPointWithMaxOfCol(array, col):
     max = -1e300
     answerPoint = None
     for point in array:
+        #print point
         if point[col] > max:
             max = point[col]
             answerPoint = point
-
+    #print "DURANSER"
+    #print answerPoint
     assert answerPoint is not None, "Answer is None... something is wrong"
     return answerPoint
+
+def reduceToMinRpoeOnly(array, runIDcol, lineNumcol):
+    """
+    Effectively reduce the result to mass-shed sequence with low resolution
+    Since
+    """
+
+    assert len(array), "Empty array passed!"
+    assert len(array[0]) > lineNumcol, "Points don't have %s entries in array!" % lineNumcol
+
+    result = []
+    maxlineNum = -1
+    thisRunIDanswer = []
+    previousRunID = array[0][runIDcol]
+    previousPoint = []
+
+    for point in array:
+        if point[runIDcol] == previousRunID:
+            if point[lineNumcol] > maxlineNum:
+                maxlineNum = point[lineNumcol]
+                thisRunIDanswer = point
+            else:
+                print "WARNIGN SHOULD NEVER BE HERE!"
+        else:
+            maxlineNum = -1
+            result.append(thisRunIDanswer)
+            #thisRunIDanswer = []
+        previousRunID = point[runIDcol]
+        previousPoint = point
+    result.append(thisRunIDanswer)
+    #print result
+    return result
