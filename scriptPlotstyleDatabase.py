@@ -6,7 +6,7 @@ class eosPrescription(object):
     prescriptionParameters = ('T', 'rollMid', 'rollScale', 'eosTmin',
                               'fixedTarget', 'fixedQuantity')
     paramsSet = False
-    def __init__(self, name, symbol, linestyle, linecolor=None):
+    def __init__(self, name, symbol, linestyle=None, linecolor=None):
         """
         Params dict are the values corresponding to this eosPrescription
         """
@@ -30,15 +30,52 @@ def getScriptsDb():
     database = []
     nonesDict = dict([(key, str(None)) for key in eosPrescription.prescriptionParameters])
 
-    plateau10 = eosPrescription("Plateau 10 MeV", 'o', '-')
+    plateau10 = eosPrescription("c30p10", 'h')
     plateau10.setParameters(nonesDict)
     database.append(plateau10)
 
-    plateau5 = eosPrescription("Plateau 5 MeV", 'p', '--')
+    plateau5 = eosPrescription("c30p5", 'p')
     plateau5dict = nonesDict.copy()
     plateau5dict['eosTmin'] = 5.0
     plateau5.setParameters(plateau5dict)
     database.append(plateau5)
+
+    c40p0 = eosPrescription(r"c40p0", '^')
+    c40p0dict = nonesDict.copy()
+    c40p0dict.update({'T': 40,
+                      'rollMid': 14.18,
+                      'rollScale': 0.5,
+                      'eosTmin': 0.01})
+    c40p0.setParameters(c40p0dict)
+    database.append(c40p0)
+
+    c30p0 = eosPrescription(r"c30p0", 's')
+    c30p0dict = nonesDict.copy()
+    c30p0dict.update({'T': 30,
+                      'rollMid': 14.055,
+                      'rollScale': 0.375,
+                      'eosTmin': 0.01})
+    c30p0.setParameters(c30p0dict)
+    database.append(c30p0)
+
+    c20p0 = eosPrescription(r"c20p0", 'v')
+    c20p0dict = nonesDict.copy()
+    c20p0dict.update({'T': 20,
+                      'rollMid': 13.93,
+                      'rollScale': 0.25,
+                      'eosTmin': 0.01})
+    c20p0.setParameters(c20p0dict)
+    database.append(c20p0)
+
+    cold = eosPrescription("cold", '*')
+    coldDict = nonesDict.copy()
+    coldDict.update({'T': 0.01,
+                     'rollMid': 14.0,
+                     'rollScale': 0.5,
+                     'eosTmin': 0.01})
+    cold.setParameters(coldDict)
+    database.append(cold)
+
 
     rolloff_m14_s05_T40 = eosPrescription(r"$\mathrm{Roll}^{\mathrm{mid}=14}_{\mathrm{scale}=.5}$ T=40", '^', ':')
     rolloff_m14_s05_T40dict = nonesDict.copy()
@@ -57,16 +94,6 @@ def getScriptsDb():
                                     'eosTmin': 0.01})
     rolloff_m14_s05_T20.setParameters(rolloff_m14_s05_T20dict)
     database.append(rolloff_m14_s05_T20)
-
-    cold = eosPrescription("Cold (T=0.5 MeV)", '*', None) #need fix none!
-    coldDict = nonesDict.copy()
-    coldDict.update({'T': 0.5,
-                     'rollMid': 14.0,
-                     'rollScale': 0.5,
-                     'eosTmin': 0.01})
-    cold.setParameters(coldDict)
-    database.append(cold)
-
 
     rolloff_m135_s05_T20 = eosPrescription("Roll mid=13.5 scale=.5  T=20", '1', '-.')
     rolloff_m135_s05_T20dict = nonesDict.copy()
@@ -142,6 +169,18 @@ def getScriptsDb():
             "Script parameters are not defined for script: %s" % script.name
     return database
 
+def paramsFromScriptName(name):
+    assert isinstance(name, str)
+    database = getScriptsDb()
+
+    paramsDict = None
+    for script in database:
+        if name == script.name:
+            paramsDict = script.paramsDict
+    assert paramsDict is not None, "Couldn't find entry matching name: %s" % name
+    return paramsDict
+
+
 def symbolFromDBentry(paramsDict):
 
     assert all([key in paramsDict for key in eosPrescription.prescriptionParameters]), \
@@ -166,14 +205,15 @@ def getLinestyle(eos, ye):
     """
     Defines database for what linestyle to plot with
     """
-    if eos == 'HShenEOS' and ye == .15:
+    if eos == 'HShenEOS' and ye == .1:
         return '-'
     if eos == 'HShenEOS' and ye == 'BetaEq':
         return '--'
-    if eos == 'LS220' and ye == .15:
+    if eos == 'LS220' and ye == .1:
         return ':'
     if eos == 'LS220' and ye == 'BetaEq':
         return '-.'
+    assert False, "Ye and EOS combination not found in getLinestyle"
 
 
 def manyScriptSequencePlot(plotFields, sqliteCursor, filters=(), colorBy=None, maxPlot='gravMass',
@@ -226,6 +266,7 @@ def manyScriptSequencePlot(plotFields, sqliteCursor, filters=(), colorBy=None, m
 
     #print vmin, vmax
     for i, point in enumerate(points):
+        print point
         currentYe = point[10]
         currentEos = point[11]
         prescriptDict = dict()
