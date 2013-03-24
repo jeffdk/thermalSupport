@@ -129,8 +129,16 @@ class modelGenerator(object):
         #Add resolution information
         rotNS_params.update(self.rotNS_resolutionParams)
         runName = self.determineRunName(inputParams)
-        
-        os.mkdir(runID)
+
+        try:
+            os.mkdir(runID)
+        except OSError as err:
+            print err
+            runID = generateRunID()
+            print "Trying to recover by generating new runID, new runID: ", runID
+            assert not os.path.exists(runID), "FAILED. %s also exists" % runID
+            os.mkdir(runID)
+            print "Success!"
         os.chdir(runID)
         print "INPUT PARAMS: ", inputParams
         #todo: address polytope case

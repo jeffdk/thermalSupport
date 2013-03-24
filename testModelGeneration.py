@@ -63,7 +63,11 @@ thisRunParameters = {'edMax': 0.5,
                      'a': 0.0,
                      'rpoe': 1.0,
                      'T': 0.05}
-
+thisRunParameters2 = {'edMax': 0.6,
+                     'edMin': 0.6,
+                     'a': 0.0,
+                     'rpoe': 1.0,
+                     'T': 0.05}
 thisRunParameters.update(runParametersTemplate)
 
 modelGen.generateModels(modelGen.runRotNS, [thisRunParameters], connection)
