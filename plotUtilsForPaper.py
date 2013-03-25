@@ -12,6 +12,8 @@ def latexField(field):
                   'a': r"$\tilde{A}$",
                   'arealR': "Circumferential Radius (km)",
                   'omega_c': r"$\Omega_c$ (rad/s)",
-                  'rpoe': r"$r_p/r_e$"}
+                  'rpoe': r"$r_p/r_e$",
+                  'shed': "Mass Shed Parameter",
+                  'ToverW': r"$T/|W|$"}
 
     return fieldsDict[field]
