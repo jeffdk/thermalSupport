@@ -22,16 +22,12 @@ step=0.5
       'ye': 0.12,
       'rollMid': 14.0,
       'rollScale': 0.5,
-      'eosTmin': 0.01}" \
+      'eosTmin': 2.0}" \
      -a 0.5 \
      -T 20.0 \
-     -edMin .1 \
-     -edMax 3.0 \
-     -ed-steps 20 \
-     -rpoe1 1.0 \
-     -rpoe2 0.5 \
-     -rpoe-steps 2 \
-     -RotNS-runtype 3  2>&1  | tee  newHS.log
+     -ed .70 \
+     -rpoe 0.5 \
+     -RotNS-runtype 30  2>&1  | tee  newHS.log
 
 
 # Python main.py runmodels $1\
