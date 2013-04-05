@@ -1,4 +1,4 @@
-
+from eosDriver import kentaDataTofLogRhoFit1
 from modelGeneration import modelGenerator
 import sqlite3
 import os
@@ -46,28 +46,34 @@ eosPrescription = \
       'ye': 'BetaEq'}
 eosPrescription = \
      {'type': 'tableFromEosDriver',
-      'sc.orgTableFile': '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5',
-      'prescriptionName': 'manual',
-      'funcTofLogRho': 'kentaDataTofLogRhoFit2',
-      'ye': 0.15}
+      'sc.orgTableFile': '/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5',
+      'prescriptionName': 'isothermal',
+      'ye': 0.1,
+      'rollMid': 14.055,
+      'rollScale': 0.375,
+      'eosTmin': 0.01}
+# eosPrescription = \
+#      {'type': 'tableFromEosDriver',
+#       'sc.orgTableFile': '/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5',
+#       'prescriptionName': 'manual',
+#       'ye': 0.1,
+#       'funcTofLogRho': 'kentaDataTofLogRhoFit1'}
 modelGen = modelGenerator(location_RotNS, eosPrescription, locationForRuns, ROTNS_RUNTYPE)
 
-runParametersTemplate = {'rollMid': 14.0,
-                         'rollScale': 0.5,
-                         'eosTmin': 0.01, 'T': 0.059}
+runParametersTemplate = {'rollMid': 14.055,
+                         'rollScale': 0.375,
+                         'eosTmin': 0.01, 'T': 0.01}
 
 #modelGen.generateEosTable(runParametersTemplate)
 
-thisRunParameters = {'edMax': 0.5,
-                     'edMin': 0.5,
-                     'a': 0.0,
-                     'rpoe': 1.0,
-                     'T': 0.05}
+thisRunParameters = {'edMax': 0.3,
+                     'edMin': 0.3,
+                     'a': 0.8,
+                     'rpoe': .30}
 thisRunParameters2 = {'edMax': 0.6,
                      'edMin': 0.6,
                      'a': 0.0,
-                     'rpoe': 1.0,
-                     'T': 0.05}
+                     'rpoe': 1.0}
 thisRunParameters.update(runParametersTemplate)
 
 modelGen.generateModels(modelGen.runRotNS, [thisRunParameters], connection)
