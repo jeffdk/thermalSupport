@@ -4,7 +4,8 @@ from plotUtilsForPaper import latexField
 from sqlUtils import queryDBGivenParams
 from matplotlib import pyplot as plt
 
-class eosPrescription(object):
+
+class tempPrescription(object):
     prescriptionParameters = ('T', 'rollMid', 'rollScale', 'eosTmin',
                               'fixedTarget', 'fixedQuantity')
     paramsSet = False
@@ -30,19 +31,19 @@ def getScriptsDb():
     Database is a list of eosPrescription objects
     """
     database = []
-    nonesDict = dict([(key, str(None)) for key in eosPrescription.prescriptionParameters])
+    nonesDict = dict([(key, str(None)) for key in tempPrescription.prescriptionParameters])
 
-    plateau10 = eosPrescription("c30p10", 'h')
+    plateau10 = tempPrescription("c30p10", 'h')
     plateau10.setParameters(nonesDict)
     database.append(plateau10)
 
-    plateau5 = eosPrescription("c30p5", 'p')
+    plateau5 = tempPrescription("c30p5", 'p')
     plateau5dict = nonesDict.copy()
     plateau5dict['eosTmin'] = 5.0
     plateau5.setParameters(plateau5dict)
     database.append(plateau5)
 
-    c40p0 = eosPrescription(r"c40p0", '^')
+    c40p0 = tempPrescription(r"c40p0", '^')
     c40p0dict = nonesDict.copy()
     c40p0dict.update({'T': 40.,
                       'rollMid': 14.18,
@@ -51,7 +52,7 @@ def getScriptsDb():
     c40p0.setParameters(c40p0dict)
     database.append(c40p0)
 
-    c30p0 = eosPrescription(r"c30p0", 's')
+    c30p0 = tempPrescription(r"c30p0", 's')
     c30p0dict = nonesDict.copy()
     c30p0dict.update({'T': 30.,
                       'rollMid': 14.055,
@@ -60,7 +61,7 @@ def getScriptsDb():
     c30p0.setParameters(c30p0dict)
     database.append(c30p0)
 
-    c20p0 = eosPrescription(r"c20p0", 'v')
+    c20p0 = tempPrescription(r"c20p0", 'v')
     c20p0dict = nonesDict.copy()
     c20p0dict.update({'T': 20.,
                       'rollMid': 13.93,
@@ -69,7 +70,7 @@ def getScriptsDb():
     c20p0.setParameters(c20p0dict)
     database.append(c20p0)
 
-    cold = eosPrescription("cold", '*')
+    cold = tempPrescription("cold", '*')
     coldDict = nonesDict.copy()
     coldDict.update({'T': 0.01,
                      'rollMid': 14.0,
@@ -79,7 +80,7 @@ def getScriptsDb():
     database.append(cold)
 
 
-    rolloff_m14_s05_T40 = eosPrescription(r"$\mathrm{Roll}^{\mathrm{mid}=14}_{\mathrm{scale}=.5}$ T=40", '^', ':')
+    rolloff_m14_s05_T40 = tempPrescription(r"$\mathrm{Roll}^{\mathrm{mid}=14}_{\mathrm{scale}=.5}$ T=40", '^', ':')
     rolloff_m14_s05_T40dict = nonesDict.copy()
     rolloff_m14_s05_T40dict.update({'T': 40.,
                                     'rollMid': 14.0,
@@ -88,7 +89,7 @@ def getScriptsDb():
     rolloff_m14_s05_T40.setParameters(rolloff_m14_s05_T40dict)
     database.append(rolloff_m14_s05_T40)
 
-    rolloff_m14_s05_T20 = eosPrescription("$\mathrm{Roll}^{\mathrm{mid}=14}_{\mathrm{scale}=.5}$  T=20", 'v', '-.')
+    rolloff_m14_s05_T20 = tempPrescription("$\mathrm{Roll}^{\mathrm{mid}=14}_{\mathrm{scale}=.5}$  T=20", 'v', '-.')
     rolloff_m14_s05_T20dict = nonesDict.copy()
     rolloff_m14_s05_T20dict.update({'T': 20.,
                                     'rollMid': 14.0,
@@ -97,7 +98,7 @@ def getScriptsDb():
     rolloff_m14_s05_T20.setParameters(rolloff_m14_s05_T20dict)
     database.append(rolloff_m14_s05_T20)
 
-    rolloff_m135_s05_T20 = eosPrescription("Roll mid=13.5 scale=.5  T=20", '1', '-.')
+    rolloff_m135_s05_T20 = tempPrescription("Roll mid=13.5 scale=.5  T=20", '1', '-.')
     rolloff_m135_s05_T20dict = nonesDict.copy()
     rolloff_m135_s05_T20dict.update({'T': 20.,
                                     'rollMid': 13.5,
@@ -106,7 +107,7 @@ def getScriptsDb():
     rolloff_m135_s05_T20.setParameters(rolloff_m135_s05_T20dict)
     database.append(rolloff_m135_s05_T20)
 
-    rolloff_m135_s05_T40 = eosPrescription("Roll mid=13.5 scale=.5  T=40", '2', '-.')
+    rolloff_m135_s05_T40 = tempPrescription("Roll mid=13.5 scale=.5  T=40", '2', '-.')
     rolloff_m135_s05_T40dict = nonesDict.copy()
     rolloff_m135_s05_T40dict.update({'T': 40.,
                                     'rollMid': 13.5,
@@ -115,7 +116,7 @@ def getScriptsDb():
     rolloff_m135_s05_T40.setParameters(rolloff_m135_s05_T40dict)
     database.append(rolloff_m135_s05_T40)
 
-    rolloff_m14_s025_T40 = eosPrescription("Roll mid=14 scale=.25  T=40", '3', ':')
+    rolloff_m14_s025_T40 = tempPrescription("Roll mid=14 scale=.25  T=40", '3', ':')
     rolloff_m14_s025_T40dict = nonesDict.copy()
     rolloff_m14_s025_T40dict.update({'T': 40.,
                                     'rollMid': 14.0,
@@ -124,7 +125,7 @@ def getScriptsDb():
     rolloff_m14_s025_T40.setParameters(rolloff_m14_s025_T40dict)
     database.append(rolloff_m14_s025_T40)
 
-    rolloff_m14_s025_T20 = eosPrescription("Roll mid=14 scale=.25  T=20", '4', '-.')
+    rolloff_m14_s025_T20 = tempPrescription("Roll mid=14 scale=.25  T=20", '4', '-.')
     rolloff_m14_s025_T20dict = nonesDict.copy()
     rolloff_m14_s025_T20dict.update({'T': 20.,
                                     'rollMid': 14.0,
@@ -134,28 +135,28 @@ def getScriptsDb():
     database.append(rolloff_m14_s025_T20)
 
 
-    entropyS05 = eosPrescription("Fixed Entropy S = 0.5", "_", '-')
+    entropyS05 = tempPrescription("Fixed Entropy S = 0.5", "_", '-')
     entropyS05dict = nonesDict.copy()
     entropyS05dict.update({'fixedQuantity': 'entropy',
                            'fixedTarget': 0.5})
     entropyS05.setParameters(entropyS05dict)
     database.append(entropyS05)
 
-    entropyS1 = eosPrescription("Fixed Entropy S = 1.0", "|", '-')
+    entropyS1 = tempPrescription("Fixed Entropy S = 1.0", "|", '-')
     entropyS1dict = nonesDict.copy()
     entropyS1dict.update({'fixedQuantity': 'entropy',
                           'fixedTarget': 1.0})
     entropyS1.setParameters(entropyS1dict)
     database.append(entropyS1)
 
-    entropyS2 = eosPrescription("Fixed Entropy S = 2.0", "d", '-')
+    entropyS2 = tempPrescription("Fixed Entropy S = 2.0", "d", '-')
     entropyS2dict = nonesDict.copy()
     entropyS2dict.update({'fixedQuantity': 'entropy',
                           'fixedTarget': 2.0})
     entropyS2.setParameters(entropyS2dict)
     database.append(entropyS2)
 
-    entropyS3 = eosPrescription("Fixed Entropy S = 3.0", "D", '-')
+    entropyS3 = tempPrescription("Fixed Entropy S = 3.0", "D", '-')
     entropyS3dict = nonesDict.copy()
     entropyS3dict.update({'fixedQuantity': 'entropy',
                           'fixedTarget': 3.0})
@@ -165,27 +166,28 @@ def getScriptsDb():
 
     #check every script in the database is set fully
     for script in database:
-        assert isinstance(script, eosPrescription), \
+        assert isinstance(script, tempPrescription), \
             "Uhhh %s is not an eosPrescription object" % script
         assert script.paramsSet, \
             "Script parameters are not defined for script: %s" % script.name
     return database
 
-def paramsFromScriptName(name):
+
+def scriptFromScriptName(name):
     assert isinstance(name, str)
     database = getScriptsDb()
 
-    paramsDict = None
+    answer = None
     for script in database:
         if name == script.name:
-            paramsDict = script.paramsDict
-    assert paramsDict is not None, "Couldn't find entry matching name: %s" % name
-    return paramsDict
+            answer = script
+    assert answer is not None, "Couldn't find entry matching name: %s" % name
+    return answer
 
 
 def symbolFromDBentry(paramsDict):
 
-    assert all([key in paramsDict for key in eosPrescription.prescriptionParameters]), \
+    assert all([key in paramsDict for key in tempPrescription.prescriptionParameters]), \
         "Must specify all eosPrescription related parameters!"
 
     database = getScriptsDb()
@@ -228,7 +230,7 @@ def manyScriptSequencePlot(plotFields, sqliteCursor, filters=(), colorBy=None, m
     assumes tablename is models
     if maxPlot plots maximum value of quantity for sequence only
     """
-    orderBy = plotFields[0] + ',' + ','.join(eosPrescription.prescriptionParameters) + ",eos,ye,edMax"
+    orderBy = plotFields[0] + ',' + ','.join(tempPrescription.prescriptionParameters) + ",eos,ye,edMax"
     #orderBy = 'rpoe'+','+ ','.join(eosPrescription.prescriptionParameters) + ",eos,ye,edMax"
 #print orderBy
     size = 40
@@ -243,7 +245,7 @@ def manyScriptSequencePlot(plotFields, sqliteCursor, filters=(), colorBy=None, m
     if orderBy is None:
         orderBy = plotFields[0]
 
-    for key in eosPrescription.prescriptionParameters:
+    for key in tempPrescription.prescriptionParameters:
         getFields.append(key)   # script parameters 3-8
     getFields.append('RedMax')  # RedMax 9
     getFields.append('ye')      # ye 10
@@ -284,7 +286,7 @@ def manyScriptSequencePlot(plotFields, sqliteCursor, filters=(), colorBy=None, m
         prescriptDict = dict()
         #print currentSymbol, previousSymbol
         for j, scriptParam in enumerate(point[3:3 + 6 ]):
-            prescriptDict[eosPrescription.prescriptionParameters[j]] = scriptParam
+            prescriptDict[tempPrescription.prescriptionParameters[j]] = scriptParam
         #print prescriptDict
         currentSymbol, currentName = symbolFromDBentry(prescriptDict)
         ax = plt.gca()

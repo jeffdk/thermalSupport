@@ -1,7 +1,7 @@
 import sys
 import sqlite3
 from matplotlib import rcParams
-from scriptPlotstyleDatabase import symbolFromDBentry, manyScriptSequencePlot, getScriptsDb, paramsFromScriptName
+from scriptPlotstyleDatabase import symbolFromDBentry, manyScriptSequencePlot, getScriptsDb, scriptFromScriptName
 from sqlUtils import queryDBGivenParams
 
 rcParams['legend.frameon'] = False
@@ -50,7 +50,7 @@ manyScriptSequencePlot([xaxisVar, yaxisVar], c, filters, colorVar, grid=True, vm
                        suppressShow=True, title="")
 
 
-paramsDict.update(paramsFromScriptName("c40p0"))
+paramsDict.update(scriptFromScriptName("c40p0").paramsDict)
 filters = equalsFiltersFromDict(paramsDict)
 
 manyScriptSequencePlot([xaxisVar, yaxisVar], c, filters, colorVar, suppressShow=True, vmin=vmin, vmax=vmax,
@@ -59,13 +59,13 @@ manyScriptSequencePlot([xaxisVar, yaxisVar], c, filters, colorVar, suppressShow=
 #manyScriptSequencePlot([xaxisVar, yaxisVar], c, filters, colorVar, grid=True, suppressShow=False, marker='^',
 #             s=50, vmax=vmax, vmin=vmin, title="a = " + str(paramsDict['a']) ) #,vmax=3e15, vmin=1e14)
 
-paramsDict.update(paramsFromScriptName("cold"))
+paramsDict.update(scriptFromScriptName("cold").paramsDict)
 filters = equalsFiltersFromDict(paramsDict)
 
 manyScriptSequencePlot([xaxisVar, yaxisVar], c, filters, colorVar, suppressShow=True, vmin=vmin, vmax=vmax,
                        grid=True)
 
-paramsDict.update(paramsFromScriptName("c20p0"))
+paramsDict.update(scriptFromScriptName("c20p0").paramsDict)
 filters = equalsFiltersFromDict(paramsDict)
 
 manyScriptSequencePlot([xaxisVar, yaxisVar], c, filters, colorVar, grid=True, vmin=vmin, vmax=vmax,
