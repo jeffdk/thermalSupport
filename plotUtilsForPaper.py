@@ -1,5 +1,7 @@
 from matplotlib import pyplot as plt
+import matplotlib
 import numpy
+
 
 def latexField(field):
     """
@@ -28,7 +30,6 @@ def fixExponentialAxes():
     x1, x2, y1, y2 = plt.axis()
     xlabel = plt.axes().xaxis.get_label_text()
     ylabel = plt.axes().yaxis.get_label_text()
-    print xlabel, ylabel
     if numpy.log10(y2) > 2:
         scalePower = int(numpy.log10(y2))
         ylocs, ylabs = plt.yticks()
@@ -39,3 +40,17 @@ def fixExponentialAxes():
         xlocs, xlabs = plt.xticks()
         plt.xlabel(xlabel + '/$10^{' + str(scalePower) + '}$', labelpad=12)
         plt.xticks(xlocs, map(lambda x: "%.1f" % x, xlocs / numpy.power(10.0, scalePower)))
+
+
+def removeExponentialNotationOnAxis(axis):
+    """
+
+    """
+    assert axis == 'x' or axis == 'y'
+    if axis == 'x':
+        xlocs, xlabs = plt.xticks()
+        plt.xticks(xlocs, map(lambda x: '%.0f' % x, xlocs))
+    if axis == 'y':
+        ylocs, ylabs = plt.yticks()
+        plt.yticks(ylocs, map(lambda y: '%.0f' % y, ylocs))
+        pass

@@ -115,6 +115,10 @@ class cstSequence(object):
                                + filtersString)
                 maxLineNum = cursor.fetchone()[0]
                 #print runID, maxLineNum
+                #if filters have filtered out all values, maxLineNum is None,
+                # and the following query will fail, so lets just move on
+                if maxLineNum is None:
+                    continue
                 cursor.execute("DELETE FROM models WHERE runID='" + runID
                                + "' AND lineNum!=" + str(maxLineNum))
 
