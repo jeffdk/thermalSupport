@@ -23,38 +23,64 @@ symbols = {'c30p0': 's',
 
 shen_cold = cstDataset("cold", "HShenEOS", ye, sourceDb)
 
+
+
+#############################################################
+# W/Mg vs T/W for cold: w T/W < 0.25 threshold
+#############################################################
+xVar = 'ToverW'
+yVar = None
+xLabel = latexField(xVar)
 a = 1.0
 
+
+thisSet = shen_cold
+filters = ('ToverW<0.25',)
+
+for a in [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]:
+    slicer = {'a': a, 'rpoe': 'min'}
+    thisSeq = cstSequence(thisSet, slicer, filters)
+    thisPlot = thisSeq.getSeqPlot([xVar], ['gravPotW', 'gravMass'], filters,
+                                  ycolFunc=lambda a, b: a / b)
+    plt.plot(*thisPlot, label=r"$\tilde{A}=$" + str(a))
+plt.xlabel(xLabel)
+plt.ylabel("$W/M_g$")
+plt.legend(loc=2)
+plt.axes().annotate(r"cold \, HShen", xy=(.025, 0.1), fontsize=20)
+plt.show()
+
+#############################################################
+# Mgrav vs edMax for cold: ToverW thresholds
+#############################################################
+a = 1.0
 slicer = {'a': a, 'rpoe': 'min'}
 xVar = 'edMax'
 yVar = 'gravMass'
 xLabel = latexField(xVar)
 yLabel = latexField(yVar)
 
-#############################################################
-# First plot: Mgrav vs edMax for cold
-#############################################################
+thisSet = shen_cold
 ToverWcuts = [0.25, 0.20, 0.15]
 colorList = ['b', 'g', 'r']
 for i, cut in enumerate(ToverWcuts):
     a = 1.0
     slicer = {'a': a, 'rpoe': 'min'}
     filters = ('ToverW<' + str(cut),)
-    thisSeq = cstSequence(shen_cold, slicer, filters)
+    thisSeq = cstSequence(thisSet, slicer, filters)
     thisPlot = thisSeq.getSeqPlot([xVar], [yVar], filters)
     plt.plot(*thisPlot, label="Max $T/|W|=$ " + str(cut) + r" $\tilde{A}=$" + str(a),
              lw=2, ls='-', c=colorList[i])
 
     a = 0.8
     slicer = {'a': a, 'rpoe': 'min'}
-    thisSeq = cstSequence(shen_cold, slicer, filters)
+    thisSeq = cstSequence(thisSet, slicer, filters)
     thisPlot = thisSeq.getSeqPlot([xVar], [yVar], filters)
     plt.plot(*thisPlot, label="Max $T/|W|=$ " + str(cut) + r" $\tilde{A}=$" + str(a),
              lw=2, ls='--', c=colorList[i])
 
     a = 0.6
     slicer = {'a': a, 'rpoe': 'min'}
-    thisSeq = cstSequence(shen_cold, slicer, filters)
+    thisSeq = cstSequence(thisSet, slicer, filters)
     thisPlot = thisSeq.getSeqPlot([xVar], [yVar], filters)
     plt.plot(*thisPlot, label="Max $T/|W|=$ " + str(cut) + r" $\tilde{A}=$" + str(a),
              lw=2, ls=':', c=colorList[i])
