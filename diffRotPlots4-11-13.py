@@ -11,7 +11,7 @@ ye = 0.1
 colors = {'c30p0': 'g',
           'c20p0': 'b',
           'c40p0': 'r',
-          #'cold': 'm',
+          'cold': 'm',
           'c30p5': 'c',
           'c30p10': 'k'}
 
@@ -21,10 +21,31 @@ symbols = {'c30p0': 's',
            'c30p5': 'p',
            'c30p10': 'H'}
 
+
+#############################################################
+# W/Mg vs T/W for diff scripts a = 0.6 w T/W < 0.25 threshold
+#############################################################
+xVar = 'ToverW'
+yVar = None
+xLabel = latexField(xVar)
+a = 0.6
+slicer = {'a': a, 'rpoe': 'min'}
+
+filters = ('ToverW<0.25',)
+for script, c in colors.items():
+
+    thisSet = cstDataset(script, "HShenEOS", ye, sourceDb)
+    thisSeq = cstSequence(thisSet, slicer, filters)
+    thisPlot = thisSeq.getSeqPlot([xVar], ['gravPotW', 'gravMass'], filters,
+                                  ycolFunc=lambda a, b: a / b)
+    plt.plot(*thisPlot, label=script, c=c)
+    del thisSet
+plt.xlabel(xLabel)
+plt.ylabel("$W/M_g$")
+plt.legend(loc=2)
+plt.axes().annotate(r"HShen \," + r"$\tilde{A}=$" + str(a), xy=(.17, 0.36), fontsize=20)
+plt.show()
 shen_cold = cstDataset("cold", "HShenEOS", ye, sourceDb)
-
-
-
 #############################################################
 # W/Mg vs T/W for cold: w T/W < 0.25 threshold
 #############################################################
