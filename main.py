@@ -10,6 +10,7 @@ import argparse
 import ast
 import os
 import sqlite3
+from eosDriver import eosDriver
 import numpy
 from modelGeneration import modelGenerator
 import parseFiles
@@ -75,6 +76,13 @@ def main():
                                "default: %s" % eosPrescription,
                                type=str,
                                default=eosPrescription)
+
+    globalOptions.add_argument("-setRhoBaryons",
+                               help="All ed arguments specified are assumed "
+                                    "to be baryon density values. Uses the"
+                                    "EOS prescription to convert the inputs "
+                                    "to energy density for running RotNS",
+                               action="store_true")
 
     runModels_parser = parser.add_argument_group(
         'Options for Run Models mode (all floats)')
@@ -376,6 +384,19 @@ def parseGlobalArgumentsAndReturnDBConnection(args):
     assert ROTNS_RUNTYPE == 3 or ROTNS_RUNTYPE == 30, "Only supported RotNS RunTypes are 3 and 30!"
 
     return connection
+
+def convertRhoBaryToEnergyDense(rhos, eosPrescription):
+    assert isinstance(eosPrescription, dict)
+
+    # method here is to process each part of the eosPrescription, and
+    # eventually reduce it to parameters just required for tempPrescription
+    eosScript = eosPrescription.copy()
+    assert eosScript['type'] == 'tableFromEosDriver', \
+        "Convert to energy density from rho_b is only supported for eosDriver tables"
+    del eosScript['type']
+    theEos = eosDriver(eosScript['sc.orgTableFile'])
+    del eosScript['sc.orgTableFile']
+
 
 
 if __name__ == "__main__":
