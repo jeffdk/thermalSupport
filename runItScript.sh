@@ -23,10 +23,11 @@ step=0.5
       'rollMid': 14.0,
       'rollScale': 0.5,
       'eosTmin': 2.0}" \
+     -setRhoBaryons \
      -a 0.5 \
      -T 20.0 \
      -ed .70 \
-     -rpoe 0.5 \
+     -rpoe 1.0 \
      -RotNS-runtype 30  2>&1  | tee  newHS.log
 
 

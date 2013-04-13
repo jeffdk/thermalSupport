@@ -14,6 +14,7 @@ from eosDriver import eosDriver
 import numpy
 from modelGeneration import modelGenerator
 import parseFiles
+import consts
 from minimizeAlgorithm import *
 from pickleHack import *
 
@@ -166,11 +167,11 @@ def main():
         ed_range = rangeFromParams(args.edMin,args.edMax,args.ed_steps,args.ed,"energy density")
 
         rpoe_range = [1.0]
-        parametersList=[]
         if ROTNS_RUNTYPE == 3:
             print "WARNING, RPOE PARAMETERS NOT PARSED FOR MASS SHED SEQUENCE!!"
             print "Also note, rotns does it's own logspacing of points in density space."
             print
+            assert not args.setRhoBaryons, "Can't specify rho baryons internal to RotNS!"
             assert len(ed_range) > 1, "Must specify a density range with at least 2 steps for Mass-Shed run type!"
             runParametersTemplate.update({'edMax':ed_range[-1],
                                           'edMin':ed_range[0],
@@ -178,6 +179,12 @@ def main():
                                           'rpoe': rpoe_range[0]} )
             parametersList =[populateParamsDict(runParametersTemplate,a,T) for a in a_range for T in T_range ]
         else:
+            if args.setRhoBaryons:
+                #If you need to do this you can expand the list comprehension below
+                assert len(T_range) == 1,\
+                    "Cannot specify multiple temperatures if you are setting densities " \
+                    "via baryon density instead of energy densities!"
+                ed_range = convertRhoBaryToEnergyDense(ed_range, eosPrescription, T_range[0])
             rpoe_range = rangeFromParams(args.rpoe1,args.rpoe2,args.rpoe_steps,args.rpoe,"rpoe")
             parametersList=[ populateParamsDict(runParametersTemplate, a, T, ed, rpoe)
                             for a in a_range
@@ -205,6 +212,7 @@ def main():
         print T_range
 
     if runMode == 'evolve':
+        assert not args.setRhoBaryons, "setRhoBaryons option not supported in evolve mode!"
         assert args.p0, "Selected evolve mode but no p0 specified!"
         assert args.p0_string, "Selected evolve mode but no p0-string specified!"
         assert args.deltas, "Selected evolve mode but no deltas specified!"
@@ -385,19 +393,59 @@ def parseGlobalArgumentsAndReturnDBConnection(args):
 
     return connection
 
-def convertRhoBaryToEnergyDense(rhos, eosPrescription):
+
+def convertRhoBaryToEnergyDense(rhos, eosPrescription, T=None):
     assert isinstance(eosPrescription, dict)
 
     # method here is to process each part of the eosPrescription, and
     # eventually reduce it to parameters just required for tempPrescription
     eosScript = eosPrescription.copy()
+
     assert eosScript['type'] == 'tableFromEosDriver', \
         "Convert to energy density from rho_b is only supported for eosDriver tables"
     del eosScript['type']
+
     theEos = eosDriver(eosScript['sc.orgTableFile'])
     del eosScript['sc.orgTableFile']
 
+    assert 'ye' in eosScript, "Convert to enegry density requires a ye in eosPrescription"
+    ye = eosScript['ye']
+    del eosScript['ye']
 
+    #prescriptionName only used to set temperature if necessary
+    if eosScript['prescriptionName'] == 'isothermal':
+        eosScript['T'] = T
+    del eosScript['prescriptionName']
+
+    if isinstance(rhos, float):
+        rhos = [rhos]
+
+    eds = []
+    for rho in rhos:
+        rho *= 1.e15  # fix units
+        tempOfLog10Rhob = theEos.tempOfLog10RhobFuncFromPrescription(eosScript, ye)
+
+        temp = tempOfLog10Rhob(numpy.log10(rho))
+
+        if ye is None and temp is not None:
+            theEos.setBetaEqState({'rho': rho, 'temp': temp})
+        elif ye is None and temp is None:
+            quantity = eosScript['quantity']
+            target = eosScript['target']
+            theEos.setConstQuantityAndBetaEqState({'rho': rho},
+                                                  quantity,
+                                                  target)
+        elif ye == 'NuFull':
+            theEos.setNuFullBetaEqState({'rho': rho, 'temp': temp})
+        else:
+            theEos.setState({'rho': rho, 'temp': temp, 'ye': ye})
+        logeps = theEos.query('logenergy')
+        eps = (numpy.power(10.0, logeps) - theEos.energy_shift) \
+            * consts.AGEO_ERG / consts.AGEO_GRAM
+
+        totalEnergyDensity = rho * (1.0 + eps)
+        eds.append(totalEnergyDensity / 1.e15)
+    return eds
 
 if __name__ == "__main__":
     main()
