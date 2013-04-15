@@ -396,10 +396,9 @@ def parseGlobalArgumentsAndReturnDBConnection(args):
 
 def convertRhoBaryToEnergyDense(rhos, eosPrescription, T=None):
     assert isinstance(eosPrescription, dict)
-
     # method here is to process each part of the eosPrescription, and
     # eventually reduce it to parameters just required for tempPrescription
-    eosScript = eosPrescription.copy()
+    eosScript = deepcopy(eosPrescription)
 
     assert eosScript['type'] == 'tableFromEosDriver', \
         "Convert to energy density from rho_b is only supported for eosDriver tables"
@@ -411,6 +410,8 @@ def convertRhoBaryToEnergyDense(rhos, eosPrescription, T=None):
     assert 'ye' in eosScript, "Convert to enegry density requires a ye in eosPrescription"
     ye = eosScript['ye']
     del eosScript['ye']
+    if ye == 'BetaEq':
+        ye = None
 
     #prescriptionName only used to set temperature if necessary
     if eosScript['prescriptionName'] == 'isothermal':
@@ -445,6 +446,7 @@ def convertRhoBaryToEnergyDense(rhos, eosPrescription, T=None):
 
         totalEnergyDensity = rho * (1.0 + eps)
         eds.append(totalEnergyDensity / 1.e15)
+    del theEos
     return eds
 
 if __name__ == "__main__":
