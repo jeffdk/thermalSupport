@@ -4,6 +4,7 @@
 import glob
 import multiprocessing
 import os
+import traceback
 from eosDriver import eosDriver
 import random
 import sqlite3
@@ -17,9 +18,12 @@ import writeParametersFile
 
 
 def calculate(func, args):
-    result = func(*args)
-#    print '%s says that %s%s = %s' %\
-#           (multiprocessing.current_process().name, func.__name__, args, result)
+    try:
+        result = func(*args)
+    except Exception:
+        traceback.print_exc()
+        print "'%s' has failed running with args: %s" % (func.__name__, args)
+        raise
     print "Multiprocessing %s has returned a result for %s" %\
         (multiprocessing.current_process().name, func.__name__)
     return result
@@ -213,8 +217,6 @@ class modelGenerator(object):
 
             prescriptionDict = {}
 
-            eosTable = eosDriver(self.eosPrescriptionDict['sc.orgTableFile'])
-
             prescriptionName = self.eosPrescriptionDict['prescriptionName']
 
             if prescriptionName == 'isothermal':
@@ -255,13 +257,13 @@ class modelGenerator(object):
             else:
                 assert False, "Unknown eosDriver prescription type."
 
-
+            eosTable = eosDriver(self.eosPrescriptionDict['sc.orgTableFile'])
             if self.ye == 'BetaEq':
                 #None is code for BetaEq in writeRotNSeosfile
                 eosTable.writeRotNSeosfile('output.EOS', prescriptionDict, ye=None)
             else:
                 eosTable.writeRotNSeosfile('output.EOS', prescriptionDict, ye=self.ye)
-
+            del eosTable
         subprocess.call(["mkdir", "EOS"])
         subprocess.call(["cp", "output.EOS", "EOS/EOS.PP"])
         return nonOutputRunParams
