@@ -22,11 +22,11 @@ def latexField(field):
     return fieldsDict[field]
 
 
-def fixExponentialAxes():
+def fixExponentialAxes(fixCbar=False):
     """
     Removes the x 10 ^ pow on axes tick labels and
     appends / 10 ^ pow to axes labels
-    """
+    """  # TODO: IMPLEMENT FIXCBAR
     x1, x2, y1, y2 = plt.axis()
     xlabel = plt.axes().xaxis.get_label_text()
     ylabel = plt.axes().yaxis.get_label_text()
@@ -40,6 +40,10 @@ def fixExponentialAxes():
         xlocs, xlabs = plt.xticks()
         plt.xlabel(xlabel + '/$10^{' + str(scalePower) + '}$', labelpad=12)
         plt.xticks(xlocs, map(lambda x: "%.1f" % x, xlocs / numpy.power(10.0, scalePower)))
+    if fixCbar:  # DOESNT WORK YET
+        cbar = plt.colorbar()
+        ticks = cbar.ax.get_yticklabels()
+        print ticks, max(ticks)
 
 
 def removeExponentialNotationOnAxis(axis):
@@ -54,3 +58,16 @@ def removeExponentialNotationOnAxis(axis):
         ylocs, ylabs = plt.yticks()
         plt.yticks(ylocs, map(lambda y: '%.0f' % y, ylocs))
         pass
+
+
+def fixScientificNotation(num):
+    """
+    Given a number, returns a latex string leading digit \times 10^power
+    e.g. in 1e+13, out "$1 \times 10^{13}$"
+    """
+    power = int(numpy.log10(num))
+
+    leading = str(numpy.round(num/10**power*10))[0]
+    second = str(numpy.round(num/10**power*10))[1]
+
+    return r"$%s.%s\times10^{%s}$" % (leading, second, power)
