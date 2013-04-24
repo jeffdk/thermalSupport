@@ -1,5 +1,5 @@
-from eosDriver import kentaDataTofLogRhoFit1, kentaDataTofLogRhoFit2, getTRollFunc
 from matplotlib import pyplot as plt
+from eosDriver import kentaDataTofLogRhoFit1, kentaDataTofLogRhoFit2, getTRollFunc
 from matplotlib import rcParams
 import numpy
 import eosDriver
@@ -36,24 +36,24 @@ def readFile(filename):
     print headers
     labels['d'] = headers[1].replace('cm', 'km')
     labels['rho'] = headers[2].replace('rho', r'$\rho$')
-    #labels['p'] = headers[3]
+    labels['p'] = headers[3]
     labels['s'] = headers[4].replace('entropu[/', 'entropy [')
     labels['T'] = headers[5]
     labels['Omega'] = headers[6].replace('Omega', r'$\Omega$')
-    #labels['ye'] = headers[7]
+    labels['ye'] = headers[7]
     print labels
     for row in infile.readlines():
         entries = row.split()
         #print entries
         answer['d'].append(float(entries[0]) / 1.e5)   # convert from cm to km
         answer['rho'].append(float(entries[1]))
-        #answer['p'].append(float(entries[2]))
-        answer['s'].append(float(entries[2]))
-        answer['T'].append(float(entries[3]))
-        answer['Omega'].append(float(entries[4]))
-        answer['ye'].append(float(entries[5]))
+        answer['p'].append(float(entries[2]))
+        answer['s'].append(float(entries[3]))
+        answer['T'].append(float(entries[4]))
+        answer['Omega'].append(float(entries[5]))
+        answer['ye'].append(float(entries[6]))
         betaYe = shen.setBetaEqState({'rho': float(entries[1]),
-                                      'temp': float(entries[3])})
+                                      'temp': float(entries[4])})
         paramdT = paramdTfunc(numpy.log10(float(entries[1])))
 
         # paramdBetaYe = shen.setBetaEqState({'rho': float(entries[1]),
@@ -61,8 +61,7 @@ def readFile(filename):
         # answer['yeBetaParamdTemp'].append(paramdBetaYe)
         answer['yeBetaEq'].append(betaYe)
         nuFullBetaYe = shen.setNuFullBetaEqState({'rho': float(entries[1]),
-                                                  'temp': float(entries[3])/2.0},
-                                                 rhotrap=numpy.power(10.0, 1.0))
+                                                  'temp': float(entries[4])})
         factor = numpy.exp(-numpy.power(10.0, 12.5)/float(entries[1]))
         nuFullBetaYe = nuFullBetaYe * factor + (1.0 - factor) * betaYe
         answer['yeNuFull'].append(nuFullBetaYe)
@@ -99,7 +98,7 @@ def readFile(filename):
         answer[key] = numpy.array(answer[key])
     return answer, labels
 
-xaxisData, xlabels = readFile('/home/jeff/work/S135135_x_v3.dat')
+xaxisData, xlabels = readFile('/home/jeff/work/Shen135135_x_v2.dat')
 #yaxisData, ylabels = readFile('/home/jeff/work/Shen135135_y_v2.dat')
 #zaxisData, zlabels = readFile('/home/jeff/work/Shen135135_z_v2.dat')
 
@@ -185,7 +184,7 @@ for plotVar, func in [ #('Omega', None), ('rho', None), ('T', None), ('s', None)
         plt.plot(xaxisData['d'], func(xaxisData['yeBetaEq']), 'b', ls='--')
         if nuFullBetaEq:
             plt.plot(xaxisData['d'], func(xaxisData['yeNuFull']), 'b', ls=':')
-            legends = ['Simulation', r'$\nu$Less-BetaEq($T_{simulation}$)', r'$\nu$Full BetaEq($1/2T_{sim}$)']
+            legends = ['Simulation', r'$\nu$Less-BetaEq($T_{simulation}$)', r'$\nu$Full BetaEq($T_{sim}$)']
         if parametrizedTempProfile:
             plt.plot(xaxisData['d'], func(xaxisData['yeBetaParamdTemp']), 'b', ls=':')
             legends = ['Simulation', r'BetaEq($T_{simulation}$)', r'BetaEq($T_{parametrized}$)']
@@ -227,7 +226,7 @@ for plotVar, func in [#('Omega', None), ('T', None), ('s', None), ('p', None),
         plt.plot(func(xaxisData['rho']), xaxisData['yeBetaEq'], 'b', ls='--')
         if nuFullBetaEq:
             plt.plot(func(xaxisData['rho']), xaxisData['yeNuFull'], 'b', ls=':')
-            legends = ['Simulation', r'$\nu$Less-BetaEq($T_{simulation}$)', r'$\nu$Full BetaEq($1/2T_{sim}$)']
+            legends = ['Simulation', r'$\nu$Less-BetaEq($T_{simulation}$)', r'$\nu$Full BetaEq($T_{sim}$)']
         if parametrizedTempProfile:
             plt.plot(func(xaxisData['rho']), xaxisData['yeBetaParamdTemp'], 'b', ls=':')
             legends = ['Simulation', r'BetaEq($T_{simulation}$)', r'BetaEq($T_{parametrized}$)']

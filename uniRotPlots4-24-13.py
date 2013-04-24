@@ -17,16 +17,17 @@ sourceDb = '/home/jeff/work/rotNSruns/allRuns3-25-13.db'
 shenEosTableFilename = '/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5'
 ls220EosTableFilename = '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5'
 
-eosName = 'HShenEOS'
+eosName = 'LS220'
 theEos = eosDriver(shenEosTableFilename)
 ye = 0.1
 
-xVar = 'edMax'
+xVar = 'omega_c'
 yVar = 'baryMass'
 
 
 tovSlice = {'a': 0.0, 'rpoe': 1.0}
 uniformMaxRotSlice = {'a': 0.0, 'rpoe': 'min'}
+theSlice = {'edMax': 620512820500000.0, 'a': 0.0}
 filters = ()
 
 
@@ -57,33 +58,25 @@ tempFuncsDict = {scriptsList[i]: tempFuncs[i] for i in range(len(scriptsList))}
 #############################################################
 filters = ('edMax>2e14',)
 coldTovSet = cstDataset('cold', eosName, ye, sourceDb)
-coldTovSeq = cstSequence(coldTovSet, tovSlice, filters)
+coldTovSeq = cstSequence(coldTovSet, theSlice, filters)
 coldTovPlot = \
-    coldTovSeq.getSeqPlot([xVar], [yVar], filters, \
-      xcolFunc=lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFuncsDict['cold']))
-plt.semilogx(*coldTovPlot, c=colors['cold'], ls='--',  label="TOV")
+    coldTovSeq.getSeqPlot([xVar], [yVar], filters)
+#plt.semilogx(*coldTovPlot, c=colors['cold'], ls='--',  label="TOV")
 del coldTovSet
 for script in colors.keys():
     thisSet = cstDataset(script, eosName, ye, sourceDb)
-    thisSeq = cstSequence(thisSet, uniformMaxRotSlice, filters)
+    thisSeq = cstSequence(thisSet, theSlice, filters)
 
-    thisPlot = thisSeq.getSeqPlot([xVar], [yVar], filters, \
-      xcolFunc=lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFuncsDict[script]))
+    thisPlot = thisSeq.getSeqPlot([xVar], [yVar], filters)
 
     plt.plot(*thisPlot, c=colors[script], marker=symbols[script],  label=script)
-    
-    #tovSet = cstDataset(script, eosName, ye, sourceDb)
-    tovSeq = cstSequence(thisSet, tovSlice, filters)
-    tovPlot = \
-      tovSeq.getSeqPlot([xVar], [yVar], filters, \
-        xcolFunc=lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFuncsDict[script]))
-    plt.plot(*tovPlot, c=colors[script], ls='--')
 
-plt.xlabel(r"$\rho_{b,\mathrm{max}}$ [g/cm$^3$]")
+
+plt.xlabel(r"$\Omega_c$ [rad/s]", labelpad=10)
 #plt.axes().yaxis.set_minor_formatter(matplotlib.pyplot.FormatStrFormatter('%.0f'))
 #plt.axes().yaxis.set_major_formatter(matplotlib.pyplot.FormatStrFormatter('%.0f'))
 plt.ylabel("$M_b/M_\odot$", labelpad=5)
 #removeExponentialNotationOnAxis('y')
 plt.legend(loc=2)
-plt.text(10 **15.1, 1.6, eosName, fontsize=26)
+plt.text(5000, 1.1, eosName, fontsize=26)
 plt.show()

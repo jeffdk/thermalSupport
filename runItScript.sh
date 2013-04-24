@@ -1,6 +1,6 @@
 
 name=`hostname`
-cd ~/thermalSupport/
+#cd ~/thermalSupport/
 T=30.0
 step=0.5
  # python main.py evolve $1 \
@@ -19,15 +19,17 @@ step=0.5
      -eosPrescription      "{'type': 'tableFromEosDriver',
       'sc.orgTableFile': '/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5',
       'prescriptionName': 'isothermal',
-      'ye': 0.12,
+      'ye': 0.1,
       'rollMid': 14.0,
       'rollScale': 0.5,
-      'eosTmin': 2.0}" \
+      'eosTmin': 0.01}" \
      -setRhoBaryons \
-     -a 0.5 \
      -T 20.0 \
-     -ed .70 \
-     -rpoe 1.0 \
+     -a1 0.0 \
+     -a2 1.0 \
+     -a-steps 3 \
+     -ed 0.2\
+     -rpoe 0.0 \
      -RotNS-runtype 30  2>&1  | tee  newHS.log
 
 
