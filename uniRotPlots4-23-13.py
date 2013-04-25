@@ -12,17 +12,18 @@ myfig.subplots_adjust(bottom=0.14)
 myfig.subplots_adjust(top=0.967)
 myfig.subplots_adjust(right=0.97)
 
-sourceDb = '/home/jeff/work/rotNSruns/allRuns3-25-13.db'
+sourceDb = '/home/jeff/work/rotNSruns/denseRuns4-25-13.db'
 
 shenEosTableFilename = '/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5'
 ls220EosTableFilename = '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5'
 
-eosName = 'HShenEOS'
-theEos = eosDriver(shenEosTableFilename)
-ye = 0.1
+eosName = 'LS220'
+theEos = eosDriver(ls220EosTableFilename)
+ye = 'BetaEq'
+#yeForInversion = 0.1
 
 xVar = 'edMax'
-yVar = 'baryMass'
+yVars = ['J', 'baryMass']
 
 
 tovSlice = {'a': 0.0, 'rpoe': 1.0}
@@ -55,28 +56,34 @@ tempFuncsDict = {scriptsList[i]: tempFuncs[i] for i in range(len(scriptsList))}
 #############################################################
 # First plot: Just Shen, frac diffs
 #############################################################
-filters = ('edMax>2e14',)
+filters = ('edMax>2e14', 'ToverW<0.25')
 coldTovSet = cstDataset('cold', eosName, ye, sourceDb)
 coldTovSeq = cstSequence(coldTovSet, tovSlice, filters)
+theEos.resetCachedBetaEqYeVsRhobs(tempFuncsDict['cold'], 14.0, 16.0)
 coldTovPlot = \
-    coldTovSeq.getSeqPlot([xVar], [yVar], filters, \
-      xcolFunc=lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFuncsDict['cold']))
+    coldTovSeq.getSeqPlot([xVar], yVars, filters, \
+      xcolFunc=lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFuncsDict['cold']),
+      ycolFunc=lambda J, m: J/(m*m))
 plt.semilogx(*coldTovPlot, c=colors['cold'], ls='--',  label="TOV")
 del coldTovSet
 for script in colors.keys():
     thisSet = cstDataset(script, eosName, ye, sourceDb)
     thisSeq = cstSequence(thisSet, uniformMaxRotSlice, filters)
 
-    thisPlot = thisSeq.getSeqPlot([xVar], [yVar], filters, \
-      xcolFunc=lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFuncsDict[script]))
+    theEos.resetCachedBetaEqYeVsRhobs(tempFuncsDict[script], 14.0, 16.0)
+
+    thisPlot = thisSeq.getSeqPlot([xVar], yVars, filters, \
+      xcolFunc=lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFuncsDict[script]),
+      ycolFunc=lambda J, m: J/(m*m))
 
     plt.plot(*thisPlot, c=colors[script], marker=symbols[script],  label=script)
     
     #tovSet = cstDataset(script, eosName, ye, sourceDb)
     tovSeq = cstSequence(thisSet, tovSlice, filters)
     tovPlot = \
-      tovSeq.getSeqPlot([xVar], [yVar], filters, \
-        xcolFunc=lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFuncsDict[script]))
+      tovSeq.getSeqPlot([xVar], yVars, filters, \
+        xcolFunc=lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFuncsDict[script]),
+        ycolFunc=lambda J, m: J/(m*m))
     plt.plot(*tovPlot, c=colors[script], ls='--')
 
 plt.xlabel(r"$\rho_{b,\mathrm{max}}$ [g/cm$^3$]")

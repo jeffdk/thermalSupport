@@ -17,17 +17,21 @@ sourceDb = '/home/jeff/work/rotNSruns/allRuns3-25-13.db'
 shenEosTableFilename = '/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5'
 ls220EosTableFilename = '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5'
 
-eosName = 'LS220'
-theEos = eosDriver(shenEosTableFilename)
+eosName = 'HShenEOS'
+#eosName = 'LS220'
+#theEos = eosDriver(ls220EosTableFilename)
 ye = 0.1
 
 xVar = 'omega_c'
-yVar = 'baryMass'
+yVar = 'gravMass'
 
 
 tovSlice = {'a': 0.0, 'rpoe': 1.0}
 uniformMaxRotSlice = {'a': 0.0, 'rpoe': 'min'}
-theSlice = {'edMax': 620512820500000.0, 'a': 0.0}
+ls220Slice = {'edMax': 1.2153846153e+15, 'a': 0.0}
+shenSlice = {'edMax': 694871794800000.0, 'a': 0.0}
+theSlice = shenSlice
+#  theSlice = ls220Slice
 filters = ()
 
 
@@ -75,8 +79,8 @@ for script in colors.keys():
 plt.xlabel(r"$\Omega_c$ [rad/s]", labelpad=10)
 #plt.axes().yaxis.set_minor_formatter(matplotlib.pyplot.FormatStrFormatter('%.0f'))
 #plt.axes().yaxis.set_major_formatter(matplotlib.pyplot.FormatStrFormatter('%.0f'))
-plt.ylabel("$M_b/M_\odot$", labelpad=5)
+plt.ylabel("$M_g/M_\odot$", labelpad=5)
 #removeExponentialNotationOnAxis('y')
 plt.legend(loc=2)
-plt.text(5000, 1.1, eosName, fontsize=26)
+plt.text(3000, 2.3, eosName, fontsize=26)
 plt.show()
