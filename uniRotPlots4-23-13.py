@@ -12,7 +12,7 @@ myfig.subplots_adjust(bottom=0.14)
 myfig.subplots_adjust(top=0.967)
 myfig.subplots_adjust(right=0.97)
 
-sourceDb = '/home/jeff/work/rotNSruns/denseRuns4-25-13.db'
+sourceDb = '/home/jeff/work/rotNSruns/shedRuns4-24-13.db'
 
 shenEosTableFilename = '/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5'
 ls220EosTableFilename = '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5'
@@ -23,8 +23,8 @@ ye = 'BetaEq'
 #yeForInversion = 0.1
 
 xVar = 'edMax'
-yVars = ['J', 'baryMass']
-
+yVars = ['gravMass']
+yFunc = lambda x: x
 
 tovSlice = {'a': 0.0, 'rpoe': 1.0}
 uniformMaxRotSlice = {'a': 0.0, 'rpoe': 'min'}
@@ -63,7 +63,7 @@ theEos.resetCachedBetaEqYeVsRhobs(tempFuncsDict['cold'], 14.0, 16.0)
 coldTovPlot = \
     coldTovSeq.getSeqPlot([xVar], yVars, filters, \
       xcolFunc=lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFuncsDict['cold']),
-      ycolFunc=lambda J, m: J/(m*m))
+      ycolFunc=yFunc)
 plt.semilogx(*coldTovPlot, c=colors['cold'], ls='--',  label="TOV")
 del coldTovSet
 for script in colors.keys():
@@ -74,17 +74,17 @@ for script in colors.keys():
 
     thisPlot = thisSeq.getSeqPlot([xVar], yVars, filters, \
       xcolFunc=lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFuncsDict[script]),
-      ycolFunc=lambda J, m: J/(m*m))
+      ycolFunc=yFunc)
 
     plt.plot(*thisPlot, c=colors[script], marker=symbols[script],  label=script)
     
     #tovSet = cstDataset(script, eosName, ye, sourceDb)
-    tovSeq = cstSequence(thisSet, tovSlice, filters)
-    tovPlot = \
-      tovSeq.getSeqPlot([xVar], yVars, filters, \
-        xcolFunc=lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFuncsDict[script]),
-        ycolFunc=lambda J, m: J/(m*m))
-    plt.plot(*tovPlot, c=colors[script], ls='--')
+    # tovSeq = cstSequence(thisSet, tovSlice, filters)
+    # tovPlot = \
+    #   tovSeq.getSeqPlot([xVar], yVars, filters, \
+    #     xcolFunc=lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFuncsDict[script]),
+    #     ycolFunc=yFunc)
+    # plt.plot(*tovPlot, c=colors[script], ls='--')
 
 plt.xlabel(r"$\rho_{b,\mathrm{max}}$ [g/cm$^3$]")
 #plt.axes().yaxis.set_minor_formatter(matplotlib.pyplot.FormatStrFormatter('%.0f'))

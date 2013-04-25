@@ -119,8 +119,11 @@ class cstSequence(object):
                 # and the following query will fail, so lets just move on
                 if maxLineNum is None:
                     continue
+                # runType 3 means mass-shed sequence, so all rpoes are min!
+                # so don't delete anything
                 cursor.execute("DELETE FROM models WHERE runID='" + runID
-                               + "' AND lineNum!=" + str(maxLineNum))
+                               + "' AND lineNum!=" + str(maxLineNum)
+                               + " AND runType!=3")
 
         #for i in cursor.execute("SELECT * FROM models"):
         #    print i
