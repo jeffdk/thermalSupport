@@ -1,10 +1,19 @@
 import matplotlib.pyplot as plt
 from datasetManager import cstDataset, cstSequence, reduceTwoSeqPlots
+import numpy
 
-sourceDb = '/home/jeff/work/rotNSruns/allRuns3-25-13.db'
+sourceDb = '/home/jeff/work/rotNSruns/vdenseBetaEqOnly.db'
 
-c40p0 = cstDataset("c40p0", "HShenEOS", 0.1, sourceDb)
-c0p0 = cstDataset("cold", "HShenEOS", 0.1, sourceDb)
+ye = 'BetaEq'
+eosTable = 'LS220'
+c40p0 = cstDataset("c40p0", eosTable, 'BetaEq', sourceDb)
+c0p0 = cstDataset("cold", eosTable, 'BetaEq', sourceDb)
+
+point = {'a': 1., 'rpoe': 0.38, 'edMax': 595697963600000.}
+
+print numpy.linalg.det(c0p0.gradientsAtPoint(['J', 'baryMass'], point))
+
+exit()
 
 sliceDict = {'a': 1.0, 'rpoe': 'min'}
 filters = ()  # ('ToverW<.12', 'RedMax=0.0')#('ToverW>0.1',)

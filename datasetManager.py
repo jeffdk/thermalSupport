@@ -53,6 +53,79 @@ class cstDataset(object):
 
         print "Added %s entries to cstDataset '%s'" % (cursor.fetchone()[0], self.name)
 
+    def gradientsAtPoint(self, quantities, pointDict, gradVars=('edMax', 'rpoe'), tol=1e-4):
+        """
+        Return a list of gradients of input 'quantities' at the point defined
+        by 'pointDict' with respect to gradVars
+        """
+        pointDict = pointDict.copy()
+        indVars = ('a', 'edMax', 'rpoe')
+        assert all([key in indVars for key in pointDict.keys()]), \
+            "Not all keys in pointDict are proper indVars!"
+        assert isinstance(quantities, list), 'quantities must be a list!'
+
+        cursor = self.dbConn.cursor()
+
+        pointFilters = equalsFiltersFromDict(pointDict, tolerance=tol)
+        query = "WHERE " + " AND ".join(pointFilters)
+
+        fetchQuantities = ",".join(gradVars) + "," + ",".join(quantities)
+        cursor.execute("SELECT " + fetchQuantities + " FROM models " + query)
+
+        point = cursor.fetchall()
+
+        assert point, "Query for %s found no matching entries for dataset %s" \
+                      % (pointDict, self.name)
+        assert len(point) < 2, "Query for %s returned more than one entry for dataset %s \n" \
+                               " Try lowering the search tolerance: %s" \
+                               % (pointDict, self.name, tol)
+
+
+        #print point
+
+        gradients = []
+        for i, derivVar in enumerate(gradVars):
+            # get the point directly preceding in derivVar
+            prevPointDict = self.getClosestPointToIndVar(pointDict,  derivVar, tol)
+            prevPointFilters = equalsFiltersFromDict(prevPointDict, tolerance=tol)
+            query = "WHERE " + " AND ".join(prevPointFilters)
+            cursor.execute("SELECT " + fetchQuantities + " FROM models " + query)
+            prevPoint = cursor.fetchall()
+            diffs = numpy.array(point[0]) - numpy.array(prevPoint[0])
+            #print diffs / diffs[i]
+            dquantitiesDderivVar = (diffs / diffs[i])[-len(quantities):]
+            #print dquantitiesDderivVar
+            gradients.append(dquantitiesDderivVar)
+        gradients = numpy.array(gradients).transpose()
+        return gradients
+
+    def getClosestPointToIndVar(self, pointDict, indVar, tolerance, lessThanFlag=True):
+        """
+        Finds point in sequence directly less (greater if lessThanFlag is false) than the
+        pointDict in indVar.  Returns pointDict for prevPoint
+        """
+        maxOrMin = "MAX"
+        op = '<'
+        if not lessThanFlag:
+            maxOrMin = "MIN"
+            op = '>'
+
+        pointDict = pointDict.copy()
+        value = pointDict[indVar]
+        del pointDict[indVar]
+
+        cursor = self.dbConn.cursor()
+
+        pointFilters = equalsFiltersFromDict(pointDict, tolerance)
+        query = "WHERE " + " AND ".join(pointFilters) + " AND " + indVar + op + str(value)
+
+        cursor.execute("SELECT " + maxOrMin + "(" + indVar + ") FROM models " + query)
+
+        answer = cursor.fetchall()
+
+
+        pointDict.update({indVar: answer[0][0]})
+        return pointDict.copy()
 
 class cstSequence(object):
     """
