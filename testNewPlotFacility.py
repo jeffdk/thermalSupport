@@ -6,12 +6,14 @@ sourceDb = '/home/jeff/work/rotNSruns/vdenseBetaEqOnly.db'
 
 ye = 'BetaEq'
 eosTable = 'LS220'
-c40p0 = cstDataset("c40p0", eosTable, 'BetaEq', sourceDb)
+#c40p0 = cstDataset("c40p0", eosTable, 'BetaEq', sourceDb)
 c0p0 = cstDataset("cold", eosTable, 'BetaEq', sourceDb)
 
 point = {'a': 1., 'rpoe': 0.38, 'edMax': 595697963600000.}
 
 print numpy.linalg.det(c0p0.gradientsAtPoint(['J', 'baryMass'], point))
+
+c0p0.getSecInstabilitySeq(0.0, 0.7, 1e15, 3e15)
 
 exit()
 

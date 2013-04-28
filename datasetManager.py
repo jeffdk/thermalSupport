@@ -122,10 +122,42 @@ class cstDataset(object):
         cursor.execute("SELECT " + maxOrMin + "(" + indVar + ") FROM models " + query)
 
         answer = cursor.fetchall()
-
+        assert answer, "No point %s %s for %s=%s " % (op, indVar, indVar, value)
 
         pointDict.update({indVar: answer[0][0]})
         return pointDict.copy()
+
+    def getSecInstabilitySeq(self, a, rpoe, edMin, edMax):
+        """
+        Do stupid solve between edMin and edMax for zero of grad(J) x grad(M_b)
+        returns ed of zero
+        """
+        cursor = self.dbConn.cursor()
+        pointDict = {'a': a, 'rpoe': rpoe}
+        pointFilters = equalsFiltersFromDict(pointDict)
+        query = "WHERE " + " AND ".join(pointFilters)
+        query += " AND edMax>%s AND edMax<%s " % (edMin, edMax)
+        cursor.execute("SELECT edMax FROM models " + query + " ORDER BY edMax")
+        eds = cursor.fetchall()
+
+        answer = None
+
+        edList = []
+        previousTpFunc = 1.0
+        for ed in eds[1:]:
+            ed = ed[0]
+            edList.append(ed)
+            tempDict = pointDict.copy()
+            tempDict.update({'edMax': ed})
+            tpFunc = numpy.linalg.det(self.gradientsAtPoint(['J', 'baryMass'], tempDict))
+            #print ed, tpFunc
+            if tpFunc * previousTpFunc < 0:
+                answer = ed
+            previousTpFunc = tpFunc
+
+        print answer
+        return answer
+
 
 class cstSequence(object):
     """
