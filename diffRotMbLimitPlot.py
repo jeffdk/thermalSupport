@@ -13,7 +13,7 @@ myfig.subplots_adjust(bottom=0.14)
 myfig.subplots_adjust(top=0.967)
 myfig.subplots_adjust(right=0.97)
 
-sourceDb = '/home/jeff/work/rotNSruns/vdenseBetaEqOnly.db'
+sourceDb = '/home/jeff/work/rotNSruns/vdenseBetaEqOnlyMoreA.db'
 tovSourceDb = '/home/jeff/work/rotNSruns/allRuns3-25-13.db'
 shenEosTableFilename = '/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5'
 ls220EosTableFilename = '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5'
@@ -24,11 +24,11 @@ ye = 'BetaEq'
 #yeForInversion = 0.1
 
 xVar = 'edMax'
-yVars = ['J']
+yVars = ['gravMass']
 xLabel = r"$\rho_{b,\mathrm{max}}$ [g/cm$^3$]"
 #xLabel = r"$E_\mathrm{max}$"
 yLabel = "$M_g/M_\odot$"
-yLabel = "J"
+#yLabel = "J"
 #yLabel = "$J/M^2$"
 yFunc = lambda x: x
 
@@ -40,7 +40,8 @@ theMaxRotSlice = {'a': a, 'rpoe': 'min'}
 filters = ()
 
 aList = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
-dashList = ['_', ':', '-.', '--', '-', '--']
+aList = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+dashList = ['_', ':', '-.', '--', '-', '--', '-.', ':', '_', ':', '-.']
 
 colors = {'c30p0': 'g',
           'c20p0': 'b',
@@ -67,7 +68,7 @@ tempFuncsDict = {scriptsList[i]: tempFuncs[i] for i in range(len(scriptsList))}
 #############################################################
 # First plot
 #############################################################
-filters = ('edMax>2.0e14', 'ToverW<0.25', 'baryMass<3.075')
+filters = ('edMax>2.0e14', 'baryMass<3.5')
 plotList = []
 # coldTovSet = cstDataset('cold', eosName, ye, sourceDb)
 # coldTovSeq = cstSequence(coldTovSet, tovSlice, filters)
