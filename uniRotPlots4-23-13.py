@@ -3,7 +3,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy
 from datasetManager import cstDataset, cstSequence, reduceTwoSeqPlots
-from plotUtilsForPaper import latexField, fixExponentialAxes, removeExponentialNotationOnAxis
+from plotUtilsForPaper import latexField, fixExponentialAxes, removeExponentialNotationOnAxis, fixScientificNotation
 import plot_defaults
 #basics
 myfig = plt.figure(figsize=(10, 8))
@@ -78,7 +78,7 @@ for script in colors.keys():
       ycolFunc=yFunc)
 
     plt.plot(*thisPlot, c=colors[script],  label=script)
-    plotList.append([thisPlot, colors[script], '-'])
+    plotList.append([thisPlot, colors[script], '-', (None, None)])
     del thisSet
     tovSet = cstDataset(script, eosName, ye, tovSourceDb)
     tovSeq = cstSequence(tovSet, tovSlice, filters)
@@ -86,31 +86,38 @@ for script in colors.keys():
       tovSeq.getSeqPlot([xVar], yVars, filters, \
         xcolFunc=lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFuncsDict[script]),
         ycolFunc=yFunc)
-    plt.plot(*tovPlot, c=colors[script], ls='--')
-    plotList.append([tovPlot, colors[script], '--'])
+    plt.plot(*tovPlot, c=colors[script], ls='--', dashes=plot_defaults.longDashes)
+    plotList.append([tovPlot, colors[script], '--', plot_defaults.longDashes])
     del tovSet
 
-plt.xlabel(r"$\rho_{b,\mathrm{max}}$ [g/cm$^3$]")
+plt.xlabel(r"$\rho_{b,\mathrm{max}}$ [g cm$^{-3}$]")
 #plt.axes().yaxis.set_minor_formatter(matplotlib.pyplot.FormatStrFormatter('%.0f'))
 #plt.axes().yaxis.set_major_formatter(matplotlib.pyplot.FormatStrFormatter('%.0f'))
-plt.ylabel("$M_g/M_\odot$", labelpad=5)
+plt.ylabel("$M_g [M_\odot]$", labelpad=5)
 #removeExponentialNotationOnAxis('y')
 plt.legend(loc=2)
 plt.xlim([2.25e14, 2.05e15])
 #plt.ylim([0.0, 2.5])  # Mg LS220
 plt.ylim([0.0, 2.85])   # Mb LS220
 plt.ylim([0.0, 3.07])   # Mb shen
-plt.ylim([0.0, 2.7])   # Mg shen
+plt.ylim([0.5, 2.7])   # Mg shen
 plt.text(10 **15, 1.6, eosName, fontsize=26)
 matplotlib.rc('xtick', labelsize=20)
+matplotlib.rc('xtick.major', pad=6)
 matplotlib.rc('ytick', labelsize=20)
 #inset = plt.axes([0.55, 0.205, 0.39, 0.31])  # OTHER
-inset = plt.axes([0.52, 0.205, 0.42, 0.32])  # Mg Shen
+inset = plt.axes([0.52, 0.21, 0.42, 0.32])  # Mg Shen
 for thePlot in plotList:
     #print thePlot
-    plt.semilogx(*thePlot[0], c=thePlot[1], ls=thePlot[2])
+    plt.plot(*thePlot[0], c=thePlot[1], ls=thePlot[2], dashes=thePlot[3])
+
+locator = matplotlib.ticker.MaxNLocator(3)
+locator = matplotlib.ticker.MultipleLocator(3e14)
+formatter = matplotlib.ticker.FuncFormatter(lambda x, y: fixScientificNotation(x))
+inset.xaxis.set_major_locator(locator)
+inset.xaxis.set_major_formatter(formatter)
 #inset.xaxis.set_label_text(fontsize=20)
-plt.xlim([9e14, 2.05e15])
+plt.xlim([8e14, 1.6e15]) # Mg Shen
 plt.ylim([2.25, 2.43])  # Mg LS220
 plt.ylim([2.25, 2.77])  # Mb LS220
 plt.ylim([2.51, 3.05])  # Mb Shen
