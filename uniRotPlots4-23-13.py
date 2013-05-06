@@ -17,14 +17,14 @@ tovSourceDb = '/home/jeff/work/rotNSruns/allRuns3-25-13.db'
 shenEosTableFilename = '/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5'
 ls220EosTableFilename = '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5'
 
-eosName = 'HShenEOS'
-theEos = eosDriver(shenEosTableFilename)
+eosName = 'LS220'
+theEos = eosDriver(ls220EosTableFilename)
 ye = 'BetaEq'
 #yeForInversion = 0.1
 
 xVar = 'edMax'
-yVars = ['gravMass']
-yFunc = lambda x: x
+yVars = ['gravMass', 'baryMass']
+yFunc = lambda x, y: x
 
 tovSlice = {'a': 0.0, 'rpoe': 1.0}
 uniformMaxRotSlice = {'a': 0.0, 'rpoe': 'min'}
@@ -65,7 +65,8 @@ coldTovPlot = \
     coldTovSeq.getSeqPlot([xVar], yVars, filters, \
       xcolFunc=lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFuncsDict['cold']),
       ycolFunc=yFunc)
-plot = plt.semilogx(*coldTovPlot, c=colors['cold'], ls='--',  label="TOV")
+plot = plt.semilogx(*coldTovPlot, c=colors['cold'], ls='--', dashes=plot_defaults.longDashes,
+                    label="TOV")
 del coldTovSet
 for script in colors.keys():
     thisSet = cstDataset(script, eosName, ye, sourceDb)
@@ -89,37 +90,44 @@ for script in colors.keys():
     plt.plot(*tovPlot, c=colors[script], ls='--', dashes=plot_defaults.longDashes)
     plotList.append([tovPlot, colors[script], '--', plot_defaults.longDashes])
     del tovSet
-
+plt.minorticks_on()
 plt.xlabel(r"$\rho_{b,\mathrm{max}}$ [g cm$^{-3}$]")
 #plt.axes().yaxis.set_minor_formatter(matplotlib.pyplot.FormatStrFormatter('%.0f'))
 #plt.axes().yaxis.set_major_formatter(matplotlib.pyplot.FormatStrFormatter('%.0f'))
-plt.ylabel("$M_g [M_\odot]$", labelpad=5)
+plt.ylabel("$M_\mathrm{g} \,\, [M_\odot]$", labelpad=5)
 #removeExponentialNotationOnAxis('y')
 plt.legend(loc=2)
-plt.xlim([2.25e14, 2.05e15])
-#plt.ylim([0.0, 2.5])  # Mg LS220
-plt.ylim([0.0, 2.85])   # Mb LS220
-plt.ylim([0.0, 3.07])   # Mb shen
-plt.ylim([0.5, 2.7])   # Mg shen
-plt.text(10 **15, 1.6, eosName, fontsize=26)
+plt.xlim([3.0e14, 2.05e15])  # Mb LS220
+#plt.xlim([2.25e14, 2.05e15]) # Mb/Mg Shen
+plt.ylim([0.2, 2.5])  # Mg LS220
+#plt.ylim([0.2, 2.85])   # Mb LS220
+#plt.ylim([0.5, 3.07])   # Mb shen
+#plt.ylim([0.5, 2.7])   # Mg shen
+if eosName == "HShenEOS":
+    eosName = "HShen"
+plt.text(1.2e15, 1.5, eosName, fontsize=26) # Mg LS220
+#plt.text(1.2e15, 1.8, eosName, fontsize=26)  # Mb LS220
+#plt.text(10 **15, 2.0, eosName, fontsize=26)  # Mb Shen
+#plt.text(10 **15, 1.8, eosName, fontsize=26)  # Mg Shen
 matplotlib.rc('xtick', labelsize=20)
 matplotlib.rc('xtick.major', pad=6)
 matplotlib.rc('ytick', labelsize=20)
 #inset = plt.axes([0.55, 0.205, 0.39, 0.31])  # OTHER
-inset = plt.axes([0.52, 0.21, 0.42, 0.32])  # Mg Shen
+inset = plt.axes([0.52, 0.22, 0.42, 0.31])  # Mg Shen
 for thePlot in plotList:
     #print thePlot
     plt.plot(*thePlot[0], c=thePlot[1], ls=thePlot[2], dashes=thePlot[3])
-
+plt.minorticks_on()
 locator = matplotlib.ticker.MaxNLocator(3)
 locator = matplotlib.ticker.MultipleLocator(3e14)
 formatter = matplotlib.ticker.FuncFormatter(lambda x, y: fixScientificNotation(x))
 inset.xaxis.set_major_locator(locator)
 inset.xaxis.set_major_formatter(formatter)
 #inset.xaxis.set_label_text(fontsize=20)
-plt.xlim([8e14, 1.6e15]) # Mg Shen
+plt.xlim([10e14, 2.0e15])  # Mb/Mg LS220
+#plt.xlim([8e14, 1.6e15])  # Mg/Mb Shen
 plt.ylim([2.25, 2.43])  # Mg LS220
-plt.ylim([2.25, 2.77])  # Mb LS220
-plt.ylim([2.51, 3.05])  # Mb Shen
-plt.ylim([2.53, 2.675])  # Mg Shen
+#plt.ylim([2.25, 2.79])  # Mb LS220
+#plt.ylim([2.51, 3.05])  # Mb Shen
+#plt.ylim([2.53, 2.675])  # Mg Shen
 plt.show()
