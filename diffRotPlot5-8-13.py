@@ -7,7 +7,7 @@ import plot_defaults
 from plotUtilsForPaper import fixExponentialAxes
 
 
-sourceDb = '/home/jeff/work/rotNSruns/vdenseBetaEqOnlyMoreA.db'
+sourceDb = '/home/jeff/work/rotNSruns/vdenseBetaEqOnlyMoreC.db'
 tovSourceDb = '/home/jeff/work/rotNSruns/allRuns3-25-13.db'
 shenEosTableFilename = '/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5'
 ls220EosTableFilename = '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5'
@@ -31,7 +31,7 @@ colors = {'c30p0': 'g',
           'c30p5': 'c',
           'c30p10': 'm'}
 
-scripts = ['c20p0', 'c40p0', 'cold']
+scripts = ['c20p0', 'c40p0', 'c30p5']
 params40 = (40.0, 14.18, 0.5,)
 params20 = (20.0, 13.93, 0.25,)
 tFuncs = [getTRollFunc(params20[0], 0.01, params20[1], params20[2]),
@@ -56,7 +56,7 @@ for i, script in enumerate(scripts):
     for j, slicer in enumerate([tovSlice, uniformMaxRotSlice, a4, a5, diffMaxRotSlice]):
         thisSeq = cstSequence(thisSet, slicer, filters)
 
-        thisPlot = thisSeq.getSeqPlot(['edMax'], ['gravMass', 'rpoe'], filters, xcolFunc=xFunc,
+        thisPlot = thisSeq.getSeqPlot(['edMax'], ['gravMass', 'baryMass'], filters, xcolFunc=xFunc,
                                       ycolFunc=lambda x, y: y)
 
         plert, = plt.semilogx(*thisPlot, c=colors[script], dashes=dashList[j], lw=(3+j)/2.0)
