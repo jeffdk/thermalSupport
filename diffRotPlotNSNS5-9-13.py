@@ -1,4 +1,4 @@
-from eosDriver import eosDriver, getTRollFunc
+from eosDriver import eosDriver, getTRollFunc, kentaDataTofLogRhoFit2
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy
@@ -31,11 +31,12 @@ colors = {'c30p0': 'g',
           'c30p5': 'c',
           'c30p10': 'm'}
 
-scripts = ['c40p0', 'cold']
+scripts = ['c30p5', 'cold']
 params40 = (40.0, 14.18, 0.5,)
 params20 = (20.0, 13.93, 0.25,)
 tFuncs = [  # getTRollFunc(params20[0], 0.01, params20[1], params20[2]),
-          getTRollFunc(params40[0], 0.01, params40[1], params40[2]),
+          # getTRollFunc(params40[0], 0.01, params40[1], params40[2]),
+          kentaDataTofLogRhoFit2(),
           lambda x: 0.01]
 ye = 'BetaEq'
 colorLegs = []
@@ -49,7 +50,7 @@ for i, script in enumerate(scripts):
 
     xFunc = lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFunc)
     #xFunc = lambda x: x
-    filters = ('ToverW<0.25',)
+    filters = ('ToverW<0.25', 'baryMass<2.91')
 
     thisSet = cstDataset(script, eosName, ye, sourceDb)
     dashList = [(None, None), (25, 4), (13, 5), (20, 4, 10, 6), (10, 3, 5, 5)]
@@ -59,7 +60,7 @@ for i, script in enumerate(scripts):
     for j, slicer in enumerate([uniformMaxRotSlice, a5, diffMaxRotSlice]):
         thisSeq = cstSequence(thisSet, slicer, filters)
 
-        thisPlot = thisSeq.getSeqPlot(['edMax'], ['gravMass', 'baryMass'], filters, xcolFunc=xFunc,
+        thisPlot = thisSeq.getSeqPlot(['edMax'], ['gravMass', 'rpoe'], filters, xcolFunc=xFunc,
                                       ycolFunc=lambda x, y: y)
 
         plert, = plt.plot(*thisPlot, c=colors[script], dashes=dashList[j], lw=(3+j)/2.0)
@@ -97,24 +98,26 @@ sekiguchiData = [{"label": 'L',
                  ]
 colors = [plot_defaults.darkmagenta, plot_defaults.green2, 'b']
 symbolSize = 200
+lineWidth = 4
 legendPlts = []
 for i, model in enumerate(sekiguchiData):
     mb = [model['HMNS_Mb']]
-    plt.scatter([model['TOV_rhob']], mb, marker='o', c=colors[i], s=symbolSize/2.0,
+    plt.scatter([model['TOV_rhob']], mb, marker='o', c=colors[i], s=symbolSize*.6,
                 zorder=4)
 
-    plert, = plt.plot([model['TOV_rhob'], model['HMNS_9ms_rhob']], [mb, mb], c=colors[i], ls='-')
+    plert, = plt.plot([model['TOV_rhob'], model['HMNS_9ms_rhob']], [mb, mb], c=colors[i], ls='-',
+                      lw=lineWidth)
     legendPlts.append(plert)
     if model["HMNS_25ms_rhob"] is not None:
-        plt.scatter([model['HMNS_9ms_rhob']], mb, marker='d', c=colors[i], s=symbolSize*.8,
+        plt.scatter([model['HMNS_9ms_rhob']], mb, marker='d', c=colors[i], s=symbolSize*.6,
                     zorder=4)
         plt.plot([model['HMNS_9ms_rhob'], model['HMNS_25ms_rhob']], [mb, mb],
-                 c=colors[i], dashes=(3, 1))
-        plt.scatter([model['HMNS_25ms_rhob']], mb, marker='s', c=colors[i], s=symbolSize,
+                 c=colors[i], dashes=(3, 1.5), lw=lineWidth)
+        plt.scatter([model['HMNS_25ms_rhob']], mb, marker='s', c=colors[i], s=symbolSize*.8,
                     zorder=4)
     else:
         plt.scatter([endDensity*1.0], mb, marker='>', c=colors[i], s=symbolSize,
-                    zorder=4)
+                    zorder=4, edgecolors=None)
         #plt.arrow(endDensity, mb[0], endDensity*.1, 0.0, fc=colors[i], ec=colors[i],
         #          head_width=0.01, head_length=1e14)
 

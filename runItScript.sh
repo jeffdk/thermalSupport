@@ -15,22 +15,18 @@ step=0.5
 
 
  python main.py runmodels $1\
-     -database-file '/home/jeff/work/rotNSruns/newHS.db' \
+     -database-file '/home/jeff/work/rotNSruns/forMRI.db' \
      -eosPrescription      "{'type': 'tableFromEosDriver',
       'sc.orgTableFile': '/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5',
-      'prescriptionName': 'isothermal',
+      'prescriptionName': 'manual',
       'ye': 0.1,
-      'rollMid': 14.0,
-      'rollScale': 0.5,
-      'eosTmin': 0.01}" \
+      'funcTofLogRho': 'kentaDataTofLogRhoFit2'}" \
      -setRhoBaryons \
-     -T 20.0 \
-     -a1 0.0 \
-     -a2 1.0 \
-     -a-steps 3 \
-     -ed 0.2\
-     -rpoe 0.0 \
-     -RotNS-runtype 30  2>&1  | tee  newHS.log
+     -T 30.0 \
+     -a 1.0 \
+     -ed 1.0 \
+     -rpoe 0.8 \
+     -RotNS-runtype 30  2>&1  | tee  forMRI.log
 
 
 # Python main.py runmodels $1\
