@@ -61,10 +61,10 @@ symbols = {'c30p0': 's',
            'c30p10': 'H',
            'cold': '*'}
 scriptsList = ['c40p0', 'cold']
-cXXp0_params = [(40.0, 14.18, 0.5,), (30.0, 14.055, 0.375),  (20.0, 13.93, 0.25)]
+cXXp0_params = [(40.0, 14.18, 0.5,)]  # , (30.0, 14.055, 0.375),  (20.0, 13.93, 0.25)]
 tempFuncs = [getTRollFunc(params[0], 0.01, params[1], params[2]) for params in cXXp0_params]
-tempFuncs.append(kentaDataTofLogRhoFit1())
-tempFuncs.append(kentaDataTofLogRhoFit2())
+# tempFuncs.append(kentaDataTofLogRhoFit1())
+# tempFuncs.append(kentaDataTofLogRhoFit2())
 tempFuncs.append(lambda x: 0.01)
 tempFuncsDict = {scriptsList[i]: tempFuncs[i] for i in range(len(scriptsList))}
 
@@ -120,8 +120,8 @@ plt.xlabel(xLabel)
 plt.ylabel(yLabel, labelpad=5)
 #removeExponentialNotationOnAxis('y')
 if eosName == "HShenEOS":
-    eosName = "HShen   $\,\,M_\mathrm{b}<%s$" % mbLimit
-plt.text(0.75e15, 2.61, eosName, fontsize=26)
+    eosName = "HShen,   $\,\,M_\mathrm{b}<%s$" % mbLimit
+plt.text(0.7e15, 2.62, eosName, fontsize=26)
 #plt.title("a=%s  and $T/|W|<0.25$" % a)
 legend1 = plt.legend(loc=1, handlelength=3, labelspacing=0.2)
 
