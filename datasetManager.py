@@ -33,6 +33,8 @@ class cstDataset(object):
         cursor.execute("CREATE TABLE models " + parseFiles.columnsString)
         self.dbConn.commit()
 
+        self.numDbs = 0
+
         if dbFilename is not None:
             self.addEntriesFromDb(dbFilename)
             pass
@@ -42,11 +44,12 @@ class cstDataset(object):
         os.remove(self.dbName)
 
     def addEntriesFromDb(self, dbFilename):
+        self.numDbs += 1
         cursor = self.dbConn.cursor()
         query = "WHERE " + " AND ".join(["%s='%s'" % (key, value) for (key, value)
                                          in self.paramsDict.items()])
-        cursor.execute("ATTACH '" + dbFilename + "' AS toMerge")
-        cursor.execute("INSERT INTO models SELECT * FROM toMerge.models " + query)
+        cursor.execute("ATTACH '" + dbFilename + "' AS toMerge%s" % self.numDbs)
+        cursor.execute("INSERT INTO models SELECT * FROM toMerge%s.models " % self.numDbs + query)
         self.dbConn.commit()
 
         cursor.execute("SELECT count(*) FROM models")
@@ -192,7 +195,7 @@ class cstSequence(object):
                 del copyOfInputDict['rpoe']
                 restrictToRpoeMin = True
 
-        sliceFilters = equalsFiltersFromDict(copyOfInputDict, tolerance=1e-3)
+        sliceFilters = equalsFiltersFromDict(copyOfInputDict, tolerance=3e-3)
         query = "WHERE " + " AND ".join(sliceFilters) + " ORDER BY " + self.orderByVar
 
         self.dbConn = sqlite3.connect(':memory:')
