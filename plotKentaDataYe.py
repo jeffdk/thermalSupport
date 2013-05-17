@@ -24,7 +24,7 @@ rcParams['ytick.minor.size'] = 7
 ##############################################################################
 shen = eosDriver.eosDriver('/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5')
 ls220 = eosDriver.eosDriver('/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5')
-theEos = ls220
+theEos = shen
 plotBetaEq = True
 parametrizedTempProfile = False
 paramdTfunc = eosDriver.kentaDataTofLogRhoFit1()
@@ -297,9 +297,10 @@ for plotVar, func in [#('Omega', None), ('T', None), ('s', None), ('p', None),
     p3, = plt.plot([1], [1], c='k', ls='--', dashes=plot_defaults.longDashes)
     legend2 = plt.legend((p1, p2, p3), ("$\\nu$-full $\\beta$-eq.",
                                         "$\\nu$-less $\\beta$-eq.",
-                                        "Sekiguchi et al."),
+                                        "Sekiguchi"),
                                         loc=9, handletextpad=1)
     plt.gca().add_artist(legend1)
+    plt.minorticks_on()
     plt.show()
 
 
