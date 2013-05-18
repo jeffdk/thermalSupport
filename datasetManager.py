@@ -54,7 +54,7 @@ class cstDataset(object):
 
         cursor.execute("SELECT count(*) FROM models")
 
-        print "Added %s entries to cstDataset '%s'" % (cursor.fetchone()[0], self.name)
+        #print "Added %s entries to cstDataset '%s'" % (cursor.fetchone()[0], self.name)
 
     def gradientsAtPoint(self, quantities, pointDict, gradVars=('edMax', 'rpoe'), tol=1e-4):
         """
