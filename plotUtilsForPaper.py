@@ -38,7 +38,7 @@ def fixExponentialAxes(fixCbar=False):
     if numpy.log10(x2) > 2:
         scalePower = int(numpy.log10(x2))
         xlocs, xlabs = plt.xticks()
-        plt.xlabel(xlabel + '/$10^{' + str(scalePower) + '}$', labelpad=12)
+        #plt.xlabel(xlabel + '/$10^{' + str(scalePower) + '}$', labelpad=12)
         plt.xticks(xlocs, map(lambda x: "%.1f" % x, xlocs / numpy.power(10.0, scalePower)))
     if fixCbar:  # DOESNT WORK YET
         cbar = plt.colorbar()

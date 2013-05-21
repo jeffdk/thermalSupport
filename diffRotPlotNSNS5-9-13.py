@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import numpy
 from datasetManager import cstDataset, cstSequence
 import plot_defaults
-from plotUtilsForPaper import fixExponentialAxes
-
+from plotUtilsForPaper import fixExponentialAxes, removeExponentialNotationOnAxis
+matplotlib.rcParams['figure.subplot.left'] = 0.15
 
 sourceDb = '/home/jeff/work/rotNSruns/vdenseBetaEqOnlyMoreC.db'
 tovSourceDb = '/home/jeff/work/rotNSruns/allRuns3-25-13.db'
@@ -13,7 +13,7 @@ shenEosTableFilename = '/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1
 ls220EosTableFilename = '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5'
 
 eosName = 'HShenEOS'
-theEos = eosDriver(ls220EosTableFilename)
+theEos = eosDriver(shenEosTableFilename)
 
 tovSlice = {'a': 0.0, 'rpoe': 1.0}
 uniformMaxRotSlice = {'a': 0.0, 'rpoe': 'min'}
@@ -31,26 +31,27 @@ colors = {'c30p0': 'g',
           'c30p5': 'c',
           'c30p10': 'm'}
 
-scripts = ['c30p5', 'cold']
+scripts = ['c40p0', 'cold']
 params40 = (40.0, 14.18, 0.5,)
 params20 = (20.0, 13.93, 0.25,)
-tFuncs = [  # getTRollFunc(params20[0], 0.01, params20[1], params20[2]),
-          # getTRollFunc(params40[0], 0.01, params40[1], params40[2]),
-          kentaDataTofLogRhoFit2(),
+tFuncs = [#getTRollFunc(params20[0], 0.01, params20[1], params20[2]),
+          getTRollFunc(params40[0], 0.01, params40[1], params40[2]),
+          #kentaDataTofLogRhoFit2(),
           lambda x: 0.01]
 ye = 'BetaEq'
 colorLegs = []
+pltsForLeg = []
 #############################################################
 # First lay down RotNS results
 #############################################################
 for i, script in enumerate(scripts):
-
+    #break
     tempFunc = tFuncs[i]
     theEos.resetCachedBetaEqYeVsRhobs(tempFunc, 13.5, 16.0)
 
     xFunc = lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFunc)
     #xFunc = lambda x: x
-    filters = ('ToverW<0.25', 'baryMass<2.91')
+    filters = ('ToverW<0.25',)
 
     thisSet = cstDataset(script, eosName, ye, sourceDb)
     dashList = [(None, None), (25, 4), (13, 5), (20, 4, 10, 6), (10, 3, 5, 5)]
@@ -60,10 +61,10 @@ for i, script in enumerate(scripts):
     for j, slicer in enumerate([uniformMaxRotSlice, a5, diffMaxRotSlice]):
         thisSeq = cstSequence(thisSet, slicer, filters)
 
-        thisPlot = thisSeq.getSeqPlot(['edMax'], ['gravMass', 'rpoe'], filters, xcolFunc=xFunc,
+        thisPlot = thisSeq.getSeqPlot(['edMax'], ['gravMass', 'baryMass'], filters, xcolFunc=xFunc,
                                       ycolFunc=lambda x, y: y)
 
-        plert, = plt.plot(*thisPlot, c=colors[script], dashes=dashList[j], lw=(3+j)/2.0)
+        plert, = plt.plot(*thisPlot, c=colors[script], dashes=dashList[j], lw=(2+j)/2.0)
         pltsForLeg.append(plert)
     colorLegs.append(plert)
     del thisSet
@@ -98,7 +99,7 @@ sekiguchiData = [{"label": 'L',
                  ]
 colors = [plot_defaults.darkmagenta, plot_defaults.green2, 'b']
 symbolSize = 200
-lineWidth = 4
+lineWidth = 5
 legendPlts = []
 for i, model in enumerate(sekiguchiData):
     mb = [model['HMNS_Mb']]
@@ -108,6 +109,9 @@ for i, model in enumerate(sekiguchiData):
     plert, = plt.plot([model['TOV_rhob'], model['HMNS_9ms_rhob']], [mb, mb], c=colors[i], ls='-',
                       lw=lineWidth)
     legendPlts.append(plert)
+    dynamicAnnoteString = ""
+    secularAnnoteString = ""
+    dynamiceAnnoteRad = 0.3
     if model["HMNS_25ms_rhob"] is not None:
         plt.scatter([model['HMNS_9ms_rhob']], mb, marker='d', c=colors[i], s=symbolSize*.6,
                     zorder=4)
@@ -115,24 +119,51 @@ for i, model in enumerate(sekiguchiData):
                  c=colors[i], dashes=(3, 1.5), lw=lineWidth)
         plt.scatter([model['HMNS_25ms_rhob']], mb, marker='s', c=colors[i], s=symbolSize*.8,
                     zorder=4)
+        secularAnnotateRho = (model['HMNS_25ms_rhob'] - model['HMNS_9ms_rhob']) / 2.0 + model['HMNS_9ms_rhob']
+        plt.annotate("Secular evolution (dashed lines)", (secularAnnotateRho, model['HMNS_Mb']),
+                 xytext=(0.1, 0.1),
+                 xycoords='data', textcoords='axes fraction',
+                 arrowprops={'arrowstyle': 'simple', 'connectionstyle': "arc3,rad=-0.3",
+                             'fc': "0.6", 'ec': "k"},
+                 #{'width': 1, 'frac': 0.2},
+                 fontsize=18,
+                 zorder=5)
     else:
+        dynamiceAnnoteRad = -0.2
+        dynamicAnnoteString = "Dynamical evolution (solid lines)"
         plt.scatter([endDensity*1.0], mb, marker='>', c=colors[i], s=symbolSize,
                     zorder=4, edgecolors=None)
+        plt.annotate("Collapse (9 ms)", (endDensity*0.9, mb[0]+.05),
+                 xytext=(endDensity*0.9, mb[0]+.05),
+                 xycoords='data', textcoords='data',
+                 fontsize=18)
         #plt.arrow(endDensity, mb[0], endDensity*.1, 0.0, fc=colors[i], ec=colors[i],
         #          head_width=0.01, head_length=1e14)
-
+    dynamicAnnotateRho = (model['HMNS_9ms_rhob'] - model['TOV_rhob']) / 2.0 + model['TOV_rhob']
+    plt.annotate(dynamicAnnoteString, (dynamicAnnotateRho, model['HMNS_Mb']),
+                 xytext=(0.05, 0.9),
+                 xycoords='data', textcoords='axes fraction',
+                 arrowprops={'arrowstyle': 'simple',
+                             'connectionstyle': "arc3,rad=%s" % dynamiceAnnoteRad,
+                             'fc': "0.6", 'ec': "k"},
+                 #{'width': 1, 'frac': 0.2},
+                 fontsize=18,
+                 zorder=5)
 
 legend2 = plt.legend(legendPlts, [model['label'] for model in sekiguchiData],
                      loc=1, labelspacing=0.2, handletextpad=0.5)
 plt.gca().add_artist(legend1)
+
+
 textPos = 1.2
 if eosName == "HShenEOS":
     eosName = "HShen"
-    textPos = 2.5
-plt.text(1.0e15, textPos, eosName, fontsize=26)  #  Mg LS220
+    textPos = 2.6
+plt.text(1.4e15, textPos, eosName, fontsize=26)  #  Mg LS220
 plt.minorticks_on()
-plt.xlabel(r"$\rho_{b,\mathrm{max}}$ [g cm$^{-3}$]")
-plt.ylabel("$M_\mathrm{b} \,\, [M_\odot]$", labelpad=5)
+plt.xlabel(r"$\rho_{\mathrm{b, max}}$ [$10^{15}$ g cm$^{-3}$]", labelpad=10)
+plt.ylabel("$M_\mathrm{b} \,\, [M_\odot]$", labelpad=6)
 plt.xlim([4.1e14, 1.69e15])
 fixExponentialAxes()
+#removeExponentialNotationOnAxis('x')
 plt.show()
