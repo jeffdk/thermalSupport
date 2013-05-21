@@ -4,13 +4,15 @@ import matplotlib.pyplot as plt
 import numpy
 from datasetManager import cstDataset, cstSequence
 import plot_defaults
-from plotUtilsForPaper import fixExponentialAxes
+from plotUtilsForPaper import fixExponentialAxes, removeExponentialNotationOnAxis
 
+matplotlib.rcParams['figure.subplot.left'] = 0.15
 
 sourceDb = '/home/jeff/work/rotNSruns/vdenseBetaEqOnlyMoreC.db'
 tovSourceDb = '/home/jeff/work/rotNSruns/allRuns3-25-13.db'
 shenEosTableFilename = '/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5'
 ls220EosTableFilename = '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5'
+
 
 eosName = 'LS220'
 theEos = eosDriver(ls220EosTableFilename)
@@ -31,11 +33,11 @@ colors = {'c30p0': 'g',
           'c30p5': 'c',
           'c30p10': 'm'}
 
-scripts = ['c20p0', 'c40p0', 'c30p5']
+scripts = ['c40p0', 'c20p0', 'cold']
 params40 = (40.0, 14.18, 0.5,)
 params20 = (20.0, 13.93, 0.25,)
-tFuncs = [getTRollFunc(params20[0], 0.01, params20[1], params20[2]),
-          getTRollFunc(params40[0], 0.01, params40[1], params40[2]),
+tFuncs = [getTRollFunc(params40[0], 0.01, params40[1], params40[2]),
+          getTRollFunc(params20[0], 0.01, params20[1], params20[2]),
           lambda x: 0.01]
 ye = 'BetaEq'
 colorLegs = []
@@ -44,7 +46,7 @@ for i, script in enumerate(scripts):
     tempFunc = tFuncs[i]
     theEos.resetCachedBetaEqYeVsRhobs(tempFunc, 13.5, 16.0)
 
-    xFunc = lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFunc)
+    xFunc = lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFunc) / 1.0e15
     #xFunc = lambda x: x
     filters = ('ToverW<0.25',)
 
@@ -67,14 +69,22 @@ legend1 = plt.legend(pltsForLeg, ("TOV", r"$\tilde{A}=0.0$", r"$\tilde{A}=0.4$",
                                   r"$\tilde{A}=0.5$", r"$\tilde{A}=1.0$"),
                      loc=4, handlelength=4)
 legend2 = plt.legend(colorLegs, scripts,
-                     loc=2, labelspacing=0.2, handletextpad=0.5)
+                     loc=8, labelspacing=0.3, handletextpad=0.4)
 plt.gca().add_artist(legend1)
+plt.xlim([.50, 2.5])
+locator = matplotlib.ticker.FixedLocator([0.5, 1.0, 2.5])
 if eosName == "HShenEOS":
     eosName = "HShen"
-plt.text(0.8e15, 1.2, eosName, fontsize=26) # Mg LS220
+    plt.xlim([.4, 2.])
+    locator = matplotlib.ticker.FixedLocator([0.4, 1.0, 2.0])
+plt.gca().xaxis.set_major_locator(locator)
+#plt.text(1.5, 3.8, eosName, fontsize=26) # Mb shen
+plt.text(1.9, 3.4, eosName, fontsize=26) # Mg LS220
 plt.minorticks_on()
-plt.xlabel(r"$\rho_{b,\mathrm{max}}$ [g cm$^{-3}$]")
-plt.ylabel("$M_\mathrm{b} \,\, [M_\odot]$", labelpad=5)
-plt.xlim([2e14, 3e15])
-fixExponentialAxes()
+plt.xlabel(r"$\rho_{\mathrm{{b, max}}$ [$10^{15}$ g cm$^{-3}$]", labelpad=10)
+plt.ylabel("$M_\mathrm{b} \,\, [M_\odot]$", labelpad=6)
+#plt.ylabel(r"$rpoe")
+
+#fixExponentialAxes()
+removeExponentialNotationOnAxis('x')
 plt.show()
