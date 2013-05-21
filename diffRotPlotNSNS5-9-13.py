@@ -70,11 +70,11 @@ for i, script in enumerate(scripts):
     del thisSet
 legend1 = plt.legend(pltsForLeg + colorLegs, [r"$\tilde{A}=0.0$", r"$\tilde{A}=0.5$",
                                               r"$\tilde{A}=1.0$"] + scripts,
-                     loc=4, handlelength=4)
+                     loc=4, handlelength=4, labelspacing=0.5, handletextpad=0.5)
 #############################################################
 # Second plot points from Sekiguchi et al
 #############################################################
-endDensity = 1.55e15
+endDensity = 1.2e15
 sekiguchiData = [{"label": 'L',
                   "TOV_Mg": 1.35,
                   "TOV_Mb": 1.45,
@@ -101,6 +101,7 @@ colors = [plot_defaults.darkmagenta, plot_defaults.green2, 'b']
 symbolSize = 200
 lineWidth = 5
 legendPlts = []
+firstTime = True
 for i, model in enumerate(sekiguchiData):
     mb = [model['HMNS_Mb']]
     plt.scatter([model['TOV_rhob']], mb, marker='o', c=colors[i], s=symbolSize*.6,
@@ -120,28 +121,43 @@ for i, model in enumerate(sekiguchiData):
         plt.scatter([model['HMNS_25ms_rhob']], mb, marker='s', c=colors[i], s=symbolSize*.8,
                     zorder=4)
         secularAnnotateRho = (model['HMNS_25ms_rhob'] - model['HMNS_9ms_rhob']) / 2.0 + model['HMNS_9ms_rhob']
-        plt.annotate("Secular evolution (dashed lines)", (secularAnnotateRho, model['HMNS_Mb']),
-                 xytext=(0.1, 0.1),
+        if not firstTime:
+            secularAnnoteString = "Secular evolution (dashed lines)"
+        plt.annotate(secularAnnoteString, (secularAnnotateRho, model['HMNS_Mb'] - 0.015),
+                 xytext=(0.2, 0.07),  va="center",
                  xycoords='data', textcoords='axes fraction',
                  arrowprops={'arrowstyle': 'simple', 'connectionstyle': "arc3,rad=-0.3",
                              'fc': "0.6", 'ec': "k"},
                  #{'width': 1, 'frac': 0.2},
                  fontsize=18,
                  zorder=5)
+        plt.annotate("9 ms", (model['HMNS_9ms_rhob'] - .3e14, model['HMNS_Mb'] + 0.07),
+                 xytext=(model['HMNS_9ms_rhob'] - .3e14, model['HMNS_Mb'] + 0.07),
+                 xycoords='data', textcoords='data',
+                 bbox={'ec': "none", 'fc': 'w'},
+                 fontsize=16,
+                 zorder=5)
+        plt.annotate("25 ms", (model['HMNS_25ms_rhob'] - .2e14, model['HMNS_Mb'] + 0.07),
+                 xytext=(model['HMNS_25ms_rhob'] - .2e14, model['HMNS_Mb'] + 0.07),
+                 xycoords='data', textcoords='data',
+                 bbox={'ec': "none", 'fc': 'w'},
+                 fontsize=16,
+                 zorder=5)
     else:
         dynamiceAnnoteRad = -0.2
         dynamicAnnoteString = "Dynamical evolution (solid lines)"
         plt.scatter([endDensity*1.0], mb, marker='>', c=colors[i], s=symbolSize,
                     zorder=4, edgecolors=None)
-        plt.annotate("Collapse (9 ms)", (endDensity*0.9, mb[0]+.05),
-                 xytext=(endDensity*0.9, mb[0]+.05),
+        plt.annotate("Collapse (9 ms)", (endDensity*0.8, mb[0]+.06),
+                 xytext=(endDensity*0.8, mb[0]+.06),
                  xycoords='data', textcoords='data',
+                 bbox={'ec': "none", 'fc': 'w'},
                  fontsize=18)
         #plt.arrow(endDensity, mb[0], endDensity*.1, 0.0, fc=colors[i], ec=colors[i],
         #          head_width=0.01, head_length=1e14)
     dynamicAnnotateRho = (model['HMNS_9ms_rhob'] - model['TOV_rhob']) / 2.0 + model['TOV_rhob']
-    plt.annotate(dynamicAnnoteString, (dynamicAnnotateRho, model['HMNS_Mb']),
-                 xytext=(0.05, 0.9),
+    plt.annotate(dynamicAnnoteString, (dynamicAnnotateRho, model['HMNS_Mb'] + 0.015),
+                 xytext=(0.05, 0.93),
                  xycoords='data', textcoords='axes fraction',
                  arrowprops={'arrowstyle': 'simple',
                              'connectionstyle': "arc3,rad=%s" % dynamiceAnnoteRad,
@@ -149,6 +165,7 @@ for i, model in enumerate(sekiguchiData):
                  #{'width': 1, 'frac': 0.2},
                  fontsize=18,
                  zorder=5)
+    firstTime = False
 
 legend2 = plt.legend(legendPlts, [model['label'] for model in sekiguchiData],
                      loc=1, labelspacing=0.2, handletextpad=0.5)
@@ -158,12 +175,13 @@ plt.gca().add_artist(legend1)
 textPos = 1.2
 if eosName == "HShenEOS":
     eosName = "HShen"
-    textPos = 2.6
-plt.text(1.4e15, textPos, eosName, fontsize=26)  #  Mg LS220
+    textPos = 4.0
+plt.text(1.0e15, textPos, eosName, fontsize=26)  #  Mg LS220
 plt.minorticks_on()
 plt.xlabel(r"$\rho_{\mathrm{b, max}}$ [$10^{15}$ g cm$^{-3}$]", labelpad=10)
 plt.ylabel("$M_\mathrm{b} \,\, [M_\odot]$", labelpad=6)
-plt.xlim([4.1e14, 1.69e15])
+plt.xlim([4.1e14, 1.3e15])
+plt.ylim([2.0, 4.3])
 fixExponentialAxes()
 #removeExponentialNotationOnAxis('x')
 plt.show()
