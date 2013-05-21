@@ -1,9 +1,10 @@
+from consts import CGS_C
 from eosDriver import eosDriver, getTRollFunc, kentaDataTofLogRhoFit1, kentaDataTofLogRhoFit2
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy
 from datasetManager import cstDataset, cstSequence, reduceTwoSeqPlots
-from plotUtilsForPaper import latexField, fixExponentialAxes, removeExponentialNotationOnAxis
+from plotUtilsForPaper import latexField, fixExponentialAxes, removeExponentialNotationOnAxis, fixScientificNotation
 import plot_defaults
 #basics
 myfig = plt.figure(figsize=(10, 8))
@@ -14,30 +15,33 @@ myfig.subplots_adjust(right=0.97)
 
 sourceDb = '/home/jeff/work/rotNSruns/allRuns3-25-13.db'
 #sourceDb = '/home/jeff/work/rotNSruns/vdenseBetaEqOnlyMoreC.db'
+sourceDb = '/home/jeff/work/rotNSruns/omegaRuns5-21A.db'
 shedDb = '/home/jeff/work/rotNSruns/shedRuns4-24-13.db'
 shenEosTableFilename = '/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5'
 ls220EosTableFilename = '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5'
 
 eosName = 'LS220'
 #eosName = 'LS220'
-#theEos = eosDriver(ls220EosTableFilename)
+theEos = eosDriver(ls220EosTableFilename)
 ye = 'BetaEq'
 
 xVar = 'omega_c'
 yVar = 'baryMass'
 
-a = 0.2
-
+a = 1.0
+rhobLS220 = 1.76316840586e+15
 tovSlice = {'a': a, 'rpoe': 1.0}
 uniformMaxRotSlice = {'a': a, 'rpoe': 'min'}
 ls220Slice = {'edMax': 2.0333333333e+15, 'a': a}
 shenSlice = {'edMax': 1.3641025641e+15, 'a': a}
 theSlice = shenSlice
-#  theSlice = ls220Slice
+theSlice = ls220Slice
 filters = ()
-#shenSlice = {'edMax': 1.0003737283e+15, 'a': 0.0}
-#ls220Slice = {'edMax': 1.2153846153e+15, 'a': 0.0}
 
+rhob = rhobLS220
+
+edFunc = lambda x, q: numpy.power(10.0, x) \
+        * (1.0 + (numpy.power(10.0, q) - theEos.energy_shift) / CGS_C**2)
 colors = {'c30p0': 'g',
           'c20p0': 'b',
           'c40p0': 'r',
@@ -79,8 +83,16 @@ filters = ('edMax>2e14',)
 #plt.semilogx(*coldTovPlot, c=colors['cold'], ls='--',  label="TOV")
 #del coldTovSet
 for script in colors.keys():
+
     thisSet = cstDataset(script, eosName, ye, sourceDb)
-    thisSet.addEntriesFromDb(shedDb)
+
+    temp = tempFuncsDict[script](numpy.log10(rhob))
+    theEos.setBetaEqState({'rho': rhob, 'temp': temp})
+    ed = edFunc(numpy.log10(rhob), theEos.query('logenergy'))
+    theSlice = {'edMax': ed, 'a': a}
+
+    print script, theEos.rhobFromEnergyDensityWithTofRho(theSlice['edMax'], ye, tempFuncsDict[script])
+
     thisSeq = cstSequence(thisSet, theSlice, filters)
 
     mgPlot = thisSeq.getSeqPlot([xVar], ['gravMass'], filters, xcolFunc=lambda x: x/1000.0)
@@ -91,15 +103,16 @@ for script in colors.keys():
     plt.plot(*mbPlot, c=colors[script],  ms=8, lw=lineWidths[script],
              markeredgecolor=colors[script], dashes=(20, 5))
     del thisSet
-    thisSet = cstDataset(script, eosName, ye, shedDb)
+    thisSet = cstDataset(script, eosName, ye, sourceDb)
     thisSeq = cstSequence(thisSet, theSlice, filters)
+    mbToroid = thisSeq.getSeqPlot([xVar], ['baryMass'], ('RedMax>0.0',), xcolFunc=lambda x: x/1000.0)
+    mgToroid = thisSeq.getSeqPlot([xVar], ['gravMass'], ('RedMax>0.0',), xcolFunc=lambda x: x/1000.0)
 
-    mgPlot = thisSeq.getSeqPlot([xVar], ['gravMass'], filters, xcolFunc=lambda x: x/1000.0)
-    mbPlot = thisSeq.getSeqPlot([xVar], ['baryMass'], filters, xcolFunc=lambda x: x/1000.0)
-    plt.plot(*mgPlot, c=colors[script], marker=symbols[script], ms=10, lw=lineWidths[script],
+    plt.plot(*mgToroid, c=colors[script], marker=symbols[script], ms=6, lw=lineWidths[script],
+             markeredgecolor=colors[script],
              **labelKwarg)
-    plt.plot(*mbPlot, c=colors[script], marker=symbols[script], ms=10, lw=lineWidths[script],
-             dashes=(20, 5))
+    plt.plot(*mbToroid, c=colors[script], marker=symbols[script], ms=6, lw=lineWidths[script],
+             dashes=(20, 5), markeredgecolor=colors[script])
     del thisSet
 
 plt.xlabel(r"$\Omega_c$ [$10^3$ rad s$^{-1}$]", labelpad=10)
@@ -112,11 +125,11 @@ plt.minorticks_on()
 if eosName == "HShenEOS":
     eosName = "HShen"
 
-textPos = (0.4, 0.8)
+textPos = (0.35, 0.85)
 plt.annotate(eosName + ", a=%s" % a, textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
              fontsize=26)
 textPos = (0.6, 0.1)
-plt.annotate(r"$E_{max}=%2.2e$" % ls220Slice['edMax'], textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
+plt.annotate(r"$\rho_\mathrm{b, max}=$%s" % fixScientificNotation(rhob), textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
              fontsize=20)
 #plt.xlim(2, 9)
 plt.show()
