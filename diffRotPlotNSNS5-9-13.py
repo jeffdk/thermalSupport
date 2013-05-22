@@ -64,7 +64,7 @@ for i, script in enumerate(scripts):
         thisPlot = thisSeq.getSeqPlot(['edMax'], ['gravMass', 'baryMass'], filters, xcolFunc=xFunc,
                                       ycolFunc=lambda x, y: y)
 
-        plert, = plt.plot(*thisPlot, c=colors[script], dashes=dashList[j], lw=(2+j)/2.0)
+        plert, = plt.plot(*thisPlot, c=colors[script], dashes=dashList[j], lw=(3+j//2)/2.0)
         pltsForLeg.append(plert)
     colorLegs.append(plert)
     del thisSet
@@ -113,8 +113,9 @@ for i, model in enumerate(sekiguchiData):
     dynamicAnnoteString = ""
     secularAnnoteString = ""
     dynamiceAnnoteRad = 0.3
+    secularAnnoteRad = -0.3
     if model["HMNS_25ms_rhob"] is not None:
-        plt.scatter([model['HMNS_9ms_rhob']], mb, marker='d', c=colors[i], s=symbolSize*.6,
+        plt.scatter([model['HMNS_9ms_rhob']], mb, marker='d', c=colors[i], s=symbolSize*.7,
                     zorder=4)
         plt.plot([model['HMNS_9ms_rhob'], model['HMNS_25ms_rhob']], [mb, mb],
                  c=colors[i], dashes=(3, 1.5), lw=lineWidth)
@@ -122,12 +123,13 @@ for i, model in enumerate(sekiguchiData):
                     zorder=4)
         secularAnnotateRho = (model['HMNS_25ms_rhob'] - model['HMNS_9ms_rhob']) / 2.0 + model['HMNS_9ms_rhob']
         if not firstTime:
-            secularAnnoteString = "Secular evolution (dashed lines)"
+            secularAnnoteString = "Secular evolution (dotted lines)"
+            secularAnnoteRad = 0.0
         plt.annotate(secularAnnoteString, (secularAnnotateRho, model['HMNS_Mb'] - 0.015),
                  xytext=(0.2, 0.07),  va="center",
                  xycoords='data', textcoords='axes fraction',
-                 arrowprops={'arrowstyle': 'simple', 'connectionstyle': "arc3,rad=-0.3",
-                             'fc': "0.6", 'ec': "k"},
+                 arrowprops={'arrowstyle': '->', 'connectionstyle': "arc3,rad=%s" % secularAnnoteRad,
+                             'fc': "0.6", 'ec': "k", 'relpos': (-0.001, 1.)},
                  #{'width': 1, 'frac': 0.2},
                  fontsize=18,
                  zorder=5)
@@ -144,7 +146,7 @@ for i, model in enumerate(sekiguchiData):
                  fontsize=16,
                  zorder=5)
     else:
-        dynamiceAnnoteRad = -0.2
+        dynamiceAnnoteRad = -0.0
         dynamicAnnoteString = "Dynamical evolution (solid lines)"
         plt.scatter([endDensity*1.0], mb, marker='>', c=colors[i], s=symbolSize,
                     zorder=4, edgecolors=None)
@@ -155,13 +157,13 @@ for i, model in enumerate(sekiguchiData):
                  fontsize=18)
         #plt.arrow(endDensity, mb[0], endDensity*.1, 0.0, fc=colors[i], ec=colors[i],
         #          head_width=0.01, head_length=1e14)
-    dynamicAnnotateRho = (model['HMNS_9ms_rhob'] - model['TOV_rhob']) / 2.0 + model['TOV_rhob']
+    dynamicAnnotateRho = (model['HMNS_9ms_rhob'] - model['TOV_rhob']) / 4.0 + model['TOV_rhob']
     plt.annotate(dynamicAnnoteString, (dynamicAnnotateRho, model['HMNS_Mb'] + 0.015),
                  xytext=(0.05, 0.93),
                  xycoords='data', textcoords='axes fraction',
-                 arrowprops={'arrowstyle': 'simple',
+                 arrowprops={'arrowstyle': '->',
                              'connectionstyle': "arc3,rad=%s" % dynamiceAnnoteRad,
-                             'fc': "0.6", 'ec': "k"},
+                             'fc': "0.6", 'ec': "k", 'relpos': (-.005, 0.)},
                  #{'width': 1, 'frac': 0.2},
                  fontsize=18,
                  zorder=5)
