@@ -4,6 +4,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy
 from datasetManager import cstDataset, cstSequence, reduceTwoSeqPlots
+from maxMassOrigFiles.sqlPlotRoutines import nearValueFilter
 from plotUtilsForPaper import latexField, fixExponentialAxes, removeExponentialNotationOnAxis, fixScientificNotation
 import plot_defaults
 #basics
@@ -30,6 +31,8 @@ yVar = 'baryMass'
 
 a = 1.0
 rhobLS220 = 1.76316840586e+15
+rhobLS220 = 1.02632152932e+15
+rhobLS220 = 7.10528763335e+14
 tovSlice = {'a': a, 'rpoe': 1.0}
 uniformMaxRotSlice = {'a': a, 'rpoe': 'min'}
 ls220Slice = {'edMax': 2.0333333333e+15, 'a': a}
@@ -37,6 +40,7 @@ shenSlice = {'edMax': 1.3641025641e+15, 'a': a}
 theSlice = shenSlice
 theSlice = ls220Slice
 filters = ()
+toroidSymbols = True  # if false, plot one symbol at end of sequence
 
 rhob = rhobLS220
 
@@ -71,17 +75,13 @@ tempFuncs.append(kentaDataTofLogRhoFit2())
 tempFuncs.append(lambda x: 0.01)
 tempFuncsDict = {scriptsList[i]: tempFuncs[i] for i in range(len(scriptsList))}
 
-
+mgShift = 0.0
+mgYfunc = lambda x: x + mgShift
 #############################################################
 # First plot: Just Shen, frac diffs
 #############################################################
-filters = ('edMax>2e14',)
-#coldTovSet = cstDataset('cold', eosName, ye, sourceDb)
-#coldTovSeq = cstSequence(coldTovSet, theSlice, filters)
-#coldTovPlot = \
-#    coldTovSeq.getSeqPlot([xVar], [yVar], filters)
-#plt.semilogx(*coldTovPlot, c=colors['cold'], ls='--',  label="TOV")
-#del coldTovSet
+markerSize = 6
+edgeColor = 'k'
 for script in colors.keys():
 
     thisSet = cstDataset(script, eosName, ye, sourceDb)
@@ -91,11 +91,12 @@ for script in colors.keys():
     ed = edFunc(numpy.log10(rhob), theEos.query('logenergy'))
     theSlice = {'edMax': ed, 'a': a}
 
-    print script, theEos.rhobFromEnergyDensityWithTofRho(theSlice['edMax'], ye, tempFuncsDict[script])
+    print script, theEos.rhobFromEnergyDensityWithTofRho(783622297500000.0, ye, tempFuncsDict[script])
 
     thisSeq = cstSequence(thisSet, theSlice, filters)
 
-    mgPlot = thisSeq.getSeqPlot([xVar], ['gravMass'], filters, xcolFunc=lambda x: x/1000.0)
+    mgPlot = thisSeq.getSeqPlot([xVar], ['gravMass'], filters, xcolFunc=lambda x: x/1000.0,
+                                ycolFunc=mgYfunc)
     mbPlot = thisSeq.getSeqPlot([xVar], ['baryMass'], filters, xcolFunc=lambda x: x/1000.0)
     labelKwarg = {'label': script}
     plt.plot(*mgPlot, c=colors[script],  ms=8, lw=lineWidths[script],
@@ -104,15 +105,28 @@ for script in colors.keys():
              markeredgecolor=colors[script], dashes=(20, 5))
     del thisSet
     thisSet = cstDataset(script, eosName, ye, sourceDb)
+    
+    if toroidSymbols:
+        filters = ('RedMax>0.0',)
+        markerSize = 6
+        edgeColor = colors[script]
+    else: 
+        filters = nearValueFilter('edMax', ed)
+        print filters
+        theSlice = {'a': a, 'rpoe': 'min'}
+        markerSize = 8
+        edgeColor = 'k'
     thisSeq = cstSequence(thisSet, theSlice, filters)
-    mbToroid = thisSeq.getSeqPlot([xVar], ['baryMass'], ('RedMax>0.0',), xcolFunc=lambda x: x/1000.0)
-    mgToroid = thisSeq.getSeqPlot([xVar], ['gravMass'], ('RedMax>0.0',), xcolFunc=lambda x: x/1000.0)
-
-    plt.plot(*mgToroid, c=colors[script], marker=symbols[script], ms=6, lw=lineWidths[script],
-             markeredgecolor=colors[script],
+    mbToroid = thisSeq.getSeqPlot([xVar], ['baryMass'], filters, xcolFunc=lambda x: x/1000.0)
+    mgToroid = thisSeq.getSeqPlot([xVar], ['gravMass'], filters, xcolFunc=lambda x: x/1000.0,
+                                  ycolFunc=mgYfunc)
+    #print mbToroid
+    plt.plot(*mgToroid, c=colors[script], marker=symbols[script], ms=markerSize,
+             lw=lineWidths[script], markeredgecolor=edgeColor,
              **labelKwarg)
-    plt.plot(*mbToroid, c=colors[script], marker=symbols[script], ms=6, lw=lineWidths[script],
-             dashes=(20, 5), markeredgecolor=colors[script])
+    plt.plot(*mbToroid, c=colors[script], marker=symbols[script], ms=markerSize,
+             lw=lineWidths[script], dashes=(20, 5), markeredgecolor=edgeColor)
+    filters = ()
     del thisSet
 
 plt.xlabel(r"$\Omega_c$ [$10^3$ rad s$^{-1}$]", labelpad=10)

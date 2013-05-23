@@ -69,5 +69,6 @@ def fixScientificNotation(num):
 
     leading = str(numpy.round(num/10**power*10))[0]
     second = str(numpy.round(num/10**power*10))[1]
+    third = str(numpy.round(num/10**power*100))[2]
 
-    return r"$%s.%s\times10^{%s}$" % (leading, second, power)
+    return r"$%s.%s%s\times10^{%s}$" % (leading, second, third, power)

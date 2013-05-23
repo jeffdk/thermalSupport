@@ -1,4 +1,4 @@
-from eosDriver import eosDriver, getTRollFunc
+from eosDriver import eosDriver, getTRollFunc, kentaDataTofLogRhoFit1
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy
@@ -9,6 +9,7 @@ from plotUtilsForPaper import fixExponentialAxes, removeExponentialNotationOnAxi
 matplotlib.rcParams['figure.subplot.left'] = 0.15
 
 sourceDb = '/home/jeff/work/rotNSruns/vdenseBetaEqOnlyMoreC.db'
+c30p10Db = '/home/jeff/work/rotNSruns/svdense30p10A.db'
 tovSourceDb = '/home/jeff/work/rotNSruns/allRuns3-25-13.db'
 shenEosTableFilename = '/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5'
 ls220EosTableFilename = '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5'
@@ -33,11 +34,12 @@ colors = {'c30p0': 'g',
           'c30p5': 'c',
           'c30p10': 'm'}
 
-scripts = ['c40p0', 'c20p0', 'cold']
+scripts = ['c40p0', 'c30p10', 'cold']
 params40 = (40.0, 14.18, 0.5,)
 params20 = (20.0, 13.93, 0.25,)
 tFuncs = [getTRollFunc(params40[0], 0.01, params40[1], params40[2]),
-          getTRollFunc(params20[0], 0.01, params20[1], params20[2]),
+          kentaDataTofLogRhoFit1(),          
+          #getTRollFunc(params20[0], 0.01, params20[1], params20[2]),
           lambda x: 0.01]
 ye = 'BetaEq'
 colorLegs = []
@@ -51,6 +53,8 @@ for i, script in enumerate(scripts):
     filters = ('ToverW<0.25',)
 
     thisSet = cstDataset(script, eosName, ye, sourceDb)
+    if script == 'c30p10':
+        thisSet.addEntriesFromDb(c30p10Db)
     dashList = [(None, None), (25, 4), (13, 5), (20, 4, 10, 6), (10, 3, 5, 5)]
     # (20, 5, 10, 5, 5, 10)]
     pltsForLeg = []
@@ -58,8 +62,8 @@ for i, script in enumerate(scripts):
     for j, slicer in enumerate([tovSlice, uniformMaxRotSlice, a4, a5, diffMaxRotSlice]):
         thisSeq = cstSequence(thisSet, slicer, filters)
 
-        thisPlot = thisSeq.getSeqPlot(['edMax'], ['gravMass', 'baryMass'], filters, xcolFunc=xFunc,
-                                      ycolFunc=lambda x, y: y)
+        thisPlot = thisSeq.getSeqPlot(['edMax'], ['gravMass', 'baryMass', 'rpoe'], filters, xcolFunc=xFunc,
+                                      ycolFunc=lambda x, y, z: z)
 
         plert, = plt.semilogx(*thisPlot, c=colors[script], dashes=dashList[j], lw=(3+j)/2.0)
         pltsForLeg.append(plert)
@@ -82,8 +86,8 @@ plt.gca().xaxis.set_major_locator(locator)
 plt.text(1.9, 3.4, eosName, fontsize=26) # Mg LS220
 plt.minorticks_on()
 plt.xlabel(r"$\rho_{\mathrm{{b, max}}$ [$10^{15}$ g cm$^{-3}$]", labelpad=10)
-plt.ylabel("$M_\mathrm{b} \,\, [M_\odot]$", labelpad=6)
-#plt.ylabel(r"$rpoe")
+#plt.ylabel("$M_\mathrm{b} \,\, [M_\odot]$", labelpad=6)
+plt.ylabel(r"$rpoe")
 
 #fixExponentialAxes()
 removeExponentialNotationOnAxis('x')
