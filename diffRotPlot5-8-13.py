@@ -1,4 +1,4 @@
-from eosDriver import eosDriver, getTRollFunc, kentaDataTofLogRhoFit1
+from eosDriver import eosDriver, getTRollFunc, kentaDataTofLogRhoFit1, kentaDataTofLogRhoFit2
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy
@@ -34,11 +34,12 @@ colors = {'c30p0': 'g',
           'c30p5': 'c',
           'c30p10': 'm'}
 
-scripts = ['c40p0', 'c30p10', 'cold']
+scripts = ['c30p10', 'c30p5', 'cold']
 params40 = (40.0, 14.18, 0.5,)
 params20 = (20.0, 13.93, 0.25,)
-tFuncs = [getTRollFunc(params40[0], 0.01, params40[1], params40[2]),
-          kentaDataTofLogRhoFit1(),          
+tFuncs = [#getTRollFunc(params40[0], 0.01, params40[1], params40[2]),
+          kentaDataTofLogRhoFit1(),
+          kentaDataTofLogRhoFit2(),
           #getTRollFunc(params20[0], 0.01, params20[1], params20[2]),
           lambda x: 0.01]
 ye = 'BetaEq'
@@ -50,7 +51,7 @@ for i, script in enumerate(scripts):
 
     xFunc = lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFunc) / 1.0e15
     #xFunc = lambda x: x
-    filters = ('ToverW<0.25',)
+    filters = ('ToverW<0.25', 'J<4.0')
 
     thisSet = cstDataset(script, eosName, ye, sourceDb)
     if script == 'c30p10':
@@ -62,8 +63,8 @@ for i, script in enumerate(scripts):
     for j, slicer in enumerate([tovSlice, uniformMaxRotSlice, a4, a5, diffMaxRotSlice]):
         thisSeq = cstSequence(thisSet, slicer, filters)
 
-        thisPlot = thisSeq.getSeqPlot(['edMax'], ['gravMass', 'baryMass', 'rpoe'], filters, xcolFunc=xFunc,
-                                      ycolFunc=lambda x, y, z: z)
+        thisPlot = thisSeq.getSeqPlot(['edMax'], ['gravMass', 'baryMass', 'J'], filters, xcolFunc=xFunc,
+                                      ycolFunc=lambda x, y, z: y)
 
         plert, = plt.semilogx(*thisPlot, c=colors[script], dashes=dashList[j], lw=(3+j)/2.0)
         pltsForLeg.append(plert)
@@ -80,14 +81,15 @@ locator = matplotlib.ticker.FixedLocator([0.5, 1.0, 2.5])
 if eosName == "HShenEOS":
     eosName = "HShen"
     plt.xlim([.4, 2.])
+    plt.text(1.5, 3.8, eosName, fontsize=26) # Mb shen
     locator = matplotlib.ticker.FixedLocator([0.4, 1.0, 2.0])
+else:
+    plt.text(1.9, 3.4, eosName, fontsize=26) # Mg LS220
 plt.gca().xaxis.set_major_locator(locator)
-#plt.text(1.5, 3.8, eosName, fontsize=26) # Mb shen
-plt.text(1.9, 3.4, eosName, fontsize=26) # Mg LS220
 plt.minorticks_on()
 plt.xlabel(r"$\rho_{\mathrm{{b, max}}$ [$10^{15}$ g cm$^{-3}$]", labelpad=10)
-#plt.ylabel("$M_\mathrm{b} \,\, [M_\odot]$", labelpad=6)
-plt.ylabel(r"$rpoe")
+plt.ylabel("$M_\mathrm{b} \,\, [M_\odot]$", labelpad=6)
+#plt.ylabel(r"$rpoe")
 
 #fixExponentialAxes()
 removeExponentialNotationOnAxis('x')

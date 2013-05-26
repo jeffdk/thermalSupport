@@ -24,7 +24,7 @@ theEos = eosDriver(shenEosTableFilename)
 ye = 'BetaEq'
 
 xVar = 'edMax'
-yVars = ['gravMass']
+yVars = ['gravMass', 'J']
 xLabel = r"$\rho_{b,\mathrm{max}}$ [g/cm$^3$]"
 #xLabel = r"$E_\mathrm{max}$"
 yLabel = "$M_g [M_\odot]$"
@@ -32,13 +32,14 @@ yLabel = "$M_g [M_\odot]$"
 #yLabel = "$J/M^2$"
 #yLabel = "$r_{p/e}$"
 #yLabel = "$\Omega_c$"
-yFunc = lambda x: x
+yFunc = lambda x,y: x
 
 a = 1.0
 
 tovSlice = {'a': 0.0, 'rpoe': 1.0}
 uniformMaxRotSlice = {'a': 0.0, 'rpoe': 'min'}
 theMaxRotSlice = {'a': a, 'rpoe': 'min'}
+mbLimit = 3.9
 mbLimit = 2.9
 filters = ('edMax>2.0e14', 'baryMass<%s' % mbLimit)
 
@@ -60,10 +61,10 @@ symbols = {'c30p0': 's',
            'c30p5': 'p',
            'c30p10': 'H',
            'cold': '*'}
-scriptsList = ['c40p0', 'cold']
+scriptsList = ['c40p0', 'c30p10', 'cold']
 cXXp0_params = [(40.0, 14.18, 0.5,)]  # , (30.0, 14.055, 0.375),  (20.0, 13.93, 0.25)]
 tempFuncs = [getTRollFunc(params[0], 0.01, params[1], params[2]) for params in cXXp0_params]
-# tempFuncs.append(kentaDataTofLogRhoFit1())
+tempFuncs.append(kentaDataTofLogRhoFit1())
 # tempFuncs.append(kentaDataTofLogRhoFit2())
 tempFuncs.append(lambda x: 0.01)
 tempFuncsDict = {scriptsList[i]: tempFuncs[i] for i in range(len(scriptsList))}
@@ -91,7 +92,10 @@ plotList = []
 for script in scriptsList:
     #xFunc = lambda x: theEos.rhobFromEnergyDensityWithTofRho(x, ye, tempFuncsDict[script])
     #xFunc = lambda x: x
-    thisSet = cstDataset(script, eosName, ye, sourceDb)
+    if script == 'c30p10':
+        thisSet = cstDataset(script, eosName, ye, '/home/jeff/work/rotNSruns/svdense30p10A.db')
+    else:
+        thisSet = cstDataset(script, eosName, ye, sourceDb)
     theEos.resetCachedBetaEqYeVsRhobs(tempFuncsDict[script], cacheMin, cacheMax)
     theEos.resetCachedRhobVsEds(tempFuncsDict[script], ye, cacheMin, cacheMax)
     xFunc = lambda x: theEos.rhobFromEdCached(x)

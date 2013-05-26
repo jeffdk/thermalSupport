@@ -36,7 +36,7 @@ a = 1.0
 rhobLS220 = 1.76316840586e+15
 rhobLS220 = 1.02632152932e+15
 #rhobLS220 = 7.10528763335e+14
-rhobLS220list = [5.00001621722e+14, 7.10528763335e+14, 8.15793628119e+14, 9.21058330611e+14]
+rhobLS220list = [5.00001621722e+14, 7.10528763335e+14, 8.27121852566e+14, 9.21058330611e+14]
 tovSlice = {'a': a, 'rpoe': 1.0}
 uniformMaxRotSlice = {'a': a, 'rpoe': 'min'}
 ls220Slice = {'edMax': 2.0333333333e+15, 'a': a}
@@ -95,13 +95,13 @@ for i, rhob in enumerate(rhobLS220list):
     for script in scriptsList:
 
         thisSet = cstDataset(script, eosName, ye, sourceDb)
-
+        thisSet.addEntriesFromDb('/home/jeff/work/rotNSruns/svdense30p10A.db')
         temp = tempFuncsDict[script](numpy.log10(rhob))
         theEos.setBetaEqState({'rho': rhob, 'temp': temp})
         ed = edFunc(numpy.log10(rhob), theEos.query('logenergy'))
         theSlice = {'edMax': ed, 'a': a}
 
-        print script, theEos.rhobFromEnergyDensityWithTofRho(535010038000000.0, ye, tempFuncsDict[script])
+        print script, theEos.rhobFromEnergyDensityWithTofRho(930195404500000.0, ye, tempFuncsDict[script])
 
         thisSeq = cstSequence(thisSet, theSlice, filters)
 
@@ -116,11 +116,12 @@ for i, rhob in enumerate(rhobLS220list):
         #          markeredgecolor=colors[script], dashes=(20, 5))
         del thisSet
         thisSet = cstDataset(script, eosName, ye, sourceDb)
+        thisSet.addEntriesFromDb('/home/jeff/work/rotNSruns/svdense30p10A.db')
         thisSeq = cstSequence(thisSet, theSlice, filters)
         #mbToroid = thisSeq.getSeqPlot([xVar], ['baryMass'], ('RedMax>0.0',), xcolFunc=lambda x: x/1000.0)
-        mgToroid = thisSeq.getSeqPlot([xVar], yVar, ('rpoe<0.5',), xcolFunc=xFunc, ycolFunc=yFunc)
-        if script == 'c30p10' and i == 2:
-            thisSet.addEntriesFromDb('/home/jeff/work/rotNSruns/svdense30p10A.db')
+        mgToroid = thisSeq.getSeqPlot([xVar], yVar, (), xcolFunc=xFunc, ycolFunc=yFunc)
+        if script == 'c30p10':
+
             plt.semilogy(*mgToroid, c=colors[script], marker=symbols[script], ms=6, lw=lineWidths[script],
             dashes=dashList[i], #markeredgecolor=colors[script],
             **labelKwarg)
