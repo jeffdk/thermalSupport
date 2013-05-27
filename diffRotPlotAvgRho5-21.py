@@ -36,7 +36,7 @@ a = 1.0
 rhobLS220 = 1.76316840586e+15
 rhobLS220 = 1.02632152932e+15
 #rhobLS220 = 7.10528763335e+14
-rhobLS220list = [5.00001621722e+14, 7.10528763335e+14,  9.21058330611e+14]
+rhobLS220list = [7.10528763335e+14,8.15793628119e+14 , 9.21058330611e+14]
 tovSlice = {'a': a, 'rpoe': 1.0}
 uniformMaxRotSlice = {'a': a, 'rpoe': 'min'}
 ls220Slice = {'edMax': 2.0333333333e+15, 'a': a}
@@ -91,6 +91,8 @@ filters = ('edMax>2e14',)
 #    coldTovSeq.getSeqPlot([xVar], [yVar], filters)
 #plt.semilogx(*coldTovPlot, c=colors['cold'], ls='--',  label="TOV")
 #del coldTovSet
+dashLeg = []
+dashPlotLeg =[]
 for i, rhob in enumerate(rhobLS220list):
     for script in scriptsList:
 
@@ -101,7 +103,7 @@ for i, rhob in enumerate(rhobLS220list):
         ed = edFunc(numpy.log10(rhob), theEos.query('logenergy'))
         theSlice = {'edMax': ed, 'a': a}
 
-        print script, theEos.rhobFromEnergyDensityWithTofRho(930195404500000.0, ye, tempFuncsDict[script])
+        print script, theEos.rhobFromEnergyDensityWithTofRho(915565489700000.0, ye, tempFuncsDict[script])
 
         thisSeq = cstSequence(thisSet, theSlice, filters)
 
@@ -110,8 +112,8 @@ for i, rhob in enumerate(rhobLS220list):
         labelKwarg = {}
         if i == 0:
             labelKwarg = {'label': script}
-        plt.plot(*mgPlot, c=colors[script],  ms=8, lw=lineWidths[script],
-                  dashes=dashList[i], **labelKwarg )      #markeredgecolor=colors[script],
+        plert, =plt.plot(*mgPlot, c=colors[script],  ms=8, lw=lineWidths[script],
+                         dashes=dashList[i])      #markeredgecolor=colors[script],
         # plt.plot(*mbPlot, c=colors[script],  ms=8, lw=lineWidths[script],
         #          markeredgecolor=colors[script], dashes=(20, 5))
         del thisSet
@@ -123,16 +125,18 @@ for i, rhob in enumerate(rhobLS220list):
         #if script == 'c30p10':
 
         plt.plot(*mgToroid, c=colors[script], marker=symbols[script], ms=6, lw=lineWidths[script],
-        dashes=dashList[i] #markeredgecolor=colors[script],
-        )
+        dashes=dashList[i], markeredgecolor=colors[script],
+        **labelKwarg )
         # plt.plot(*mbToroid, c=colors[script], marker=symbols[script], ms=6, lw=lineWidths[script],
         #          dashes=(20, 5), markeredgecolor=colors[script]
         # )
         del thisSet
 
     textPos = (0.7, 0.9 - 0.08 * i)
-    plt.annotate(r"$\rho_\mathrm{b, max}=$%s" % fixScientificNotation(rhob), textPos, xytext=textPos,
-                     xycoords='axes fraction', textcoords='axes fraction', fontsize=20)
+    dashPlotLeg.append(plert)
+    dashLeg.append(r"$\rho_\mathrm{b, max}=$%s" % fixScientificNotation(rhob))
+    # plt.annotate(r"$\rho_\mathrm{b, max}=$%s" % fixScientificNotation(rhob), textPos, xytext=textPos,
+    #                  xycoords='axes fraction', textcoords='axes fraction', fontsize=20)
 
 plt.xlabel(r"$\Omega_c$ [$10^3$ rad s$^{-1}$]", labelpad=10)
 #plt.axes().yaxis.set_minor_formatter(matplotlib.pyplot.FormatStrFormatter('%.0f'))
@@ -141,13 +145,17 @@ plt.ylabel("$\sim \\bar{E}$ [$10^{15}$ g cm$^{-3}$]", labelpad=5)
 plt.ylabel("$r_e$  [km]", labelpad=5)
 #plt.ylabel("$M_\mathrm{g}$ [$M_\odot$$]")
 #removeExponentialNotationOnAxis('y')
-plt.legend(loc=9)
+legend1 = plt.legend(loc=2, handletextpad=0.2)
 plt.minorticks_on()
 if eosName == "HShenEOS":
     eosName = "HShen"
 
-textPos = (0.7, 0.5)
-plt.annotate(eosName + ", $\\tilde{A}=%s$" % a, textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
+legend2 = plt.legend(dashPlotLeg, dashLeg, handlelength=3, handletextpad=0.2)
+
+plt.gca().add_artist(legend1)
+textPos = (0.65, 0.5)
+plt.annotate(eosName + " $\,\,\\tilde{A}=%s$" % a, textPos, xytext=textPos,
+             xycoords='axes fraction', textcoords='axes fraction',
              fontsize=26)
 #locator = matplotlib.ticker.FixedLocator([15, 20., 30.])
 #plt.gca().yaxis.set_major_locator(locator)

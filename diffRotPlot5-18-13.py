@@ -15,7 +15,7 @@ myfig.subplots_adjust(top=0.967)
 myfig.subplots_adjust(right=0.97)
 
 sourceDb = '/home/jeff/work/rotNSruns/allRuns3-25-13.db'
-#sourceDb = '/home/jeff/work/rotNSruns/vdenseBetaEqOnlyMoreC.db'
+sourceDb = '/home/jeff/work/rotNSruns/vdenseBetaEqOnlyMoreC.db'
 sourceDb = '/home/jeff/work/rotNSruns/omegaRuns5-21A.db'
 shedDb = '/home/jeff/work/rotNSruns/shedRuns4-24-13.db'
 shenEosTableFilename = '/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5'
@@ -31,9 +31,9 @@ yVar = 'baryMass'
 
 a = 1.0
 rhobLS220 = 1.76316840586e+15
-rhobLS220 = 1.02632152932e+15
-rhobLS220 = 7.10528763335e+14
-rhobLS220 = 5.00001621722e+14
+# rhobLS220 = 1.02632152932e+15
+# rhobLS220 = 7.10528763335e+14
+# rhobLS220 = 5.00001621722e+14
 rhobLS220 = 9.21058330611e+14
 tovSlice = {'a': a, 'rpoe': 1.0}
 uniformMaxRotSlice = {'a': a, 'rpoe': 'min'}
@@ -141,11 +141,19 @@ plt.minorticks_on()
 if eosName == "HShenEOS":
     eosName = "HShen"
 
-textPos = (0.35, 0.85)
-plt.annotate(eosName + ", a=%s" % a, textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
+textPos = (0.32, 0.85)
+plt.annotate(eosName + " $\,\,\\tilde{A}=%s$" % a, textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
              fontsize=26)
 textPos = (0.6, 0.1)
 plt.annotate(r"$\rho_\mathrm{b, max}=$%s" % fixScientificNotation(rhob), textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
-             fontsize=20)
+             fontsize=24)
+textPos = (0.7, 0.3)
+plt.annotate("$M_\mathrm{g}$",
+             textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
+             fontsize=26)
+textPos = (0.4, 0.55)
+plt.annotate("$M_\mathrm{b}$",
+             textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
+             fontsize=26)
 #plt.xlim(2, 9)
 plt.show()
