@@ -36,7 +36,7 @@ a = 1.0
 rhobLS220 = 1.76316840586e+15
 rhobLS220 = 1.02632152932e+15
 #rhobLS220 = 7.10528763335e+14
-rhobLS220list = [5.00001621722e+14, 7.10528763335e+14, 8.27121852566e+14, 9.21058330611e+14]
+rhobLS220list = [5.00001621722e+14, 7.10528763335e+14,  9.21058330611e+14]
 tovSlice = {'a': a, 'rpoe': 1.0}
 uniformMaxRotSlice = {'a': a, 'rpoe': 'min'}
 ls220Slice = {'edMax': 2.0333333333e+15, 'a': a}
@@ -95,7 +95,7 @@ for i, rhob in enumerate(rhobLS220list):
     for script in scriptsList:
 
         thisSet = cstDataset(script, eosName, ye, sourceDb)
-        thisSet.addEntriesFromDb('/home/jeff/work/rotNSruns/svdense30p10A.db')
+        #thisSet.addEntriesFromDb('/home/jeff/work/rotNSruns/svdense30p10A.db')
         temp = tempFuncsDict[script](numpy.log10(rhob))
         theEos.setBetaEqState({'rho': rhob, 'temp': temp})
         ed = edFunc(numpy.log10(rhob), theEos.query('logenergy'))
@@ -119,12 +119,12 @@ for i, rhob in enumerate(rhobLS220list):
         thisSet.addEntriesFromDb('/home/jeff/work/rotNSruns/svdense30p10A.db')
         thisSeq = cstSequence(thisSet, theSlice, filters)
         #mbToroid = thisSeq.getSeqPlot([xVar], ['baryMass'], ('RedMax>0.0',), xcolFunc=lambda x: x/1000.0)
-        mgToroid = thisSeq.getSeqPlot([xVar], yVar, (), xcolFunc=xFunc, ycolFunc=yFunc)
-        if script == 'c30p10':
+        mgToroid = thisSeq.getSeqPlot([xVar], yVar, ('RedMax>0.0',), xcolFunc=xFunc, ycolFunc=yFunc)
+        #if script == 'c30p10':
 
-            plt.semilogy(*mgToroid, c=colors[script], marker=symbols[script], ms=6, lw=lineWidths[script],
-            dashes=dashList[i], #markeredgecolor=colors[script],
-            **labelKwarg)
+        plt.plot(*mgToroid, c=colors[script], marker=symbols[script], ms=6, lw=lineWidths[script],
+        dashes=dashList[i] #markeredgecolor=colors[script],
+        )
         # plt.plot(*mbToroid, c=colors[script], marker=symbols[script], ms=6, lw=lineWidths[script],
         #          dashes=(20, 5), markeredgecolor=colors[script]
         # )
@@ -138,7 +138,7 @@ plt.xlabel(r"$\Omega_c$ [$10^3$ rad s$^{-1}$]", labelpad=10)
 #plt.axes().yaxis.set_minor_formatter(matplotlib.pyplot.FormatStrFormatter('%.0f'))
 #plt.axes().yaxis.set_major_formatter(matplotlib.pyplot.FormatStrFormatter('%.0f'))
 plt.ylabel("$\sim \\bar{E}$ [$10^{15}$ g cm$^{-3}$]", labelpad=5)
-plt.ylabel("$R_e$  [km]", labelpad=5)
+plt.ylabel("$r_e$  [km]", labelpad=5)
 #plt.ylabel("$M_\mathrm{g}$ [$M_\odot$$]")
 #removeExponentialNotationOnAxis('y')
 plt.legend(loc=9)
@@ -147,10 +147,10 @@ if eosName == "HShenEOS":
     eosName = "HShen"
 
 textPos = (0.7, 0.5)
-plt.annotate(eosName + ", a=%s" % a, textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
+plt.annotate(eosName + ", $\\tilde{A}=%s$" % a, textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
              fontsize=26)
-locator = matplotlib.ticker.FixedLocator([15, 20., 30.])
-plt.gca().yaxis.set_major_locator(locator)
+#locator = matplotlib.ticker.FixedLocator([15, 20., 30.])
+#plt.gca().yaxis.set_major_locator(locator)
 textPos = (0.6, 0.1)
 # plt.annotate(r"$\rho_\mathrm{b, max}=$%s" % fixScientificNotation(rhob), textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
 #              fontsize=20)
