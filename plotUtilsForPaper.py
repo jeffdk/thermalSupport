@@ -53,7 +53,7 @@ def removeExponentialNotationOnAxis(axis):
     assert axis == 'x' or axis == 'y'
     if axis == 'x':
         xlocs, xlabs = plt.xticks()
-        plt.xticks(xlocs, map(lambda x: '%.1f' % x, xlocs))
+        plt.xticks(xlocs, map(lambda x: '%.2f' % x, xlocs))
     if axis == 'y':
         ylocs, ylabs = plt.yticks()
         plt.yticks(ylocs, map(lambda y: '%.0f' % y, ylocs))
