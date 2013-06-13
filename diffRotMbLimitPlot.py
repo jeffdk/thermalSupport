@@ -40,11 +40,11 @@ tovSlice = {'a': 0.0, 'rpoe': 1.0}
 uniformMaxRotSlice = {'a': 0.0, 'rpoe': 'min'}
 theMaxRotSlice = {'a': a, 'rpoe': 'min'}
 mbLimit = 3.9
-mbLimit = 2.9
+mbLimit = 2.63
 filters = ('edMax>2.0e14', 'baryMass<%s' % mbLimit)
 
 aList = [0.0, 0.3, 0.6, 0.9, 1.1]
-#aList = [0.0, 1.1]
+aList = [0.0, 1.1]
 #aList = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 dashList = ['_', ':', '-.', '--', '-', '--', '-.', ':', '_', ':', '-.']
 dashList = [(None, None), (25, 4), (13, 5), (20, 4, 10, 6), (10, 3, 5, 5)]
@@ -70,7 +70,7 @@ tempFuncs = [getTRollFunc(params[0], 0.01, params[1], params[2]) for params in c
 # tempFuncs.append(kentaDataTofLogRhoFit2())
 tempFuncs.append(lambda x: 0.01)
 tempFuncsDict = {scriptsList[i]: tempFuncs[i] for i in range(len(scriptsList))}
-
+scriptsList = ['c40p0']
 
 #############################################################
 # First plot the curves
@@ -103,7 +103,7 @@ for script in scriptsList:
         if script == 'cold':
              kwargs = {'label': "$\\tilde{A}=%s$" % a}
 
-        plert, = plt.semilogx(*thisPlot, c=colors[script],
+        plert, = plt.plot(*thisPlot, c=colors[script],
                               dashes=dashList[i], lw=2.0*(2 + i)/3.0, **kwargs)
     plotList.append(plert)
     del thisSet
@@ -115,16 +115,20 @@ plt.minorticks_on()
 mb29tps = {'c40p0': {'1.1': [(1e-2, 1.05, 1.05,), (2.565, 2.565, 0)],
                      '0.0': [(1e-2, 1.260, 1.260), (2.560, 2.560, 0)]},
            'cold': {'1.1': [(1e-2, 1.055, 1.055,), (2.523, 2.523, 0)],
-                    '0.0': [(1e-2, 1.28, 1.28), (2.518, 2.518, 0)]},}
+                    '0.0': [(1e-2, 1.28, 1.28), (2.518, 2.518, 0)]}}
+if eosName == 'LS220':
+    mb29tps = {'c40p0': {'1.1': [(1e-2, 1.8, 1.8,), (2.565, 2.565, 0)],
+                     '0.0': [(1e-2, 1.260, 1.260), (2.560, 2.560, 0)]},
+           'cold': {'1.1': [(1e-2, 1.8, 1.8,), (2.523, 2.523, 0)],
+                    '0.0': [(1e-2, 1.28, 1.28), (2.518, 2.518, 0)]}}
+plt.plot(*mb29tps['c40p0']['1.1'], c='b', lw=3)
+plt.plot(*mb29tps['c40p0']['0.0'], c='b', lw=3)
 
-plt.plot(*mb29tps['c40p0']['1.1'], c='b', lw=1.5)
-plt.plot(*mb29tps['c40p0']['0.0'], c='b', lw=1.5)
-
-plt.plot(*mb29tps['cold']['1.1'], c='b', lw=1.5, dashes=(20,5))
-plt.plot(*mb29tps['cold']['0.0'], c='b', lw=1.5, dashes=(20,5))
+plt.plot(*mb29tps['cold']['1.1'], c='b', lw=3, dashes=(20,5))
+plt.plot(*mb29tps['cold']['0.0'], c='b', lw=3, dashes=(20,5))
 
 
-plt.ylim([2.51, 2.655])
+
 #plt.ylim([1.1, 4.15])
 locator = matplotlib.ticker.FixedLocator([0.5, 1.05, 1.30, 2.0])
 plt.gca().xaxis.set_major_locator(locator)
@@ -133,10 +137,15 @@ plt.xlim([.5, 2.0])
 plt.xlabel(xLabel, labelpad=6)
 plt.ylabel(yLabel, labelpad=5)
 
-
+limitString = "$\,\,\,M_\mathrm{b}<%s$" % mbLimit
 
 if eosName == "HShenEOS":
-    eosName = "HShen    $\,\,\,M_\mathrm{b}<%s$" % mbLimit
+    eosName = "HShen"
+    plt.ylim([2.51, 2.655])
+else:
+    plt.ylim([2.24, 2.34])
+    plt.xlim([1.0, 2.5])
+
 plt.text(.75, 2.605, eosName, fontsize=26)
 
 legend1 = plt.legend(loc=1, handlelength=3, labelspacing=0.2)

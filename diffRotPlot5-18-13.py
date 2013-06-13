@@ -16,7 +16,7 @@ myfig.subplots_adjust(right=0.97)
 
 sourceDb = '/home/jeff/work/rotNSruns/allRuns3-25-13.db'
 sourceDb = '/home/jeff/work/rotNSruns/vdenseBetaEqOnlyMoreC.db'
-sourceDb = '/home/jeff/work/rotNSruns/omegaRuns5-21A.db'
+sourceDb = '/home/jeff/work/rotNSruns/omegaRuns5-27B.db'
 shedDb = '/home/jeff/work/rotNSruns/shedRuns4-24-13.db'
 shenEosTableFilename = '/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5'
 ls220EosTableFilename = '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5'
@@ -29,7 +29,7 @@ ye = 'BetaEq'
 xVar = 'omega_c'
 yVar = 'baryMass'
 
-a = 1.0
+a = 0.0
 rhobLS220 = 1.76316840586e+15
 # rhobLS220 = 1.02632152932e+15
 # rhobLS220 = 7.10528763335e+14

@@ -60,7 +60,7 @@ def removeExponentialNotationOnAxis(axis):
         pass
 
 
-def fixScientificNotation(num):
+def fixScientificNotation(num, digits=3):
     """
     Given a number, returns a latex string leading digit \times 10^power
     e.g. in 1e+13, out "$1 \times 10^{13}$"
@@ -70,5 +70,9 @@ def fixScientificNotation(num):
     leading = str(numpy.round(num/10**power*100))[0]
     second = str(numpy.round(num/10**power*100))[1]
     third = str(numpy.round(num/10**power*100))[2]
-
-    return r"$%s.%s%s\times10^{%s}$" % (leading, second, third, power)
+    if digits == 3:
+        return r"$%s.%s%s\times10^{%s}$" % (leading, second, third, power)
+    elif digits == 2:
+        return r"$%s.%s\times10^{%s}$" % (leading, second, power)
+    else:
+        assert False, "# digits %s not supported" % digits

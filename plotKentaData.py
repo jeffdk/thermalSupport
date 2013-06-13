@@ -128,14 +128,14 @@ core40 = getTRollFunc(40.0, 0.01, 14.25 - 0.07, .5)
 lrs = numpy.log10([xaxisData['rho'][i] for i in range(len(xaxisData['rho'])) if xaxisData['d'][i] > 0.0])
 simTemps = [xaxisData['T'][i] for i in range(len(xaxisData['rho'])) if xaxisData['d'][i] > 0.0]
 lrsMore = numpy.array([15.1, 15.0, 14.9, 14.8] + lrs.tolist())
-fig.add_subplot(111).plot(lrs, simTemps, 'm',
+fig.add_subplot(111).plot(lrs, simTemps, 'k',
          lrsMore, core40(lrsMore), 'r',
          lrsMore, core30(lrsMore), 'g',
          lrsMore, core20(lrsMore), 'b',
-         lrsMore, plateau10(lrsMore), 'k',
+         lrsMore, plateau10(lrsMore), 'm',
          lrsMore, plateau5(lrsMore), 'c')
 legends = ["Sekiguchi et al.", "c40p0", "c30p0", "c20p0", "c30p10", "c30p5"]
-plt.xlabel(r"$\mathrm{log_{10}}(\rho_b$ [g cm$^{-3}$])", labelpad=12)
+plt.xlabel(r"$\mathrm{log_{10}}(\rho_\mathrm{b}$ [g cm$^{-3}$])", labelpad=12)
 plt.ylabel(r"$T$ [MeV]", labelpad=12)
 plt.legend(legends, bbox_to_anchor=(0, 0, .65, .92))
 plt.xlim([10.9, 15.0])
