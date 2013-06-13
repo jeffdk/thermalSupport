@@ -3,7 +3,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy
 from datasetManager import cstDataset, cstSequence, reduceTwoSeqPlots
-from maxMassOrigFiles.sqlPlotRoutines import equalsFiltersFromDict
+from maxMassOrigFiles.sqlPlotRoutines import equalsFiltersFromDict, nearValueFilter
 from plotUtilsForPaper import latexField, fixExponentialAxes, removeExponentialNotationOnAxis
 import plot_defaults
 #basics
@@ -39,12 +39,12 @@ a = 1.0
 tovSlice = {'a': 0.0, 'rpoe': 1.0}
 uniformMaxRotSlice = {'a': 0.0, 'rpoe': 'min'}
 theMaxRotSlice = {'a': a, 'rpoe': 'min'}
-mbLimit = 3.9
-mbLimit = 2.63
-filters = ('edMax>2.0e14', 'baryMass<%s' % mbLimit)
+mbLimit = 2.9
+#mbLimit = 2.63
+filters = nearValueFilter('baryMass', 2.9, 2.e-4) #('baryMass<%s' % mbLimit)
 
 aList = [0.0, 0.3, 0.6, 0.9, 1.1]
-aList = [0.0, 1.1]
+#aList = [0.0, 1.1]
 #aList = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 dashList = ['_', ':', '-.', '--', '-', '--', '-.', ':', '_', ':', '-.']
 dashList = [(None, None), (25, 4), (13, 5), (20, 4, 10, 6), (10, 3, 5, 5)]
@@ -70,14 +70,15 @@ tempFuncs = [getTRollFunc(params[0], 0.01, params[1], params[2]) for params in c
 # tempFuncs.append(kentaDataTofLogRhoFit2())
 tempFuncs.append(lambda x: 0.01)
 tempFuncsDict = {scriptsList[i]: tempFuncs[i] for i in range(len(scriptsList))}
-scriptsList = ['c40p0']
+#scriptsList = ['c40p0']
 
 #############################################################
 # First plot the curves
 #############################################################
 cacheMin = 14.0   # expected minimum log10(rhob) in runs
 cacheMax = 15.6   # expected maximum log10(rhob) in runs
-plotList = []
+plotListScriptLegend = []
+plotListALegend = []
 
 for script in scriptsList:
 #    break
@@ -103,19 +104,27 @@ for script in scriptsList:
         if script == 'cold':
              kwargs = {'label': "$\\tilde{A}=%s$" % a}
 
-        plert, = plt.plot(*thisPlot, c=colors[script],
+        plertA, = plt.plot(*thisPlot, c=colors[script],
                               dashes=dashList[i], lw=2.0*(2 + i)/3.0, **kwargs)
-    plotList.append(plert)
+        kwargs = {}
+        plertScript, = plt.plot(thisPlot[0][0], thisPlot[1][0], dashes=dashList[i], lw=2.0*(2 + i)/3.0,
+                    marker=symbols[script], c=colors[script], ms=9, **kwargs)
+        if thisPlot[0][-1] < 1.99:
+            plt.plot(thisPlot[0][-1], thisPlot[1][-1],
+                     marker=symbols[script], c=colors[script], ms=9)
+    if script == 'cold':
+        plotListALegend.append(plertA)
+    plotListScriptLegend.append(plertScript)
     del thisSet
 #############################################################
 # Then plot the turning point annotations
 #############################################################
 plt.minorticks_on()
 
-mb29tps = {'c40p0': {'1.1': [(1e-2, 1.05, 1.05,), (2.565, 2.565, 0)],
-                     '0.0': [(1e-2, 1.260, 1.260), (2.560, 2.560, 0)]},
-           'cold': {'1.1': [(1e-2, 1.055, 1.055,), (2.523, 2.523, 0)],
-                    '0.0': [(1e-2, 1.28, 1.28), (2.518, 2.518, 0)]}}
+mb29tps = {'c40p0': {'1.1': [(1e-2, 1.05, 1.05,), (2.5655, 2.5655, 0)],
+                     '0.0': [(1e-2, 1.263, 1.263), (2.561, 2.561, 0)]},
+           'cold': {'1.1': [(1e-2, 1.06, 1.06,), (2.523, 2.523, 0)],
+                    '0.0': [(1e-2, 1.28, 1.28), (2.5193, 2.5193, 0)]}}
 if eosName == 'LS220':
     mb29tps = {'c40p0': {'1.1': [(1e-2, 1.8, 1.8,), (2.565, 2.565, 0)],
                      '0.0': [(1e-2, 1.260, 1.260), (2.560, 2.560, 0)]},
@@ -129,7 +138,7 @@ plt.plot(*mb29tps['cold']['0.0'], c='b', lw=3, dashes=(20,5))
 
 
 
-#plt.ylim([1.1, 4.15])
+plt.ylim([2.511, 2.649])
 locator = matplotlib.ticker.FixedLocator([0.5, 1.05, 1.30, 2.0])
 plt.gca().xaxis.set_major_locator(locator)
 plt.xlim([.5, 2.0])
@@ -137,7 +146,7 @@ plt.xlim([.5, 2.0])
 plt.xlabel(xLabel, labelpad=6)
 plt.ylabel(yLabel, labelpad=5)
 
-limitString = "$\,\,\,M_\mathrm{b}<%s$" % mbLimit
+limitString = "$\,\,\,M_\mathrm{b}=%s\,\,M_\odot$" % mbLimit
 
 if eosName == "HShenEOS":
     eosName = "HShen"
@@ -146,10 +155,13 @@ else:
     plt.ylim([2.24, 2.34])
     plt.xlim([1.0, 2.5])
 
-plt.text(.75, 2.605, eosName, fontsize=26)
+plt.text(.85, 2.62, eosName, fontsize=26)
+plt.text(.85, 2.605, limitString, fontsize=26)
 
 legend1 = plt.legend(loc=1, handlelength=3, labelspacing=0.2)
 removeExponentialNotationOnAxis('x')
-legend2 = plt.legend(plotList, scriptsList, loc=9, labelspacing=0.5)
-plt.gca().add_artist(legend1)
+legend2 = plt.legend(plotListScriptLegend, scriptsList, loc=9, labelspacing=0.5)
+
+if 'cold' in scriptsList:
+    plt.gca().add_artist(legend1)
 plt.show()
