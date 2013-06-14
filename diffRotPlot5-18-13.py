@@ -29,7 +29,7 @@ ye = 'BetaEq'
 xVar = 'omega_c'
 yVar = 'baryMass'
 
-a = 0.0
+a = 1.0
 rhobLS220 = 1.76316840586e+15
 # rhobLS220 = 1.02632152932e+15
 # rhobLS220 = 7.10528763335e+14
@@ -144,8 +144,8 @@ if eosName == "HShenEOS":
 textPos = (0.32, 0.85)
 plt.annotate(eosName + " $\,\,\\tilde{A}=%s$" % a, textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
              fontsize=26)
-textPos = (0.6, 0.1)
-plt.annotate(r"$\rho_\mathrm{b, max}=$%s" % fixScientificNotation(rhob), textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
+textPos = (0.45, 0.075)
+plt.annotate(r"$\rho_\mathrm{b, max}=\,$%s $\,$ g cm$^{-3}$" % fixScientificNotation(rhob), textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
              fontsize=24)
 textPos = (0.7, 0.3)
 plt.annotate("$M_\mathrm{g}$",

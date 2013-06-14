@@ -23,7 +23,7 @@ rcParams['figure.subplot.bottom'] = 0.13
 rcParams['figure.subplot.top'] = 0.98
 
 eosName = 'HShenEOS'
-eosName = 'LS220'
+#eosName = 'LS220'
 
 ye = 'BetaEq'
 
@@ -160,12 +160,16 @@ if eosName == "HShenEOS":
 ax_mb.set_ylim(mb_ylims)
 ax_mb.set_xlim(xlims)
 ax_mg.set_ylim(mg_ylims)
-textPos = (0.3, 0.045)
-plt.annotate(eosName + ",  $\,\,\\tilde{A}=%s,\,\,$   $\\rho_\mathrm{b, max}=$%s" % (a, fixScientificNotation(rhob)),
+textPos = (0.45, 0.06)
+plt.annotate("$\\rho_\mathrm{b, max}=\,$%s $\,$ g cm$^{-3}$" % fixScientificNotation(rhob),
+             textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
+             fontsize=22)
+textPos = (0.66, 0.16)
+plt.annotate(eosName + "  $\,\,\\tilde{A}=%s\,\,$" % a,
              textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
              fontsize=22)
 
-textPos = (0.7, 0.3)
+textPos = (0.75, 0.38)
 plt.annotate("$M_\mathrm{g}$",
              textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
              fontsize=26)

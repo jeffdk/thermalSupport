@@ -134,7 +134,7 @@ for i, rhob in enumerate(rhobLS220list):
 
     textPos = (0.7, 0.9 - 0.08 * i)
     dashPlotLeg.append(plert)
-    dashLeg.append(r"$\rho_\mathrm{b, max}=$%s" % fixScientificNotation(rhob))
+    dashLeg.append(r"$\rho_\mathrm{b, max}=\,$%s $\,$ g cm$^{-3}$" % fixScientificNotation(rhob))
     # plt.annotate(r"$\rho_\mathrm{b, max}=$%s" % fixScientificNotation(rhob), textPos, xytext=textPos,
     #                  xycoords='axes fraction', textcoords='axes fraction', fontsize=20)
 
