@@ -6,7 +6,11 @@ from datasetManager import cstDataset, cstSequence
 import plot_defaults
 from plotUtilsForPaper import fixExponentialAxes, removeExponentialNotationOnAxis
 matplotlib.rcParams['figure.subplot.left'] = 0.15
-
+myfig = plt.figure(figsize=(10, 8))
+myfig.subplots_adjust(left=0.15)
+myfig.subplots_adjust(bottom=0.14)
+myfig.subplots_adjust(top=0.967)
+myfig.subplots_adjust(right=0.96)
 sourceDb = '/home/jeff/work/rotNSruns/vdenseBetaEqOnlyMoreC.db'
 tovSourceDb = '/home/jeff/work/rotNSruns/allRuns3-25-13.db'
 shenEosTableFilename = '/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5'
