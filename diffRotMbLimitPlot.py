@@ -29,7 +29,7 @@ xLabel = r"$\rho_{\mathrm{b,max}}$ [$10^{15}$ g cm$^{-3}$]"
 #xLabel = r"$E_\mathrm{max}$"
 yLabel = "$M_\mathrm{g} \,[M_\odot]$"
 #yLabel = "T - W"
-#yLabel = "$J/M^2$"
+yLabel = "$J$"#/M^2$"
 #yLabel = "$r_{p/e}$"
 #yLabel = "$\Omega_c$"
 yFunc = lambda x,y: x
@@ -39,9 +39,9 @@ a = 1.0
 tovSlice = {'a': 0.0, 'rpoe': 1.0}
 uniformMaxRotSlice = {'a': 0.0, 'rpoe': 'min'}
 theMaxRotSlice = {'a': a, 'rpoe': 'min'}
-mbLimit = 2.9
+mbLimit = 3.9
 #mbLimit = 2.63
-filters = nearValueFilter('baryMass', 2.9, 2.e-4) #('baryMass<%s' % mbLimit)
+filters = nearValueFilter('J', 3.9, 1.e-3) #('baryMass<%s' % mbLimit)
 
 aList = [0.0, 0.3, 0.6, 0.9, 1.1]
 #aList = [0.0, 1.1]
@@ -130,13 +130,13 @@ if eosName == 'LS220':
                      '0.0': [(1e-2, 1.260, 1.260), (2.560, 2.560, 0)]},
            'cold': {'1.1': [(1e-2, 1.8, 1.8,), (2.523, 2.523, 0)],
                     '0.0': [(1e-2, 1.28, 1.28), (2.518, 2.518, 0)]}}
-plt.plot(*mb29tps['c40p0']['1.1'], c='b', lw=3)
-plt.plot(*mb29tps['c40p0']['0.0'], c='b', lw=3)
-
-plt.plot(*mb29tps['cold']['1.1'], c='b', lw=3, dashes=(20,5))
-plt.plot(*mb29tps['cold']['0.0'], c='b', lw=3, dashes=(20,5))
-
-
+# plt.plot(*mb29tps['c40p0']['1.1'], c='b', lw=3)
+# plt.plot(*mb29tps['c40p0']['0.0'], c='b', lw=3)
+#
+# plt.plot(*mb29tps['cold']['1.1'], c='b', lw=3, dashes=(20,5))
+# plt.plot(*mb29tps['cold']['0.0'], c='b', lw=3, dashes=(20,5))
+#
+#
 
 plt.ylim([2.511, 2.649])
 locator = matplotlib.ticker.FixedLocator([0.5, 1.05, 1.30, 2.0])
