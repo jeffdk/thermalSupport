@@ -35,13 +35,17 @@ for script in scriptsList:
     c = thisSet.dbConn.cursor()
     c.execute("SELECT MAX(baryMass) FROM models")
     mb = c.fetchall()[0][0]
+    c.execute("SELECT MAX(gravMass) FROM models WHERE ToverW<0.25")
+    mg_max = c.fetchall()[0][0]
     filt = nearValueFilter('baryMass', mb, 1e-7)
     #print filt
-    c.execute("SELECT edMax,gravMass,baryMass,arealR,rpoe,omega_c,ToverW FROM models WHERE "
+    c.execute("SELECT edMax,baryMass,gravMass,arealR,rpoe,omega_c,ToverW FROM models WHERE "
               + " AND ".join(filt))
     values = c.fetchall()[0]
+    mg_at_maxMb = values[2]
     rhob = theEos.rhobFromEnergyDensityWithTofRho(values[0], ye, tempFuncsDict[script])
     print eosText + " " + script + "   ",
     print "& %2.3f & %2.3f & %2.3f & %2.3f & %2.3f & %2.3f & %2.3f\\\\" \
           % (rhob/1.e15, values[1], values[2], values[3], values[4], values[5]/1000.0, values[6])
+    #print 'MG FRACDIFF: ', (mg_max - mg_at_maxMb)/mg_max
     del thisSet
