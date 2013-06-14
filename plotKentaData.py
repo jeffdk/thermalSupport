@@ -114,7 +114,7 @@ xaxisData, xlabels = readFile('/home/jeff/work/Shen135135_x_v2.dat')
 #Paper temperature plot
 ##############################################################################
 fig = plt.figure(figsize=(10, 8))
-fig.subplots_adjust(left=0.124)
+fig.subplots_adjust(left=0.14)
 fig.subplots_adjust(bottom=0.14)
 fig.subplots_adjust(top=0.967)
 fig.subplots_adjust(right=0.97)
@@ -128,7 +128,9 @@ core40 = getTRollFunc(40.0, 0.01, 14.25 - 0.07, .5)
 lrs = numpy.log10([xaxisData['rho'][i] for i in range(len(xaxisData['rho'])) if xaxisData['d'][i] > 0.0])
 simTemps = [xaxisData['T'][i] for i in range(len(xaxisData['rho'])) if xaxisData['d'][i] > 0.0]
 lrsMore = numpy.array([15.1, 15.0, 14.9, 14.8] + lrs.tolist())
-fig.add_subplot(111).plot(lrs, simTemps, 'k',
+fig.add_subplot(111).plot(lrs, simTemps, plot_defaults.kotzbraun, lw=4, zorder=4,
+                          dashes=plot_defaults.longDashes)
+fig.add_subplot(111).plot(
          lrsMore, core40(lrsMore), 'r',
          lrsMore, core30(lrsMore), 'g',
          lrsMore, core20(lrsMore), 'b',

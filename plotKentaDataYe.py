@@ -18,6 +18,11 @@ rc('legend', fontsize=26) #16
 rcParams['ytick.major.size'] = 13
 rcParams['ytick.major.pad']  = 8
 rcParams['ytick.minor.size'] = 7
+fig = plt.figure(figsize=(10, 8))
+fig.subplots_adjust(left=0.14)
+fig.subplots_adjust(bottom=0.14)
+fig.subplots_adjust(top=0.967)
+fig.subplots_adjust(right=0.97)
 
 ##############################################################################
 # Load Shen EOS for ye comparisons
@@ -35,7 +40,8 @@ colors = {'c30p0': 'g',
           'c40p0': 'r',
           'cold': 'k',
           'c30p5': 'c',
-          'c30p10': 'm'}
+          'c30p10': 'm',
+          'sim': plot_defaults.kotzbraun}
 scripts = {key: [] for key in colors.keys()}
 scriptsList = ['c40p0', 'c30p0', 'c20p0', 'c30p10', 'c30p5', 'cold']
 cXXp0_params = [(40.0, 14.18, 0.5,), (30.0, 14.055, 0.375),  (20.0, 13.93, 0.25)]
@@ -51,7 +57,8 @@ def readFile(filename):
     data = {'d': [], 'rho': [], 'p': [], 's': [], 'T': [], 'Omega': [], 'ye': [], 'yeBetaEq': [],
             'yeBetaParamdTemp': [], 'tableP': [], 'betaP': [], 'constP': [], 'yeNuFull': [],
             'constP.08': [], 'constP.1': [], 'constP.12': [],
-            'yeBetaScripts': deepcopy(scripts), 'yeNuFullScripts': deepcopy(scripts)}
+            'yeBetaScripts': deepcopy(scripts), 'yeNuFullScripts': deepcopy(scripts),
+            'yeSimTempLess': [], 'yeSimTempFull': []}
     labels = {'d': None, 'rho': None, 'p': None, 's': None, 'T': None, 'Omega': None, 'ye': None,
               'yeBetaEq': "Ye in BetaEq", 'tableP': 'Simulation', 'betaP': 'BetaEq',
               'yeNuFull': "Ye in NuFull BetaEq",
@@ -68,7 +75,7 @@ def readFile(filename):
     labels['s'] = headers[4].replace('entropu[/', 'entropy [')
     labels['T'] = headers[5]
     labels['Omega'] = headers[6].replace('Omega', r'$\Omega$')
-    labels['ye'] = r"$Y_e$"
+    labels['ye'] = r"Y$_e$"
     print labels
     for row in infile.readlines():
         entries = row.split()
@@ -96,6 +103,12 @@ def readFile(filename):
             nuFullBetaYe = nuFullBetaYe * factor + (1.0 - factor) * betaYe
             answer['yeNuFullScripts'][script].append(nuFullBetaYe)
 
+        yeSimTempLess = theEos.setBetaEqState({'rho': rhob, 'temp': float(entries[4])})
+        yeSimTempFull = theEos.setNuFullBetaEqState({'rho': rhob, 'temp': float(entries[4])})
+
+        yeSimTempFull = yeSimTempFull * factor + (1.0 - factor) * yeSimTempLess
+        answer['yeSimTempLess'].append(yeSimTempLess)
+        answer['yeSimTempFull'].append(yeSimTempFull)
         # shen.setState({'rho': float(entries[1]),
         #                'temp': float(entries[4]),
         #                'ye': float(entries[6])})
@@ -252,7 +265,7 @@ xaxisData, xlabels = readFile('/home/jeff/work/Shen135135_x_v2.dat')
 # Plots vs density; func allows for transformations on X-AXIS data
 ##############################################################################
 for plotVar, func in [#('Omega', None), ('T', None), ('s', None), ('p', None),
-                      ('ye', None), ('ye', lambda rho: numpy.log10(rho))]:
+                      ('ye', lambda rho: numpy.log10(rho))]:
     yaxisLabel = xlabels[plotVar]
     xaxisLabel = xlabels['rho']
     legends = ['X-axis', 'Y-axis']
@@ -264,7 +277,11 @@ for plotVar, func in [#('Omega', None), ('T', None), ('s', None), ('p', None),
         print "Warning unknown function type, not modifying label!"
     plt.xlabel(xaxisLabel)
     plt.ylabel(yaxisLabel)#, labelpad=12)
-    plt.plot(func(xaxisData['rho']), xaxisData[plotVar], dashes=plot_defaults.longDashes)
+    plt.plot(func(xaxisData['rho']), xaxisData[plotVar], c=colors['sim'],
+             dashes=plot_defaults.longDashes, lw=4, zorder=4)
+    plt.plot(func(xaxisData['rho']), xaxisData['yeSimTempLess'], c=colors['sim'],
+             dashes=plot_defaults.goodDashDot, zorder=4)
+    plt.plot(func(xaxisData['rho']), xaxisData['yeSimTempFull'], c=colors['sim'], zorder=4)
     if plotBetaEq and plotVar == 'ye':
         legends += ['X-ax BetaEq', 'Y-ax BetaEq']
         theDict = deepcopy(xaxisData['yeBetaScripts'])
@@ -283,24 +300,31 @@ for plotVar, func in [#('Omega', None), ('T', None), ('s', None), ('p', None),
         scalePower = int(numpy.log10(var2))
         plt.ylabel(yaxisLabel + '/$10^{' + str(scalePower) + '}$')#, labelpad=12)
         plt.yticks(ylocs, map(lambda x: "%.1f" % x, ylocs / numpy.power(10.0, scalePower)))
-    if numpy.log10(rho2) > 2:
-        xlocs, xlabs = plt.xticks()
-        scalePower = int(numpy.log10(rho2))
-        plt.xlabel(xaxisLabel + '/$10^{' + str(scalePower) + '}$')
-        plt.xticks(xlocs, map(lambda x: "%.1f" % x, xlocs / numpy.power(10.0, scalePower)))
-    legend1 = plt.legend(loc=1, handletextpad=1)
+    #if numpy.log10(rho2) > 2:
+    xlocs, xlabs = plt.xticks()
+    #scalePower = int(numpy.log10(rho2))
+    #plt.xlabel(xaxisLabel + '/$10^{' + str(scalePower) + '}$')
+    #plt.xticks(xlocs, map(lambda x: "%.0f" % x, xlocs / numpy.power(10.0, scalePower)))
+    ax = plt.gca()
+    xminorLocator = plt.MultipleLocator(0.2)
+    xmajorLocator = plt.MultipleLocator(1)
+    ax.xaxis.set_major_locator(xmajorLocator)
+    ax.xaxis.set_minor_locator(xminorLocator)
+    legend1 = plt.legend(loc=1, handletextpad=.1)
     fig = plt.gcf()
     #fig.savefig("kentaPlots/shen135135_" + logStr + "rho_vs_" + plotVar + ".png")
     #fig.clf()
     p1, = plt.plot([1], [1], c='k')
     p2, = plt.plot([1], [1], c='k', ls='--', dashes=plot_defaults.goodDashDot)
-    p3, = plt.plot([1], [1], c='k', ls='--', dashes=plot_defaults.longDashes)
+    p3, = plt.plot([1], [1], c=colors['sim'], lw=4, ls='--', dashes=plot_defaults.longDashes)
     legend2 = plt.legend((p1, p2, p3), ("$\\nu$-full $\\beta$-eq.",
                                         "$\\nu$-less $\\beta$-eq.",
-                                        "Sekiguchi"),
-                                        loc=9, handletextpad=1)
+                                        "Sekiguchi et al."),
+                                        loc=9, handletextpad=.1)
     plt.gca().add_artist(legend1)
     plt.minorticks_on()
+    plt.xlim([10.9, 15.0])
+    plt.ylim([0.0, 0.36])
     plt.show()
 
 
