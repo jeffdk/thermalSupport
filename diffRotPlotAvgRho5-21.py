@@ -134,7 +134,7 @@ for i, rhob in enumerate(rhobLS220list):
 
     textPos = (0.7, 0.9 - 0.08 * i)
     dashPlotLeg.append(plert)
-    dashLeg.append(r"$\rho_\mathrm{b, max}=\,$%s $\,$ g cm$^{-3}$" % fixScientificNotation(rhob))
+    dashLeg.append(r"$\rho_\mathrm{b, max}=\,$%s$\,$g cm$^{-3}$" % fixScientificNotation(rhob))
     # plt.annotate(r"$\rho_\mathrm{b, max}=$%s" % fixScientificNotation(rhob), textPos, xytext=textPos,
     #                  xycoords='axes fraction', textcoords='axes fraction', fontsize=20)
 
@@ -150,13 +150,17 @@ plt.minorticks_on()
 if eosName == "HShenEOS":
     eosName = "HShen"
 
-legend2 = plt.legend(dashPlotLeg, dashLeg, handlelength=3, handletextpad=0.2)
+legend2 = plt.legend(dashPlotLeg, dashLeg, handlelength=2.4, handletextpad=0.2)
 
 plt.gca().add_artist(legend1)
-textPos = (0.65, 0.5)
-plt.annotate(eosName + " $\,\,\\tilde{A}=%s$" % a, textPos, xytext=textPos,
+textPos = (0.64, 0.6)
+plt.annotate(eosName, textPos, xytext=textPos,
              xycoords='axes fraction', textcoords='axes fraction',
-             fontsize=26)
+             fontsize=28)
+textPos = (0.64, 0.5)
+plt.annotate("$\\tilde{A}=%s$" % a, textPos, xytext=textPos,
+             xycoords='axes fraction', textcoords='axes fraction',
+             fontsize=28)
 #locator = matplotlib.ticker.FixedLocator([15, 20., 30.])
 #plt.gca().yaxis.set_major_locator(locator)
 textPos = (0.6, 0.1)

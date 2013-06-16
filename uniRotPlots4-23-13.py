@@ -17,8 +17,8 @@ tovSourceDb = '/home/jeff/work/rotNSruns/allRuns3-25-13.db'
 shenEosTableFilename = '/home/jeff/work/HShenEOS_rho220_temp180_ye65_version_1.1_20120817.h5'
 ls220EosTableFilename = '/home/jeff/work/LS220_234r_136t_50y_analmu_20091212_SVNr26.h5'
 
-eosName = 'LS220'
-theEos = eosDriver(ls220EosTableFilename)
+eosName = 'HShenEOS'
+theEos = eosDriver(shenEosTableFilename)
 ye = 'BetaEq'
 #yeForInversion = 0.1
 
@@ -95,24 +95,27 @@ plt.xlabel(r"$\rho_{\mathrm{b, max}}$ [g cm$^{-3}$]")
 #plt.axes().yaxis.set_minor_formatter(matplotlib.pyplot.FormatStrFormatter('%.0f'))
 #plt.axes().yaxis.set_major_formatter(matplotlib.pyplot.FormatStrFormatter('%.0f'))
 plt.ylabel("$M_\mathrm{b} \,\, [M_\odot]$", labelpad=5)
+#locator = matplotlib.ticker.FixedFormatter([0.5e15, 1.0e15, 2.0e15])
 #removeExponentialNotationOnAxis('y')
 plt.legend(loc=2)
 plt.xlim([3.0e14, 2.05e15])  # Mb LS220
-#plt.xlim([2.25e14, 2.05e15]) # Mb/Mg Shen
+plt.xlim([2.25e14, 2.05e15]) # Mb/Mg Shen
 #plt.ylim([0.2, 2.5])  # Mg LS220
 plt.ylim([0.2, 2.85])   # Mb LS220
-#plt.ylim([0.5, 3.07])   # Mb shen
+plt.ylim([0.5, 3.07])   # Mb shen
 #plt.ylim([0.5, 2.7])   # Mg shen
 if eosName == "HShenEOS":
     eosName = "HShen"
+
+#plt.gca().xaxis.set_major_formatter(locator)
 #plt.text(1.2e15, 1.5, eosName, fontsize=26) # Mg LS220
-plt.text(1.2e15, 1.8, eosName, fontsize=26)  # Mb LS220
-#plt.text(10 **15, 2.0, eosName, fontsize=26)  # Mb Shen
+#plt.text(1.2e15, 1.8, eosName, fontsize=26)  # Mb LS220
+plt.text(10 **15, 2.0, eosName, fontsize=26)  # Mb Shen
 #plt.text(10 **15, 1.8, eosName, fontsize=26)  # Mg Shen
 matplotlib.rc('xtick', labelsize=20)
 matplotlib.rc('xtick.major', pad=6)
 matplotlib.rc('ytick', labelsize=20)
-inset = plt.axes([0.55, 0.205, 0.39, 0.31])  # OTHER
+inset = plt.axes([0.53, 0.22, 0.41, 0.32])  # OTHER
 #inset = plt.axes([0.52, 0.22, 0.42, 0.31])  # Mg Shen
 for thePlot in plotList:
     #print thePlot
@@ -125,9 +128,9 @@ inset.xaxis.set_major_locator(locator)
 inset.xaxis.set_major_formatter(formatter)
 #inset.xaxis.set_label_text(fontsize=20)
 plt.xlim([10e14, 2.0e15])  # Mb/Mg LS220
-#plt.xlim([8e14, 1.6e15])  # Mg/Mb Shen
+plt.xlim([8e14, 1.6e15])  # Mg/Mb Shen
 #plt.ylim([2.25, 2.43])  # Mg LS220
 plt.ylim([2.25, 2.79])  # Mb LS220
-#plt.ylim([2.51, 3.05])  # Mb Shen
+plt.ylim([2.51, 3.05])  # Mb Shen
 #plt.ylim([2.53, 2.675])  # Mg Shen
 plt.show()

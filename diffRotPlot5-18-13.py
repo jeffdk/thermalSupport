@@ -142,11 +142,14 @@ if eosName == "HShenEOS":
     eosName = "HShen"
 
 textPos = (0.32, 0.85)
-plt.annotate(eosName + " $\,\,\\tilde{A}=%s$" % a, textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
-             fontsize=26)
+plt.annotate(eosName, textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
+             fontsize=28)
+textPos = (0.32, 0.74)
+plt.annotate("$\\tilde{A}=%s$" % a, textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
+             fontsize=28)
 textPos = (0.45, 0.075)
-plt.annotate(r"$\rho_\mathrm{b, max}=\,$%s $\,$ g cm$^{-3}$" % fixScientificNotation(rhob), textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
-             fontsize=24)
+plt.annotate(r"$\rho_\mathrm{b, max}=\,$%s$\,$g cm$^{-3}$" % fixScientificNotation(rhob), textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
+             fontsize=25)
 textPos = (0.7, 0.3)
 plt.annotate("$M_\mathrm{g}$",
              textPos, xytext=textPos, xycoords='axes fraction', textcoords='axes fraction',
