@@ -24,24 +24,24 @@ theEos = eosDriver(shenEosTableFilename)
 ye = 'BetaEq'
 
 xVar = 'edMax'
-yVars = ['gravMass', 'J']
+yVars = ['gravMass', 'rotT']
 xLabel = r"$\rho_{\mathrm{b,max}}$ [$10^{15}$ g cm$^{-3}$]"
 #xLabel = r"$E_\mathrm{max}$"
 yLabel = "$M_\mathrm{g} \,[M_\odot]$"
 #yLabel = "T - W"
-yLabel = "$J$"#/M^2$"
+yLabel = "$T$ \,[M_\odot]"#/M^2$"
 #yLabel = "$r_{p/e}$"
 #yLabel = "$\Omega_c$"
-yFunc = lambda x,y: x
+yFunc = lambda x,y: y
 
 a = 1.0
 
 tovSlice = {'a': 0.0, 'rpoe': 1.0}
 uniformMaxRotSlice = {'a': 0.0, 'rpoe': 'min'}
 theMaxRotSlice = {'a': a, 'rpoe': 'min'}
-mbLimit = 3.9
+mbLimit = 2.9
 #mbLimit = 2.63
-filters = nearValueFilter('J', 3.9, 1.e-3) #('baryMass<%s' % mbLimit)
+filters = nearValueFilter('baryMass', mbLimit, 1.e-3) #('baryMass<%s' % mbLimit)
 
 aList = [0.0, 0.3, 0.6, 0.9, 1.1]
 #aList = [0.0, 1.1]
@@ -157,10 +157,12 @@ else:
 
 plt.text(.85, 2.62, eosName, fontsize=26)
 plt.text(.85, 2.605, limitString, fontsize=26)
+plt.text(.85, .09, eosName, fontsize=26)
+plt.text(.85, .097, limitString, fontsize=26)
 
-legend1 = plt.legend(loc=1, handlelength=3, labelspacing=0.2)
+legend1 = plt.legend(loc=9, handlelength=3, labelspacing=0.2)
 removeExponentialNotationOnAxis('x')
-legend2 = plt.legend(plotListScriptLegend, scriptsList, loc=9, labelspacing=0.5)
+legend2 = plt.legend(plotListScriptLegend, scriptsList, loc=2, labelspacing=0.5)
 
 if 'cold' in scriptsList:
     plt.gca().add_artist(legend1)
